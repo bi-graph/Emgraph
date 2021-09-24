@@ -1,6 +1,21 @@
 from collections import defaultdict, namedtuple
 import pandas as pd
 
+def _features_from_attributes(node_type, ids, values, dtype):
+    # the size is the first element that has a length, or None if there's only None elements.
+    size = next((len(x) for x in values if x is not None), None)
+
+    num_nodes = len(ids)
+
+    if size is None:
+        # no features = zero-dimensional features, and skip the loop below
+        return zero_sized_array((num_nodes, 0), dtype)
+
+    default_value = np.zeros(size, dtype)
+
+    missing = []
+
+
 SingleTypeNodeIdsAndFeatures = namedtuple(
     "SingleTypeNodeIdsAndFeatures", ["ids", "features"]
 )
