@@ -1,5 +1,6 @@
 from collections import defaultdict, namedtuple
 import pandas as pd
+import numpy as np
 
 def _features_from_attributes(node_type, ids, values, dtype):
     # the size is the first element that has a length, or None if there's only None elements.
@@ -26,7 +27,10 @@ def _features_from_attributes(node_type, ids, values, dtype):
 
         return x
 
-
+    matrix = np.array(
+        [compute_value(node_id, x) for node_id, x in zip(ids, values)], dtype
+    )
+    assert matrix.shape == (num_nodes, size)
 
 
 SingleTypeNodeIdsAndFeatures = namedtuple(
