@@ -15,6 +15,19 @@ def _features_from_attributes(node_type, ids, values, dtype):
 
     missing = []
 
+    def compute_value(node_id, x):
+        if x is None:
+            missing.append(node_id)
+            return default_value
+        elif len(x) != size:
+            raise ValueError(
+                f"inferred all nodes of type {node_type!r} to have feature dimension {size}, found dimension {len(x)}"
+            )
+
+        return x
+
+
+
 
 SingleTypeNodeIdsAndFeatures = namedtuple(
     "SingleTypeNodeIdsAndFeatures", ["ids", "features"]
