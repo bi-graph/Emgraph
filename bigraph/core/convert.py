@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict, namedtuple
 import pandas as pd
 import numpy as np
@@ -32,6 +33,15 @@ def _features_from_attributes(node_type, ids, values, dtype):
     )
     assert matrix.shape == (num_nodes, size)
 
+    if missing:
+        # user code is 5 frames above the warnings.warn call
+        stacklevel = 5
+        warnings.warn(
+            f"found the following nodes (of type {node_type!r}) without features, using {size}-dimensional zero vector: {comma_sep(missing)}",
+            stacklevel=stacklevel,
+        )
+
+    return matrix
 
 SingleTypeNodeIdsAndFeatures = namedtuple(
     "SingleTypeNodeIdsAndFeatures", ["ids", "features"]
