@@ -3,6 +3,54 @@ from collections import defaultdict, namedtuple
 import pandas as pd
 import numpy as np
 
+
+def separated(values, *, limit, stringify, sep):
+    """
+    Print ``limit`` values with a specified seperator.
+
+    Args:
+        values (list): the values to print
+        limit (optional, int): the maximum number of values to print (None for no limit)
+        stringify (callable): a function to use to convert values to strings
+        sep (str): the separator to use between elements (and the "... (NNN more)" continuation)
+    """
+    count = len(values)
+    if limit is not None and count > limit:
+        values = values[:limit]
+        continuation = f"{sep}... ({count - limit} more)" if count > limit else ""
+    else:
+        continuation = ""
+
+    rendered = sep.join(stringify(x) for x in values)
+    return rendered + continuation
+
+def comma_sep(values, limit=20, stringify=repr):
+    """
+    Print up to ``limit`` values, comma separated.
+
+    Args:
+        values (list): the values to print
+        limit (optional, int): the maximum number of values to print (None for no limit)
+        stringify (callable): a function to use to convert values to strings
+    """
+    return separated(values, limit=limit, stringify=stringify, sep=", ")
+
+def zero_sized_array(shape, dtype):
+    """
+    Create an empty array.
+
+    Args:
+        shape (tuple): a shape tuple that contains at least one 0
+
+    Returns:
+        A NumPy array that contains no elements, and has a small allocation.
+    """
+    if 0 not in shape:
+        raise ValueError("shape: expected at least one zero, found {shape}")
+
+    dtype = np.dtype(dtype)
+    return np.broadcast_to(dtype.type(), shape)
+
 def _features_from_attributes(node_type, ids, values, dtype):
     # the size is the first element that has a length, or None if there's only None elements.
     size = next((len(x) for x in values if x is not None), None)
