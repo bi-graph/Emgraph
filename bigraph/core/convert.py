@@ -1,5 +1,7 @@
 import warnings
 from collections import defaultdict, namedtuple
+from typing import Iterable
+
 import pandas as pd
 import numpy as np
 
@@ -146,6 +148,16 @@ def _features_from_node_data(nodes, node_type_default, data, dtype):
         return _features_from_node_data(
             nodes, node_type_default, {node_type: data}, dtype
         )
+
+    elif isinstance(data, (Iterable, list)):
+        id_to_data = dict(data)
+        return {
+            node_type: pd.DataFrame(
+                (id_to_data[x] for x in node_info.ids), index=node_info.ids, dtype=dtype
+            )
+            for node_type, node_info in nodes.items()
+        }
+
 
 
 
