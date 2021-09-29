@@ -136,6 +136,17 @@ def _features_from_node_data(nodes, node_type_default, data, dtype):
 
         return {node_type: single(node_type) for node_type in nodes.keys()}
 
+    elif isinstance(data, pd.DataFrame):
+        if len(nodes) > 1:
+            raise TypeError(
+                "When there is more than one node type, pass node features as a dictionary."
+            )
+
+        node_type = next(iter(nodes), node_type_default)
+        return _features_from_node_data(
+            nodes, node_type_default, {node_type: data}, dtype
+        )
+
 
 
 SingleTypeNodeIdsAndFeatures = namedtuple(
