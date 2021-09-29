@@ -91,6 +91,53 @@ def _features_from_attributes(node_type, ids, values, dtype):
 
     return matrix
 
+def _features_from_node_data(nodes, node_type_default, data, dtype):
+    if isinstance(data, dict):
+
+        def single(node_type):
+            node_info = nodes[node_type]
+            try:
+                this_data = data[node_type]
+            except KeyError:
+                # no data specified for this type, so len(feature vector) = 0 for each node (this
+                # uses a range index for columns, to match the behaviour of the other feature
+                # converters here, that build DataFrames from NumPy arrays even when there's no
+                # data, i.e. array.shape = (num nodes, 0))
+                this_data = pd.DataFrame(columns=range(0), index=node_info.ids)
+
+            if isinstance(this_data, pd.DataFrame):
+                df = this_data.astype(dtype, copy=False)
+            elif isinstance(this_data, (Iterable, list)):
+                # this functionality is a bit peculiar (Pandas is generally nicer), and is
+                # undocumented. Consider deprecating and removing it.
+                ids, values = zip(*this_data)
+                df = pd.DataFrame(values, index=ids, dtype=dtype)
+            else:
+                raise TypeError(
+                    f"node_features[{node_type!r}]: expected DataFrame or iterable, found {type(this_data).__name__}"
+                )
+
+            graph_ids = set(node_info.ids)
+            data_ids = set(df.index)
+            if graph_ids != data_ids:
+                parts = []
+                missing = graph_ids - data_ids
+                if missing:
+                    parts.append(f"missing from data ({comma_sep(list(missing))})")
+                extra = data_ids - graph_ids
+                if extra:
+                    parts.append(f"extra in data ({comma_sep(list(extra))})")
+                message = " and ".join(parts)
+                raise ValueError(
+                    f"node_features[{node_type!r}]: expected feature node IDs to exactly match nodes in graph; found: {message}"
+                )
+
+            return df
+
+        return {node_type: single(node_type) for node_type in nodes.keys()}
+
+
+
 SingleTypeNodeIdsAndFeatures = namedtuple(
     "SingleTypeNodeIdsAndFeatures", ["ids", "features"]
 )
