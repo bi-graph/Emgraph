@@ -5,6 +5,23 @@ from typing import Iterable
 import pandas as pd
 import numpy as np
 
+FEATURE_ATTR_NAME = "feature"
+TARGET_ATTR_NAME = "target"
+TYPE_ATTR_NAME = "label"
+UNKNOWN_TARGET_ATTRIBUTE = "-1"
+NODE_TYPE_DEFAULT = "default"
+EDGE_TYPE_DEFAULT = "default"
+
+SOURCE = "source"
+TARGET = "target"
+WEIGHT = "weight"
+
+NEO4J_ID_PROPERTY = "ID"
+NEO4J_FEATURES_PROPERTY = "features"
+
+DEFAULT_WEIGHT = np.float32(1)
+
+
 
 def separated(values, *, limit, stringify, sep):
     """
@@ -207,3 +224,14 @@ def from_networkx(
         node_frames = _features_from_node_data(
             nodes, node_type_default, node_features, dtype
         )
+
+    edges = nx.to_pandas_edgelist(graph, source=SOURCE, target=TARGET)
+    _fill_or_assign(edges, edge_type_attr, edge_type_default)
+    _fill_or_assign(edges, edge_weight_attr, DEFAULT_WEIGHT)
+    edges_limited_columns = edges[[SOURCE, TARGET, edge_type_attr, edge_weight_attr]]
+    edge_frames = {
+        edge_type: data.drop(columns=edge_type_attr)
+        for edge_type, data in edges_limited_columns.groupby(edge_type_attr)
+    }
+
+    return node_frames, edge_frames
