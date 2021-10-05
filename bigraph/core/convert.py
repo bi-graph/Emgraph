@@ -186,6 +186,12 @@ SingleTypeNodeIdsAndFeatures = namedtuple(
 def _empty_node_info() -> SingleTypeNodeIdsAndFeatures:
     return SingleTypeNodeIdsAndFeatures([], [])
 
+def _fill_or_assign(df, column, default):
+    if column in df.columns:
+        df.fillna({column: default}, inplace=True)
+    else:
+        df[column] = default
+
 def from_networkx(
     graph,
     *,
