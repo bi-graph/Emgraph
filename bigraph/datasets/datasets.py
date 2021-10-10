@@ -27,6 +27,6 @@ def load_from_csv(directory_path, file_name, sep='\t', header=None, add_reciproc
         df_reciprocal.iloc[:, 1] = df_reciprocal.iloc[:, 1] + "_reciprocal"
 
         # append to original triples
-        triples_df = df.append(df_reciprocal)
+        df = df.append(df_reciprocal)
 
     return df.values
