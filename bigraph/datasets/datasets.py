@@ -22,6 +22,14 @@ def load_from_csv(directory_path, file_name, sep='\t', header=None, add_reciproc
 
 
 def _add_reciprocal_relations(tri_df):
+    """
+    Add reciprocal relations to the triples.
+
+    :param tri_df: Dataframe
+        Dataframe of triples
+    :return: Dataframe
+        Dataframe of triples and their reciprocals
+    """
 
     df_reciprocal = tri_df.copy()
     # swap subjects and objects
