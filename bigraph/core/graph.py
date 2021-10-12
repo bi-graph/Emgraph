@@ -33,6 +33,37 @@ class Graph:
         edge_type_name=TYPE_ATTR_NAME,
         node_features=None,
     ):
+        """
+
+        :param nodes:
+        :type nodes:
+        :param edges:
+        :type edges:
+        :param is_directed:
+        :type is_directed:
+        :param source_column:
+        :type source_column:
+        :param target_column:
+        :type target_column:
+        :param edge_weight_column:
+        :type edge_weight_column:
+        :param edge_type_column:
+        :type edge_type_column:
+        :param node_type_default:
+        :type node_type_default:
+        :param edge_type_default:
+        :type edge_type_default:
+        :param dtype:
+        :type dtype:
+        :param graph:
+        :type graph:
+        :param node_type_name:
+        :type node_type_name:
+        :param edge_type_name:
+        :type edge_type_name:
+        :param node_features:
+        :type node_features:
+        """
         import networkx
 
         if isinstance(nodes, networkx.Graph):
