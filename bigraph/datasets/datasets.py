@@ -6,6 +6,18 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+BIGRAPH_ENV_NAME = 'AMPLIGRAPH_DATA_HOME'
+
+def _get_data_home(data_home=None):
+    if data_home is None:
+        data_home = os.environ.get(BIGRAPH_ENV_NAME, os.path.join(os.getcwd(), 'bigraph_datasets'))
+
+    data_home = os.path.expanduser(data_home)
+    if not os.path.exists(data_home):
+        os.makedirs(data_home)
+    logger.debug('data_home is set to {}'.format(data_home))
+    return data_home
+
 def _fetch_dataset(remote, data_home=None, check_md5hash=False):
     data_home = _get_data_home(data_home)
     dataset_dir = os.path.join(data_home, remote.dataset_name)

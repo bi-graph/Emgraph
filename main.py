@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import networkx as nx
@@ -23,10 +24,14 @@ def main():
     start_time = datetime.now()
 
     print('Running...', "\n")
-    df, df_nodes = import_files()
-    G = make_graph(df)
-    graphEdges = G.edges
-    print(G.__dict__)
+    data_home = os.environ.get("aadir", os.path.join(os.getcwd(), 'ampligraph_datasets'))
+    print(data_home)
+    data_home = os.path.expanduser(data_home)
+    print(data_home)
+    # df, df_nodes = import_files()
+    # G = make_graph(df)
+    # graphEdges = G.edges
+    # print(G.__dict__)
     # print(set(n for n,d in G.nodes(data=True)))# if d['bipartite']==0))
 
     # nx.write_gexf(G, './outputs/graph.gexf')
@@ -40,21 +45,21 @@ def main():
     #               f, indent=4)
     # print("num of nodes: {}\nnum of edges: {}".format( G.nodes.__len__(), G.edges.__len__()))
     # print("num of SNP: {}\nnum of Cancer: {}".format({n for n, d in G.nodes(data=True) if d['bipartite']==0}.__len__(), {n for n, d in G.nodes(data=True) if d['bipartite']==1}.__len__()))
-    snp = {n for n, d in G.nodes(data=True) if d['bipartite'] == 0}.__len__()
-    cancer = {n for n, d in G.nodes(data=True) if d['bipartite'] == 1}.__len__()
-    headers = ['Number of nodes', 'Number of edges', 'SNP', 'Cancer']
-    table = [[G.nodes.__len__(), G.edges.__len__(), snp, cancer]]
-    print(tabulate(table, headers, tablefmt="fancy_grid"))
+    # snp = {n for n, d in G.nodes(data=True) if d['bipartite'] == 0}.__len__()
+    # cancer = {n for n, d in G.nodes(data=True) if d['bipartite'] == 1}.__len__()
+    # headers = ['Number of nodes', 'Number of edges', 'SNP', 'Cancer']
+    # table = [[G.nodes.__len__(), G.edges.__len__(), snp, cancer]]
+    # print(tabulate(table, headers, tablefmt="fancy_grid"))
     # clustering_coefficient = nx.algorithms.bipartite.average_clustering(G)
     # print("\nclustering coefficient: ", clustering_coefficient)
-    print(nx.number_connected_components(G))
+    # print(nx.number_connected_components(G))
     # evaluation_result = ev.evaluate(G, k=4, method='cn')
     # df = pd.DataFrame(evaluation_result)
     # print(df)
-    pr.cn_predict(G)
-    pr.jc_predict(G)
-    pr.aa_predict(G)
-    pr.pa_predict(G)
+    # pr.cn_predict(G)
+    # pr.jc_predict(G)
+    # pr.aa_predict(G)
+    # pr.pa_predict(G)
 
 
 if __name__ == '__main__':
