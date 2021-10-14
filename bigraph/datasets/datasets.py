@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import logging
 
@@ -5,7 +7,16 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 def _fetch_dataset(remote, data_home=None, check_md5hash=False):
-    pass
+    data_home = _get_data_home(data_home)
+    dataset_dir = os.path.join(data_home, remote.dataset_name)
+    if not os.path.exists(dataset_dir):
+        if remote.url is None:
+            msg = 'No dataset at {} and no url provided.'.format(dataset_dir)
+            logger.error(msg)
+            raise Exception(msg)
+
+        _fetch_remote_data(remote, dataset_dir, data_home, check_md5hash)
+    return dataset_dir
 
 def _add_reciprocal_relations(tri_df):
     """
