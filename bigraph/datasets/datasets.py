@@ -4,17 +4,40 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+def _fetch_dataset(remote, data_home=None, check_md5hash=False):
+    pass
+
+def _add_reciprocal_relations(tri_df):
+    """
+    Add reciprocal relations to the triples.
+
+    :param tri_df: Dataframe of triples
+    :type tri_df: Dataframe
+    :return: Dataframe of triples and their reciprocals
+    :rtype: Dataframe
+    """
+    df_reciprocal = tri_df.copy()
+    # swap subjects and objects
+    cols = list(df_reciprocal.columns)
+    cols[0], cols[2] = cols[2], cols[0]
+    df_reciprocal.columns = cols
+    # add reciprocal relations
+    df_reciprocal.iloc[:, 1] = df_reciprocal.iloc[:, 1] + "_reciprocal"
+    # append to original triples
+    tri_df = tri_df.append(df_reciprocal)
+    return tri_df
+
 
 def load_from_csv(directory_path, file_name, sep='\t', header=None, add_reciprocal_rels=False):
     """
     Load data from a CSV file as:
-    ... code-block:: text
+    .. code-block:: text
 
        subj1    relation1   obj1
        subj1    relation2   obj2
        subj3    relation3   obj2
        subj4    relation1   obj2
-   ...
+    ...
 
     :param directory_path: Input directory path
     :type directory_path: str
@@ -44,23 +67,3 @@ def load_from_csv(directory_path, file_name, sep='\t', header=None, add_reciproc
 
     return df.values
 
-
-def _add_reciprocal_relations(tri_df):
-    """
-    Add reciprocal relations to the triples.
-
-    :param tri_df: Dataframe of triples
-    :type tri_df: Dataframe
-    :return: Dataframe of triples and their reciprocals
-    :rtype: Dataframe
-    """
-    df_reciprocal = tri_df.copy()
-    # swap subjects and objects
-    cols = list(df_reciprocal.columns)
-    cols[0], cols[2] = cols[2], cols[0]
-    df_reciprocal.columns = cols
-    # add reciprocal relations
-    df_reciprocal.iloc[:, 1] = df_reciprocal.iloc[:, 1] + "_reciprocal"
-    # append to original triples
-    tri_df = tri_df.append(df_reciprocal)
-    return tri_df
