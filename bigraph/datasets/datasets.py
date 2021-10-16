@@ -1,5 +1,6 @@
 import os
 import urllib
+import zipfile
 from pathlib import Path
 
 import pandas as pd
@@ -19,6 +20,25 @@ def _get_data_home(data_home=None):
         os.makedirs(data_home)
     logger.debug('data_home is set to {}'.format(data_home))
     return data_home
+
+def _unzip_dataset(remote, source, destination, check_md5hash=False):
+    # TODO - add error checking
+    with zipfile.ZipFile(source, 'r') as zip_ref:
+        logger.debug('Unzipping {} to {}'.format(source, destination))
+        zip_ref.extractall(destination)
+    if check_md5hash:
+        for file_name, remote_checksum in [[remote.train_name, remote.train_checksum],
+                                           [remote.valid_name, remote.valid_checksum],
+                                           [remote.test_name, remote.test_checksum]]:
+            file_path = os.path.join(destination, remote.dataset_name, file_name)
+            checksum = _md5(file_path)
+            if checksum != remote_checksum:
+                os.remove(source)
+                msg = '{} has an md5 checksum of ({}) which is different from the expected ({}), ' \
+                      'the file may be corrupted.'.format(file_path, checksum, remote_checksum)
+                logger.error(msg)
+                raise IOError(msg)
+    os.remove(source)
 
 def _fetch_remote_data(remote, download_dir, data_home, check_md5hash=False):
 
