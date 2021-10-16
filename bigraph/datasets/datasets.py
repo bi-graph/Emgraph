@@ -1,4 +1,6 @@
 import os
+import urllib
+from pathlib import Path
 
 import pandas as pd
 import logging
@@ -17,6 +19,14 @@ def _get_data_home(data_home=None):
         os.makedirs(data_home)
     logger.debug('data_home is set to {}'.format(data_home))
     return data_home
+
+def _fetch_remote_data(remote, download_dir, data_home, check_md5hash=False):
+
+    file_path = '{}.zip'.format(download_dir)
+    if not Path(file_path).exists():
+        urllib.request.urlretrieve(remote.url, file_path)
+        # TODO - add error checking
+    _unzip_dataset(remote, file_path, data_home, check_md5hash)
 
 def _fetch_dataset(remote, data_home=None, check_md5hash=False):
     data_home = _get_data_home(data_home)
