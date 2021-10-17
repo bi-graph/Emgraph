@@ -1,3 +1,4 @@
+import hashlib
 import os
 import urllib
 import zipfile
@@ -20,6 +21,16 @@ def _get_data_home(data_home=None):
         os.makedirs(data_home)
     logger.debug('data_home is set to {}'.format(data_home))
     return data_home
+
+def _md5(file_path):
+    md5hash = hashlib.md5()
+    chunk_size = 4096
+    with open(file_path, 'rb') as f:
+        content_buffer = f.read(chunk_size)
+        while content_buffer:
+            md5hash.update(content_buffer)
+            content_buffer = f.read(chunk_size)
+    return md5hash.hexdigest()
 
 def _unzip_dataset(remote, source, destination, check_md5hash=False):
     # TODO - add error checking
