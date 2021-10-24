@@ -131,3 +131,23 @@ def load_from_csv(directory_path, file_name, sep='\t', header=None, add_reciproc
 
     return df.values
 
+def _load_dataset(dataset_metadata, data_home=None, check_md5hash=False, add_reciprocal_rels=False):
+
+    if dataset_metadata.dataset_name is None:
+        if dataset_metadata.url is None:
+            raise ValueError('The dataset name or url must be provided to load a dataset.')
+        dataset_metadata.dataset_name = dataset_metadata.url[dataset_metadata.url.rfind('/') + 1:dataset_metadata
+                                                             .url.rfind('.')]
+    dataset_path = _fetch_dataset(dataset_metadata, data_home, check_md5hash)
+
+    train = load_from_csv(dataset_path,
+                          dataset_metadata.train_name,
+                          add_reciprocal_rels=add_reciprocal_rels)
+    valid = load_from_csv(dataset_path,
+                          dataset_metadata.valid_name,
+                          add_reciprocal_rels=add_reciprocal_rels)
+    test = load_from_csv(dataset_path,
+                         dataset_metadata.test_name,
+                         add_reciprocal_rels=add_reciprocal_rels)
+
+    return {'train': train, 'valid': valid, 'test': test}
