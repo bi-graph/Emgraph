@@ -5,6 +5,7 @@ import zipfile
 from collections import namedtuple
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import logging
 
@@ -14,6 +15,34 @@ logger.setLevel(logging.DEBUG)
 BIGRAPH_ENV_NAME = 'BIGRAPH_DATA_HOME'
 DatasetMetadata = namedtuple('DatasetMetadata', ['dataset_name', 'filename', 'url', 'train_name', 'valid_name',
                                                  'test_name', 'train_checksum', 'valid_checksum', 'test_checksum'])
+
+
+def _clean_data(X, return_idx=False):
+
+    if X["train"].shape[1] == 3:
+        columns = ['s', 'p', 'o']
+    else:
+        columns = ['s', 'p', 'o', 'w']
+
+    train = pd.DataFrame(X["train"], columns=columns)
+    valid = pd.DataFrame(X["valid"], columns=columns)
+    test = pd.DataFrame(X["test"], columns=columns)
+
+    train_ent = np.unique(np.concatenate((train.s, train.o)))
+    train_rel = train.p.unique()
+
+    valid_idx = valid.s.isin(train_ent) & valid.o.isin(train_ent) & valid.p.isin(train_rel)
+    test_idx = test.s.isin(train_ent) & test.o.isin(train_ent) & test.p.isin(train_rel)
+
+    filtered_valid = valid[valid_idx].values
+    filtered_test = test[test_idx].values
+
+    filtered_X = {'train': train.values, 'valid': filtered_valid, 'test': filtered_test}
+
+    if return_idx:
+        return filtered_X, valid_idx, test_idx
+    else:
+        return filtered_X
 
 def _get_data_home(data_home=None):
     if data_home is None:
