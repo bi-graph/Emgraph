@@ -2,6 +2,7 @@ import hashlib
 import os
 import urllib
 import zipfile
+from collections import namedtuple
 from pathlib import Path
 
 import pandas as pd
@@ -10,7 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-BIGRAPH_ENV_NAME = 'AMPLIGRAPH_DATA_HOME'
+BIGRAPH_ENV_NAME = 'BIGRAPH_DATA_HOME'
+DatasetMetadata = namedtuple('DatasetMetadata', ['dataset_name', 'filename', 'url', 'train_name', 'valid_name',
+                                                 'test_name', 'train_checksum', 'valid_checksum', 'test_checksum'])
 
 def _get_data_home(data_home=None):
     if data_home is None:
@@ -151,3 +154,24 @@ def _load_dataset(dataset_metadata, data_home=None, check_md5hash=False, add_rec
                          add_reciprocal_rels=add_reciprocal_rels)
 
     return {'train': train, 'valid': valid, 'test': test}
+
+
+def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
+
+
+    wn18 = DatasetMetadata(
+        dataset_name='wn18',
+        filename='wn18.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/wn18.zip',
+        train_name='train.txt',
+        valid_name='valid.txt',
+        test_name='test.txt',
+        train_checksum='7d68324d293837ac165c3441a6c8b0eb',
+        valid_checksum='f4f66fec0ca83b5ebe7ad7003404e61d',
+        test_checksum='b035247a8916c7ec3443fa949e1ff02c'
+    )
+
+    return _load_dataset(wn18,
+                         data_home=None,
+                         check_md5hash=check_md5hash,
+                         add_reciprocal_rels=add_reciprocal_rels)
