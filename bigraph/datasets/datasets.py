@@ -175,3 +175,30 @@ def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
                          data_home=None,
                          check_md5hash=check_md5hash,
                          add_reciprocal_rels=add_reciprocal_rels)
+
+
+def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
+
+
+    wn18rr = DatasetMetadata(
+        dataset_name='wn18RR',
+        filename='wn18RR.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/wn18RR.zip',
+        train_name='train.txt',
+        valid_name='valid.txt',
+        test_name='test.txt',
+        train_checksum='35e81af3ae233327c52a87f23b30ad3c',
+        valid_checksum='74a2ee9eca9a8d31f1a7d4d95b5e0887',
+        test_checksum='2b45ba1ba436b9d4ff27f1d3511224c9'
+    )
+
+    if clean_unseen:
+        return _clean_data(_load_dataset(wn18rr,
+                                         data_home=None,
+                                         check_md5hash=check_md5hash,
+                                         add_reciprocal_rels=add_reciprocal_rels))
+    else:
+        return _load_dataset(wn18rr,
+                             data_home=None,
+                             check_md5hash=check_md5hash,
+                             add_reciprocal_rels=add_reciprocal_rels)
