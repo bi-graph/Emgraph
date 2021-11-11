@@ -251,3 +251,29 @@ def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
                          data_home=None,
                          check_md5hash=check_md5hash,
                          add_reciprocal_rels=add_reciprocal_rels)
+
+
+def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
+
+    fb15k_237 = DatasetMetadata(
+        dataset_name='fb15k-237',
+        filename='fb15k-237.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/fb15k-237.zip',
+        train_name='train.txt',
+        valid_name='valid.txt',
+        test_name='test.txt',
+        train_checksum='c05b87b9ac00f41901e016a2092d7837',
+        valid_checksum='6a94efd530e5f43fcf84f50bc6d37b69',
+        test_checksum='f5bdf63db39f455dec0ed259bb6f8628'
+    )
+
+    if clean_unseen:
+        return _clean_data(_load_dataset(fb15k_237,
+                                         data_home=None,
+                                         check_md5hash=check_md5hash,
+                                         add_reciprocal_rels=add_reciprocal_rels))
+    else:
+        return _load_dataset(fb15k_237,
+                             data_home=None,
+                             check_md5hash=check_md5hash,
+                             add_reciprocal_rels=add_reciprocal_rels)
