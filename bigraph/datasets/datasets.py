@@ -302,3 +302,39 @@ def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fa
                              data_home=None,
                              check_md5hash=check_md5hash,
                              add_reciprocal_rels=add_reciprocal_rels)
+
+
+def load_wn11(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
+
+    wn11 = DatasetMetadata(
+        dataset_name='wordnet11',
+        filename='wordnet11.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/wordnet11.zip',
+        train_name='train.txt',
+        valid_name='dev.txt',
+        test_name='test.txt',
+        train_checksum='2429c672c89e33ad4fa8e1a3ade416e4',
+        valid_checksum='87bf86e225e79294a2524089614b96aa',
+        test_checksum='24113b464f8042c339e3e6833c1cebdf'
+    )
+
+    dataset = _load_dataset(wn11, data_home=None,
+                            check_md5hash=check_md5hash,
+                            add_reciprocal_rels=add_reciprocal_rels)
+
+    valid_labels = dataset['valid'][:, 3]
+    test_labels = dataset['test'][:, 3]
+
+    dataset['valid'] = dataset['valid'][:, 0:3]
+    dataset['test'] = dataset['test'][:, 0:3]
+
+    dataset['valid_labels'] = valid_labels == '1'
+    dataset['test_labels'] = test_labels == '1'
+
+    if clean_unseen:
+        clean_dataset, valid_idx, test_idx = _clean_data(dataset, return_idx=True)
+        clean_dataset['valid_labels'] = dataset['valid_labels'][valid_idx]
+        clean_dataset['test_labels'] = dataset['test_labels'][test_idx]
+        return clean_dataset
+    else:
+        return dataset
