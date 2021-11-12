@@ -277,3 +277,28 @@ def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=F
                              data_home=None,
                              check_md5hash=check_md5hash,
                              add_reciprocal_rels=add_reciprocal_rels)
+
+def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
+
+    yago3_10 = DatasetMetadata(
+        dataset_name='YAGO3-10',
+        filename='YAGO3-10.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/YAGO3-10.zip',
+        train_name='train.txt',
+        valid_name='valid.txt',
+        test_name='test.txt',
+        train_checksum='a9da8f583ec3920570eeccf07199229a',
+        valid_checksum='2d679a906f2b1ac29d74d5c948c1ad09',
+        test_checksum='14bf97890b2fee774dbce5f326acd189'
+    )
+
+    if clean_unseen:
+        return _clean_data(_load_dataset(yago3_10,
+                                         data_home=None,
+                                         check_md5hash=check_md5hash,
+                                         add_reciprocal_rels=add_reciprocal_rels))
+    else:
+        return _load_dataset(yago3_10,
+                             data_home=None,
+                             check_md5hash=check_md5hash,
+                             add_reciprocal_rels=add_reciprocal_rels)
