@@ -375,3 +375,12 @@ def load_fb13(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
         return clean_dataset
     else:
         return dataset
+
+def load_all_datasets(check_md5hash=False):
+    load_wn18(check_md5hash)
+    load_wn18rr(check_md5hash)
+    load_fb15k(check_md5hash)
+    load_fb15k_237(check_md5hash)
+    load_yago3_10(check_md5hash)
+    load_wn11(check_md5hash)
+    load_fb13(check_md5hash)
