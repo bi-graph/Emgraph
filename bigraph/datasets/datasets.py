@@ -338,3 +338,40 @@ def load_wn11(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
         return clean_dataset
     else:
         return dataset
+
+
+def load_fb13(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
+
+    fb13 = DatasetMetadata(
+        dataset_name='freebase13',
+        filename='freebase13.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/freebase13.zip',
+        train_name='train.txt',
+        valid_name='dev.txt',
+        test_name='test.txt',
+        train_checksum='9099ebcd85ab3ce723cfaaf34f74dceb',
+        valid_checksum='c4ef7b244baa436a97c2a5e57d4ba7ed',
+        test_checksum='f9af2eac7c5a86996c909bdffd295528'
+    )
+
+    dataset = _load_dataset(fb13,
+                            data_home=None,
+                            check_md5hash=check_md5hash,
+                            add_reciprocal_rels=add_reciprocal_rels)
+
+    valid_labels = dataset['valid'][:, 3]
+    test_labels = dataset['test'][:, 3]
+
+    dataset['valid'] = dataset['valid'][:, 0:3]
+    dataset['test'] = dataset['test'][:, 0:3]
+
+    dataset['valid_labels'] = valid_labels == '1'
+    dataset['test_labels'] = test_labels == '1'
+
+    if clean_unseen:
+        clean_dataset, valid_idx, test_idx = _clean_data(dataset, return_idx=True)
+        clean_dataset['valid_labels'] = dataset['valid_labels'][valid_idx]
+        clean_dataset['test_labels'] = dataset['test_labels'][test_idx]
+        return clean_dataset
+    else:
+        return dataset
