@@ -384,3 +384,18 @@ def load_all_datasets(check_md5hash=False):
     load_yago3_10(check_md5hash)
     load_wn11(check_md5hash)
     load_fb13(check_md5hash)
+
+
+def load_from_rdf(folder_name, file_name, rdf_format='nt', data_home=None, add_reciprocal_rels=False):
+
+    logger.debug('Loading rdf data from {}.'.format(file_name))
+    data_home = _get_data_home(data_home)
+    from rdflib import Graph
+    g = Graph()
+    g.parse(os.path.join(data_home, folder_name, file_name), format=rdf_format, publicID='http://test#')
+    triples = pd.DataFrame(np.array(g))
+    triples = triples.drop_duplicates()
+    if add_reciprocal_rels:
+        triples = _add_reciprocal_relations(triples)
+
+    return triples.values
