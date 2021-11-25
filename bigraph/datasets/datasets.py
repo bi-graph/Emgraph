@@ -399,3 +399,22 @@ def load_from_rdf(folder_name, file_name, rdf_format='nt', data_home=None, add_r
         triples = _add_reciprocal_relations(triples)
 
     return triples.values
+
+def load_from_ntriples(folder_name, file_name, data_home=None, add_reciprocal_rels=False):
+
+    logger.debug('Loading rdf ntriples from {}.'.format(file_name))
+    data_home = _get_data_home(data_home)
+    df = pd.read_csv(os.path.join(data_home, folder_name, file_name),
+                     sep=r'\s+',
+                     header=None,
+                     names=None,
+                     dtype=str,
+                     usecols=[0, 1, 2])
+
+    # Remove trailing full stop (if present)
+    df[2] = df[2].apply(lambda x: x.rsplit(".", 1)[0])
+
+    if add_reciprocal_rels:
+        df = _add_reciprocal_relations(df)
+
+    return df.values
