@@ -444,3 +444,26 @@ def generate_focusE_dataset_splits(dataset, split_test_into_top_bottom=True, spl
         dataset['test_topk_numeric_values'] = dataset['test_numeric_values'][-split_threshold:]
 
     return dataset
+
+
+def load_onet20k(check_md5hash=False, clean_unseen=True, split_test_into_top_bottom=True, split_threshold=0.1):
+
+    onet20k = DatasetMetadata(
+        dataset_name='onet20k',
+        filename='onet20k.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/onet20k.zip',
+        train_name='train.tsv',
+        valid_name='valid.tsv',
+        test_name='test.tsv',
+        train_checksum='516220427a9a18516fd7a804a6944d64',
+        valid_checksum='d7806951ac3d916c5c5a0304eea064d2',
+        test_checksum='e5baec19037cb0bddc5a2fe3c0f4445a'
+    )
+
+    dataset = _load_dataset(onet20k, data_home=None,
+                            check_md5hash=check_md5hash)
+
+    if clean_unseen:
+        dataset = _clean_data(dataset)
+
+    return generate_focusE_dataset_splits(dataset, split_test_into_top_bottom, split_threshold)
