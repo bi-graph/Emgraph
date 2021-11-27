@@ -418,3 +418,29 @@ def load_from_ntriples(folder_name, file_name, data_home=None, add_reciprocal_re
         df = _add_reciprocal_relations(df)
 
     return df.values
+
+
+def generate_focusE_dataset_splits(dataset, split_test_into_top_bottom=True, split_threshold=0.1):
+
+    dataset['train_numeric_values'] = dataset['train'][:, 3].astype(np.float32)
+    dataset['valid_numeric_values'] = dataset['valid'][:, 3].astype(np.float32)
+    dataset['test_numeric_values'] = dataset['test'][:, 3].astype(np.float32)
+
+    dataset['train'] = dataset['train'][:, 0:3]
+    dataset['valid'] = dataset['valid'][:, 0:3]
+    dataset['test'] = dataset['test'][:, 0:3]
+
+    sorted_indices = np.argsort(dataset['test_numeric_values'])
+    dataset['test'] = dataset['test'][sorted_indices]
+    dataset['test_numeric_values'] = dataset['test_numeric_values'][sorted_indices]
+
+    if split_test_into_top_bottom:
+        split_threshold = int(split_threshold * dataset['test'].shape[0])
+
+        dataset['test_bottomk'] = dataset['test'][:split_threshold]
+        dataset['test_bottomk_numeric_values'] = dataset['test_numeric_values'][:split_threshold]
+
+        dataset['test_topk'] = dataset['test'][-split_threshold:]
+        dataset['test_topk_numeric_values'] = dataset['test_numeric_values'][-split_threshold:]
+
+    return dataset
