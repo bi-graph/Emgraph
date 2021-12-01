@@ -467,3 +467,26 @@ def load_onet20k(check_md5hash=False, clean_unseen=True, split_test_into_top_bot
         dataset = _clean_data(dataset)
 
     return generate_focusE_dataset_splits(dataset, split_test_into_top_bottom, split_threshold)
+
+
+def load_ppi5k(check_md5hash=False, clean_unseen=True, split_test_into_top_bottom=True, split_threshold=0.1):
+
+    ppi5k = DatasetMetadata(
+        dataset_name='ppi5k',
+        filename='ppi5k.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/ppi5k.zip',
+        train_name='train.tsv',
+        valid_name='valid.tsv',
+        test_name='test.tsv',
+        train_checksum='d8b54de3482c0d043118cbd05f2666cf',
+        valid_checksum='2bd094118f4be1f4f6d6a1d4707271c1',
+        test_checksum='7e6e345f496ed9a0cc58b91d4877ddd6'
+    )
+
+    dataset = _load_dataset(ppi5k, data_home=None,
+                            check_md5hash=check_md5hash)
+
+    if clean_unseen:
+        dataset = _clean_data(dataset)
+
+    return generate_focusE_dataset_splits(dataset, split_test_into_top_bottom, split_threshold)
