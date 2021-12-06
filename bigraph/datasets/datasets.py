@@ -513,3 +513,26 @@ def load_nl27k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
         dataset = _clean_data(dataset)
 
     return generate_focusE_dataset_splits(dataset, split_test_into_top_bottom, split_threshold)
+
+
+def load_cn15k(check_md5hash=False, clean_unseen=True, split_test_into_top_bottom=True, split_threshold=0.1):
+
+    cn15k = DatasetMetadata(
+        dataset_name='cn15k',
+        filename='cn15k.zip',
+        url='https://s3-eu-west-1.amazonaws.com/ampligraph/datasets/cn15k.zip',
+        train_name='train.tsv',
+        valid_name='valid.tsv',
+        test_name='test.tsv',
+        train_checksum='8bf2ecc8f34e7b3b544afc30abaac478',
+        valid_checksum='15b63ebd7428a262ad5fe869cc944208',
+        test_checksum='29df4b8d24a3d89fc7c1032b9c508112'
+    )
+
+    dataset = _load_dataset(cn15k, data_home=None,
+                            check_md5hash=check_md5hash)
+
+    if clean_unseen:
+        dataset = _clean_data(dataset)
+
+    return generate_focusE_dataset_splits(dataset, split_test_into_top_bottom, split_threshold)
