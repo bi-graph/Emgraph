@@ -30,3 +30,8 @@ class BigraphDatasetAdapter(abc.ABC):
         # set the mapped status to false, since we are changing the dictionary
         for key in self.dataset.keys():
             self.mapped_status[key] = False
+
+
+    def generate_mappings(self, use_all=False):
+
+        raise NotImplementedError('Abstract Method not implemented!')
