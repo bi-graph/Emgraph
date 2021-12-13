@@ -47,3 +47,7 @@ class BigraphDatasetAdapter(abc.ABC):
     def set_data(self, dataset, dataset_type=None, mapped_status=False):
 
         raise NotImplementedError('Abstract Method not implemented!')
+
+    def map_data(self, remap=False):
+
+        raise NotImplementedError('Abstract Method not implemented!')
