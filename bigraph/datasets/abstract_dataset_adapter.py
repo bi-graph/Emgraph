@@ -39,3 +39,7 @@ class BigraphDatasetAdapter(abc.ABC):
     def get_size(self, dataset_type="train"):
 
         raise NotImplementedError('Abstract Method not implemented!')
+
+    def data_exists(self, dataset_type="train"):
+
+        raise NotImplementedError('Abstract Method not implemented!')
