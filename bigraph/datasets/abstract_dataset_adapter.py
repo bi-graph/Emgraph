@@ -51,3 +51,7 @@ class BigraphDatasetAdapter(abc.ABC):
     def map_data(self, remap=False):
 
         raise NotImplementedError('Abstract Method not implemented!')
+
+    def set_filter(self, filter_triples):
+
+        raise NotImplementedError('Abstract Method not implemented!')
