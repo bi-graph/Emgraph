@@ -59,3 +59,7 @@ class BigraphDatasetAdapter(abc.ABC):
     def get_next_batch(self, batches_count=-1, dataset_type="train", use_filter=False):
 
         raise NotImplementedError('Abstract Method not implemented!')
+
+    def cleanup(self):
+
+        raise NotImplementedError('Abstract Method not implemented!')
