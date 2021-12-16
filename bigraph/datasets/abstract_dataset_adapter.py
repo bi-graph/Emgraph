@@ -55,3 +55,7 @@ class BigraphDatasetAdapter(abc.ABC):
     def set_filter(self, filter_triples):
 
         raise NotImplementedError('Abstract Method not implemented!')
+
+    def get_next_batch(self, batches_count=-1, dataset_type="train", use_filter=False):
+
+        raise NotImplementedError('Abstract Method not implemented!')
