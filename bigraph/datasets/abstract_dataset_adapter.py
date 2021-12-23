@@ -40,17 +40,25 @@ class BigraphDatasetAdapter(abc.ABC):
 
     def generate_mappings(self, use_all=False):
         """
-        Generate mappings from the training set. If "use_all==True" the function will use the whole dataset.
+        Generate the mappings from the training set. If "use_all==True" the function will use the whole dataset.
 
         :param use_all: Whether to use the whole dataset for "mappings" generation
-        :type use_all: Boolean
+        :type use_all: bool
         :return: Two dictionaries: relation to idx and entity to idx respectively
-        :rtype: Dictionary
+        :rtype: dict
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
     def get_size(self, dataset_type="train"):
+        """
+        Size of the dataset
+
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :return: Size of the dataset
+        :rtype: int
+        """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
