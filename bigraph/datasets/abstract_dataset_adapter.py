@@ -3,12 +3,16 @@
 import abc
 
 class BigraphDatasetAdapter(abc.ABC):
-    """Abstract class for dataset adapters
-       Developers can use this abstract class for adapting and creating a pipeline of data to feed Bigraph.
+    """
+    Abstract class for dataset adapters Developers can use this abstract class for adapting and creating a pipeline of
+    data to feed Bigraph.
+
     """
 
     def __init__(self):
-        """Initialize the class variables
+        """
+        Initialize the class variables
+
         """
         self.dataset = {}
 
@@ -23,7 +27,9 @@ class BigraphDatasetAdapter(abc.ABC):
 
 
     def use_mappings(self, rel_to_idx, ent_to_idx):
-        """Use an existing mapping with the datasource.
+        """
+        Use an existing mapping with the datasource.
+
         """
         self.rel_to_idx = rel_to_idx
         self.ent_to_idx = ent_to_idx
