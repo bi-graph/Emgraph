@@ -99,6 +99,12 @@ class BigraphDatasetAdapter(abc.ABC):
         raise NotImplementedError('Abstract Method not implemented!')
 
     def set_filter(self, filter_triples):
+        """
+        Set filters while generating evaluation batches.
+
+        :param filter_triples: Filter triples
+        :type filter_triples: nd-array
+        """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
