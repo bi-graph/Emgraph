@@ -75,6 +75,16 @@ class BigraphDatasetAdapter(abc.ABC):
         raise NotImplementedError('Abstract Method not implemented!')
 
     def set_data(self, dataset, dataset_type=None, mapped_status=False):
+        """
+        Set the dataset based on the specified dataset_type.
+
+        :param dataset: Dataset of triples
+        :type dataset: str
+        :param dataset_type: The type of the dataset if the :param dataset is an ND-Array
+        :type dataset_type: str
+        :param mapped_status: Whether the dataset is mapped to indices or not
+        :type mapped_status: bool
+        """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
