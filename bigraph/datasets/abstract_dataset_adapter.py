@@ -129,5 +129,9 @@ class BigraphDatasetAdapter(abc.ABC):
         raise NotImplementedError('Abstract Method not implemented!')
 
     def cleanup(self):
+        """
+        Clean up the internal state.
+
+        """
 
         raise NotImplementedError('Abstract Method not implemented!')
