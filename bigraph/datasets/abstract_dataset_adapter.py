@@ -89,6 +89,12 @@ class BigraphDatasetAdapter(abc.ABC):
         raise NotImplementedError('Abstract Method not implemented!')
 
     def map_data(self, remap=False):
+        """
+        Map the data to the ent_to_idx and rel_to_idx mappings.
+
+        :param remap: Remap the data (used after the dictionaries get updated)
+        :type remap: bool
+        """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
