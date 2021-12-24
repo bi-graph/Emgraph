@@ -63,6 +63,14 @@ class BigraphDatasetAdapter(abc.ABC):
         raise NotImplementedError('Abstract Method not implemented!')
 
     def data_exists(self, dataset_type="train"):
+        """
+        Check if the dataset type (train, test, valid, etc.) exists.
+
+        :param dataset_type: Type of the dataset
+        :type dataset_type: str
+        :return: True if the specified dataset type exists; False otherwise
+        :rtype: bool
+        """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
