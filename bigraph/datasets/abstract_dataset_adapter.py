@@ -80,7 +80,7 @@ class BigraphDatasetAdapter(abc.ABC):
 
         :param dataset: Dataset of triples
         :type dataset: str
-        :param dataset_type: The type of the dataset if the :param dataset is an ND-Array
+        :param dataset_type: The type of the dataset if the 'dataset' is an ND-Array
         :type dataset_type: str
         :param mapped_status: Whether the dataset is mapped to indices or not
         :type mapped_status: bool
@@ -109,6 +109,22 @@ class BigraphDatasetAdapter(abc.ABC):
         raise NotImplementedError('Abstract Method not implemented!')
 
     def get_next_batch(self, batches_count=-1, dataset_type="train", use_filter=False):
+        """
+        Generate the next batch of data.
+
+        :param batches_count:  Number of batches per epoch (defaults to -1 means batch size of 1)
+        :type batches_count: int
+        :param dataset_type: Type of the dataset
+        :type dataset_type: str
+        :param use_filter: Whether to return the filters' metadata
+        :type use_filter: bool
+        :return: batch_output: yields a batch of triples from the dataset type specified.
+        participating_objects: all objects that were involved in the s-p-? relation. This is returned only
+            if use_filter is set to true.
+        participating_subjects: all subjects that were involved in the ?-p-o relation. This is returned only
+            if use_filter is set to true.
+        :rtype: nd-array
+        """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
