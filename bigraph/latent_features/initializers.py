@@ -45,3 +45,11 @@ class Initializer(abc.ABC):
         else:
             self.random_generator = seed
         self._init_hyperparams(initializer_params)
+
+
+    def _display_params(self):
+
+        logger.info('\n------ Initializer -----')
+        logger.info('Name : {}'.format(self.name))
+        for key, value in self._initializer_params.items():
+            logger.info('{} : {}'.format(key, value))
