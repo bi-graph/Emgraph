@@ -66,4 +66,6 @@ class Initializer(abc.ABC):
         for key, value in self._initializer_params.items():
             logger.info('{} : {}'.format(key, value))
 
+    def _init_hyperparams(self, hyperparam_dict):
 
+        raise NotImplementedError('Abstract Method not implemented!')
