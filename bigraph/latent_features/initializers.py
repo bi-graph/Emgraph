@@ -37,7 +37,16 @@ class Initializer(abc.ABC):
     class_params = {}
 
     def __init__(self, initializer_params={}, verbose=True, seed=0):
+        """
+        Initialize the class.
 
+        :param initializer_params: Dictionary of hyperparams that would be used by the initializer
+        :type initializer_params: dict
+        :param verbose: Set/reset verbose mode
+        :type verbose: bool
+        :param seed: Random state for random number generator
+        :type seed: int/np.random.RandomState
+        """
         self.verbose = verbose
         self._initializer_params = {}
         if isinstance(seed, int):
@@ -48,8 +57,13 @@ class Initializer(abc.ABC):
 
 
     def _display_params(self):
+        """
+        Display the parameter values.
 
+        """
         logger.info('\n------ Initializer -----')
         logger.info('Name : {}'.format(self.name))
         for key, value in self._initializer_params.items():
             logger.info('{} : {}'.format(key, value))
+
+
