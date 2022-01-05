@@ -67,5 +67,10 @@ class Initializer(abc.ABC):
             logger.info('{} : {}'.format(key, value))
 
     def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the parameters.
 
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        """
         raise NotImplementedError('Abstract Method not implemented!')
