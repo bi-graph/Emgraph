@@ -90,3 +90,6 @@ class Initializer(abc.ABC):
         """
         raise NotImplementedError('Abstract Method not implemented!')
 
+    def _get_np_initializer(self, in_shape=None, out_shape=None, concept='e'):
+
+        raise NotImplementedError('Abstract Method not implemented!')
