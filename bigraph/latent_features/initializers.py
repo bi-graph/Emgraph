@@ -113,7 +113,7 @@ class Initializer(abc.ABC):
         :type in_shape: int
         :param out_shape: Number of the layer's output.
         :type out_shape: int
-        :param init_type: Type of the initializer (tf: Tensorflow, np: Numpy)
+        :param init_type: Initializer type (tf: Tensorflow, np: Numpy)
         :type init_type: str
         :return: Weights initializer
         :rtype: tf.Op / nd-array
@@ -124,3 +124,22 @@ class Initializer(abc.ABC):
             return self._get_tf_initializer(in_shape, out_shape, 'e')
         else:
             return self._get_np_initializer(in_shape, out_shape, 'e')
+
+    def get_relation_initializer(self, in_shape=None, out_shape=None, init_type='tf'):
+        """
+        Relation embeddings' initializer.
+
+        :param in_shape: Number of the layer's inputs.
+        :type in_shape: int
+        :param out_shape: Number of the layer's outputs.
+        :type out_shape: int
+        :param init_type: Initializer type
+        :type init_type: str
+        :return: Weights initializer
+        :rtype: tf.Op / nd-array
+        """
+        assert init_type in ['tf', 'np'], 'Invalid initializer type!'
+        if init_type == 'tf':
+            return self._get_tf_initializer(in_shape, out_shape, 'r')
+        else:
+            return self._get_np_initializer(in_shape, out_shape, 'r')
