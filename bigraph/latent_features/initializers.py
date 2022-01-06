@@ -77,7 +77,7 @@ class Initializer(abc.ABC):
 
     def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
         """
-        Add a Tensorflow node for the initializer.
+        Generate an initialized Tensorflow node for the initializer.
 
         :param in_shape: Number of the layer's inputs.
         :type in_shape: int
@@ -104,3 +104,23 @@ class Initializer(abc.ABC):
         :rtype: nd-array
         """
         raise NotImplementedError('Abstract Method not implemented!')
+
+    def get_entity_initializer(self, in_shape=None, out_shape=None, init_type='tf'):
+        """
+        Entity embedding initializer.
+
+        :param in_shape: Number of the layer's inputs.
+        :type in_shape: int
+        :param out_shape: Number of the layer's output.
+        :type out_shape: int
+        :param init_type: Type of the initializer (tf: Tensorflow, np: Numpy)
+        :type init_type: str
+        :return: Weights initializer
+        :rtype: tf.Op / nd-array
+        """
+
+        assert init_type in ['tf', 'np'], 'Invalid initializer type!'
+        if init_type == 'tf':
+            return self._get_tf_initializer(in_shape, out_shape, 'e')
+        else:
+            return self._get_np_initializer(in_shape, out_shape, 'e')
