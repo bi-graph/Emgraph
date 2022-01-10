@@ -197,3 +197,17 @@ class RandomNormal(Initializer):
         """
 
         super(RandomNormal, self).__init__(initializer_params, verbose, seed)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value pairs. The initializer gets the params from the keys:
+        :type hyperparam_dict: dict
+        """
+
+        self._initializer_params['mean'] = hyperparam_dict.get('mean', DEFAULT_NORMAL_MEAN)
+        self._initializer_params['std'] = hyperparam_dict.get('std', DEFAULT_NORMAL_STD)
+
+        if self.verbose:
+            self._display_params()
