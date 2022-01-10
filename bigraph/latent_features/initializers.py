@@ -1,4 +1,3 @@
-
 import tensorflow as tf
 import abc
 import logging
@@ -25,9 +24,10 @@ DEFAULT_NORMAL_STD = 0.05
 # Default value indicating whether to use xavier uniform or normal
 DEFAULT_XAVIER_IS_UNIFORM = False
 
+
 def register_initializer(name, external_params=[], class_params={}):
     """
-    Save the initializer class info in the INITIALIZER_REGISTRY dictionary.
+    Wrapper for Saving the initializer class info in the INITIALIZER_REGISTRY dictionary.
 
     :param name: Name of the class
     :type name: str
@@ -38,6 +38,7 @@ def register_initializer(name, external_params=[], class_params={}):
     :return: Class object
     :rtype: object
     """
+
     def insert_in_registry(class_handle):
         INITIALIZER_REGISTRY[name] = class_handle
         class_handle.name = name
@@ -46,6 +47,7 @@ def register_initializer(name, external_params=[], class_params={}):
         return class_handle
 
     return insert_in_registry
+
 
 class Initializer(abc.ABC):
     """
@@ -75,7 +77,6 @@ class Initializer(abc.ABC):
         else:
             self.random_generator = seed
         self._init_hyperparams(initializer_params)
-
 
     def _display_params(self):
         """
@@ -166,4 +167,16 @@ class Initializer(abc.ABC):
             return self._get_np_initializer(in_shape, out_shape, 'r')
 
 
+@register_initializer("normal", ["mean", "std"])
+class RandomNormal(Initializer):
+    """
+    Sample from a normal distribution with provided `mean` and `std`.
 
+        .. math::
+        \mathcal{N} (\mu, \sigma)
+    """
+
+
+    name = ""
+    external_params = []
+    class_params = {}
