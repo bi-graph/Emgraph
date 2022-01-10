@@ -180,3 +180,20 @@ class RandomNormal(Initializer):
     name = ""
     external_params = []
     class_params = {}
+
+    def __init__(self, initializer_params={}, verbose=True, seed=0):
+        """
+        Initialize the Random Normal class.
+
+        :param initializer_params: Key-value pairs. The initializer gets the params from the keys:
+        - **mean**: (float). Mean of the weights(default: 0)
+        - **std**: (float). Std of the weights(default: 0.05)
+        Example: `initializer_params={'mean': 0.9, 'std': 0.02}`
+        :type initializer_params: dict
+        :param verbose: Activate verbose
+        :type verbose: bool
+        :param seed: Random state for random number generator
+        :type seed: int / np.random.RandomState
+        """
+
+        super(RandomNormal, self).__init__(initializer_params, verbose, seed)
