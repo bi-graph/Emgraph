@@ -211,3 +211,21 @@ class RandomNormal(Initializer):
 
         if self.verbose:
             self._display_params()
+
+    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
+        """
+        Generate an initialized Tensorflow node for the initializer.
+
+        :param in_shape: Number of the layer's inputs.
+        :type in_shape: int
+        :param out_shape: Number of the layer's output.
+        :type out_shape: int
+        :param concept: Concept type (e: entity, r: relation)
+        :type concept: str
+        :return: Initializer instance
+        :rtype: Initializer
+        """
+
+        return tf.random_normal_initializer(mean=self._initializer_params['mean'],
+                                            stddev=self._initializer_params['std'],
+                                            dtype=tf.float32)
