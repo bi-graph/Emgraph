@@ -229,3 +229,21 @@ class RandomNormal(Initializer):
         return tf.random_normal_initializer(mean=self._initializer_params['mean'],
                                             stddev=self._initializer_params['std'],
                                             dtype=tf.float32)
+
+    def _get_np_initializer(self, in_shape=None, out_shape=None, concept='e'):
+        """
+        Generate an initialized Numpy array for the initializer.
+
+        :param in_shape: Number of the layer's inputs.
+        :type in_shape: int
+        :param out_shape: Number of the layer's output.
+        :type out_shape: int
+        :param concept: Concept type (e: entity, r: relation)
+        :type concept: str
+        :return: Initialized weights
+        :rtype: nd-array
+        """
+
+        return self.random_generator.normal(self._initializer_params['mean'],
+                                            self._initializer_params['std'],
+                                            size=(in_shape, out_shape)).astype(np.float32)
