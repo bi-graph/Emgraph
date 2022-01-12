@@ -276,3 +276,17 @@ class RandomUniform(Initializer):
         """
 
         super(RandomUniform, self).__init__(initializer_params, verbose, seed)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value pairs. The initializer gets the params from the keys
+        :type hyperparam_dict: dict
+        """
+
+        self._initializer_params['low'] = hyperparam_dict.get('low', DEFAULT_UNIFORM_LOW)
+        self._initializer_params['high'] = hyperparam_dict.get('high', DEFAULT_UNIFORM_HIGH)
+
+        if self.verbose:
+            self._display_params()
