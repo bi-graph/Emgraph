@@ -307,3 +307,20 @@ class RandomUniform(Initializer):
         return tf.random_uniform_initializer(minval=self._initializer_params['low'],
                                              maxval=self._initializer_params['high'],
                                              dtype=tf.float32)
+
+    def _get_np_initializer(self, in_shape, out_shape, concept='e'):
+        """
+        Generate an initialized Numpy array for the initializer.
+
+        :param in_shape: Number of the layer's inputs.
+        :type in_shape: int
+        :param out_shape: Number of the layer's output.
+        :type out_shape: int
+        :param concept: Concept type (e: entity, r: relation)
+        :type concept: str
+        :return: Initialized weights (uniform distribution)
+        :rtype: nd-array
+        """
+        return self.random_generator.uniform(self._initializer_params['low'],
+                                             self._initializer_params['high'],
+                                             size=(in_shape, out_shape)).astype(np.float32)
