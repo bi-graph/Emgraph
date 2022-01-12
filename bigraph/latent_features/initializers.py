@@ -169,13 +169,12 @@ class Initializer(abc.ABC):
 
 @register_initializer("normal", ["mean", "std"])
 class RandomNormal(Initializer):
-    """
+    r"""
     Sample from a normal distribution with provided `mean` and `std`.
 
         .. math::
-        \mathcal{N} (\mu, \sigma)
+            \mathcal{N} (\mu, \sigma)
     """
-
 
     name = ""
     external_params = []
@@ -247,3 +246,33 @@ class RandomNormal(Initializer):
         return self.random_generator.normal(self._initializer_params['mean'],
                                             self._initializer_params['std'],
                                             size=(in_shape, out_shape)).astype(np.float32)
+
+
+class RandomUniform(Initializer):
+    r"""
+    Sample from a normal distribution with provided `mean` and `std`.
+
+        .. math::
+            \mathcal{U} (low, high)
+    """
+
+    name = ""
+    external_params = []
+    class_params = {}
+
+    def __init__(self, initializer_params={}, verbose=True, seed=0):
+        """
+        Initialize the Uniform class.
+
+        :param initializer_params: Key-value pairs. The initializer gets the params from the keys:
+        - **low**: (float). lower bound for uniform number (default: -0.05)
+        - **high**: (float): upper bound for uniform number (default: 0.05)
+        Example: `initializer_params={'low': 0.9, 'high': 0.02}`
+        :type initializer_params: dict
+        :param verbose: Activate verbose
+        :type verbose: bool
+        :param seed: Random state for random number generator
+        :type seed: int
+        """
+
+        super(RandomUniform, self).__init__(initializer_params, verbose, seed)
