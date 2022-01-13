@@ -185,8 +185,8 @@ class RandomNormal(Initializer):
         Initialize the Random Normal class.
 
         :param initializer_params: Key-value pairs. The initializer gets the params from the keys:
-        - **mean**: (float). Mean of the weights(default: 0)
-        - **std**: (float). Std of the weights(default: 0.05)
+            - **mean**: (float). Mean of the weights(default: 0)
+            - **std**: (float). Std of the weights(default: 0.05)
         Example: `initializer_params={'mean': 0.9, 'std': 0.02}`
         :type initializer_params: dict
         :param verbose: Activate verbose
@@ -248,6 +248,7 @@ class RandomNormal(Initializer):
                                             size=(in_shape, out_shape)).astype(np.float32)
 
 
+@register_initializer("uniform", ["low", "high"])
 class RandomUniform(Initializer):
     r"""
     Sample from a normal distribution with provided `mean` and `std`.
@@ -265,8 +266,8 @@ class RandomUniform(Initializer):
         Initialize the Uniform class.
 
         :param initializer_params: Key-value pairs. The initializer gets the params from the keys:
-        - **low**: (float). lower bound for uniform number (default: -0.05)
-        - **high**: (float): upper bound for uniform number (default: 0.05)
+            - **low**: (float). lower bound for uniform number (default: -0.05)
+            - **high**: (float): upper bound for uniform number (default: 0.05)
         Example: `initializer_params={'low': 0.9, 'high': 0.02}`
         :type initializer_params: dict
         :param verbose: Activate verbose
@@ -324,3 +325,40 @@ class RandomUniform(Initializer):
         return self.random_generator.uniform(self._initializer_params['low'],
                                              self._initializer_params['high'],
                                              size=(in_shape, out_shape)).astype(np.float32)
+
+
+@register_initializer("xavier", ["uniform"])
+class Xavier(Initializer):
+    r"""
+    Sample from a Xavier distribution :cite:`glorot2010understanding`.
+    If uniform is set to True:
+        .. math::
+
+            \mathcal{U} ( - \sqrt{ \frac{6}{ fan_{in} + fan_{out} } }, \sqrt{ \frac{6}{ fan_{in} + fan_{out} } } )
+    else:
+        .. math::
+
+            \mathcal{N} ( 0, \sqrt{ \frac{2}{ fan_{in} + fan_{out} } } )
+
+    where :math:`fan_{in}` and :math:`fan_{out}` are Number of the layer's inputs and outputs respectively.
+    """
+
+    name = ""
+    external_params = []
+    class_params = {}
+
+    def __init__(self, initializer_params={}, verbose=True, seed=0):
+        """
+        Initialize the Uniform class.
+
+        :param initializer_params: Key-value pairs. The initializer gets the params from the keys:
+            - **uniform**: (float): Xavier Uniform or Xavier Normal initializer
+        Example: `initializer_params={'low': 0.9, 'high': 0.02}`
+        :type initializer_params: dict
+        :param verbose: Activate verbose
+        :type verbose: bool
+        :param seed: Random state for random number generator
+        :type seed: int
+        """
+
+        super(Xavier, self).__init__(initializer_params, verbose, seed)
