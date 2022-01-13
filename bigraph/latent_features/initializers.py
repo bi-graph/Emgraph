@@ -441,3 +441,20 @@ class Constant(Initializer):
         """
 
         super(Constant, self).__init__(initializer_params, verbose, seed)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value pairs. The initializer gets the params from the keys
+        :type hyperparam_dict: dict
+        """
+
+        try:
+            self._initializer_params['entity'] = hyperparam_dict['entity']
+            self._initializer_params['relation'] = hyperparam_dict['relation']
+        except KeyError:
+            raise Exception('Initial values of both entity and relation embeddings need to '
+                            'be passed to the initializer!')
+        if self.verbose:
+            self._display_params()
