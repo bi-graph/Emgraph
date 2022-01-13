@@ -392,3 +392,24 @@ class Xavier(Initializer):
 
         return tf.contrib.layers.xavier_initializer(uniform=self._initializer_params['uniform'],
                                                     dtype=tf.float32)
+
+    def _get_np_initializer(self, in_shape, out_shape, concept='e'):
+        """
+        Generate an initialized Numpy array for the initializer.
+
+        :param in_shape: Number of the layer's inputs.
+        :type in_shape: int
+        :param out_shape: Number of the layer's output.
+        :type out_shape: int
+        :param concept: Concept type (e: entity, r: relation)
+        :type concept: str
+        :return: Initialized weights (uniform distribution)
+        :rtype: nd-array
+        """
+
+        if self._initializer_params['uniform']:
+            limit = np.sqrt(6 / (in_shape + out_shape))
+            return self.random_generator.uniform(-limit, limit, size=(in_shape, out_shape)).astype(np.float32)
+        else:
+            std = np.sqrt(2 / (in_shape + out_shape))
+            return self.random_generator.normal(0, std, size=(in_shape, out_shape)).astype(np.float32)
