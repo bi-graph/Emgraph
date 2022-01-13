@@ -362,3 +362,15 @@ class Xavier(Initializer):
         """
 
         super(Xavier, self).__init__(initializer_params, verbose, seed)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value pairs. The initializer gets the params from the keys
+        :type hyperparam_dict: dict
+        """
+        self._initializer_params['uniform'] = hyperparam_dict.get('uniform', DEFAULT_XAVIER_IS_UNIFORM)
+
+        if self.verbose:
+            self._display_params()
