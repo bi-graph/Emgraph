@@ -458,3 +458,31 @@ class Constant(Initializer):
                             'be passed to the initializer!')
         if self.verbose:
             self._display_params()
+
+
+    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
+        """
+        Generate an initialized Tensorflow node for the initializer.
+
+        :param in_shape: Number of the layer's inputs.
+        :type in_shape: int
+        :param out_shape: Number of the layer's output.
+        :type out_shape: int
+        :param concept: Concept type (e: entity, r: relation)
+        :type concept: str
+        :return: Initializer instance
+        :rtype: Initializer
+        """
+
+        if concept == 'e':
+            assert self._initializer_params['entity'].shape[0] == in_shape and \
+                self._initializer_params['entity'].shape[1] == out_shape, \
+                "Invalid shape for entity initializer!"
+
+            return tf.compat.v1.constant_initializer(self._initializer_params['entity'], dtype=tf.float32)
+        else:
+            assert self._initializer_params['relation'].shape[0] == in_shape and \
+                self._initializer_params['relation'].shape[1] == out_shape, \
+                "Invalid shape for relation initializer!"
+
+            return tf.compat.v1.constant_initializer(self._initializer_params['relation'], dtype=tf.float32)
