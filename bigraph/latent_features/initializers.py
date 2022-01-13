@@ -413,3 +413,31 @@ class Xavier(Initializer):
         else:
             std = np.sqrt(2 / (in_shape + out_shape))
             return self.random_generator.normal(0, std, size=(in_shape, out_shape)).astype(np.float32)
+
+
+@register_initializer("constant", ["entity", "relation"])
+class Constant(Initializer):
+    """
+    Initialize based on the specified constant values by the user.
+
+    """
+
+    name = ""
+    external_params = []
+    class_params = {}
+
+    def __init__(self, initializer_params={}, verbose=True, seed=0):
+        """
+        Initializes based on the specified constant values by the user.
+
+        :param initializer_params: Key-value pairs. The initializer gets the params from the keys:
+            - **entity**: (np.ndarray.float32). Initialize entity embeddings
+            - **relation**: (np.ndarray.float32). Initialize relation embeddings
+        :type initializer_params: dict
+        :param verbose: Activate verbose
+        :type verbose: bool
+        :param seed: Random state for random number generator
+        :type seed: int
+        """
+
+        super(Constant, self).__init__(initializer_params, verbose, seed)
