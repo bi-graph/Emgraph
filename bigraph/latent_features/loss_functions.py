@@ -68,3 +68,46 @@ def clip_before_exp(value):
     return tf.clip_by_value(value,
                             clip_value_min=DEFAULT_CLIP_EXP_LOWER,
                             clip_value_max=DEFAULT_CLIP_EXP_UPPER)
+
+class Loss(abc.ABC):
+    """
+    Abstract class for loss functions.
+
+    """
+
+    name = ""
+    external_params = []
+    class_params = {}
+
+    def __init__(self, eta, hyperparam_dict, verbose=False):
+        """
+        Initialize the Loss class.
+
+        :param eta: Number of negatives
+        :type eta: int
+        :param hyperparam_dict: Hyperparameters dictionary
+        :type hyperparam_dict: dict
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        self._loss_parameters = {}
+        self._dependencies = []
+
+        # perform check to see if all the required external hyperparams are passed
+        try:
+            self._loss_parameters['eta'] = eta
+            self._init_hyperparams(hyperparam_dict)
+            if verbose:
+                logger.info('\n--------- Loss ---------')
+                logger.info('Name : {}'.format(self.name))
+                for key, value in self._loss_parameters.items():
+                    logger.info('{} : {}'.format(key, value))
+        except KeyError as e:
+            msg = 'Some of the hyperparams for loss are not passed to the loss function.\n{}'.format(e)
+            logger.error(msg)
+            raise Exception(msg)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        pass
+

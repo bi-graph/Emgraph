@@ -65,10 +65,10 @@ class Initializer(abc.ABC):
 
         :param initializer_params: Dictionary of hyperparams that would be used by the initializer
         :type initializer_params: dict
-        :param verbose: Set/reset verbose mode
+        :param verbose: Set / unset verbose mode
         :type verbose: bool
         :param seed: Random state for random number generator
-        :type seed: int/np.random.RandomState
+        :type seed: int / np.random.RandomState
         """
         self.verbose = verbose
         self._initializer_params = {}
