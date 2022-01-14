@@ -60,3 +60,11 @@ def register_loss(name, external_params=[], class_params={}):
 
     return insert_in_registry
 
+def clip_before_exp(value):
+    """
+    Clip the value for the stability of exponential.
+
+    """
+    return tf.clip_by_value(value,
+                            clip_value_min=DEFAULT_CLIP_EXP_LOWER,
+                            clip_value_max=DEFAULT_CLIP_EXP_UPPER)
