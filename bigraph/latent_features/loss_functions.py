@@ -109,7 +109,18 @@ class Loss(abc.ABC):
             raise Exception(msg)
 
     def _init_hyperparams(self, hyperparam_dict):
-        pass
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        :return:
+        :rtype:
+        """
+
+        msg = 'This function is a placeholder in an abstract class'
+        logger.error(msg)
+        NotImplementedError(msg)
 
     def get_state(self, param_name):
         """
@@ -128,3 +139,4 @@ class Loss(abc.ABC):
             msg = 'Invalid Key.\n{}'.format(e)
             logger.error(msg)
             raise Exception(msg)
+
