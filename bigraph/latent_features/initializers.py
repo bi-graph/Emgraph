@@ -514,3 +514,4 @@ class Constant(Initializer):
                 "Invalid shape for relation initializer!"
 
             return self._initializer_params['relation']
+
