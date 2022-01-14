@@ -111,3 +111,20 @@ class Loss(abc.ABC):
     def _init_hyperparams(self, hyperparam_dict):
         pass
 
+    def get_state(self, param_name):
+        """
+        Get the state value.
+
+        :param param_name: State name which is querying the value
+        :type param_name: str
+        :return: The value of the corresponding state
+        :rtype: str
+        """
+
+        try:
+            param_value = LOSS_REGISTRY[self.name].class_params.get(param_name)
+            return param_value
+        except KeyError as e:
+            msg = 'Invalid Key.\n{}'.format(e)
+            logger.error(msg)
+            raise Exception(msg)
