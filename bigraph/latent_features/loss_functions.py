@@ -224,3 +224,14 @@ class PairwiseLoss(Loss):
         if loss_params is None:
             loss_params = {'margin': DEFAULT_MARGIN}
         super().__init__(eta, loss_params, verbose)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize, Verify and Store the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+            - **margin** - Margin to be used in pairwise loss computation(default:1)
+        :type hyperparam_dict: dict
+        """
+
+        self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN)
