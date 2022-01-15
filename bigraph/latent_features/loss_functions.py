@@ -289,3 +289,21 @@ class NLLLoss(Loss):
         """
 
         return
+
+    def _apply(self, scores_pos, scores_neg):
+        """
+        Apply the loss function.
+
+        :param scores_pos: A tensor of scores assigned to the positive statements
+        :type scores_pos: tf.Tensor, shape [n, 1]
+        :param scores_neg: A tensor of scores assigned to the negative statements
+        :type scores_neg: tf.Tensor, shape [n, 1]
+        :return: The loss value that is going to be minimized
+        :rtype: tf.Tensor
+        """
+
+        scores_neg = clip_before_exp(scores_neg)
+        scores_pos = clip_before_exp(scores_pos)
+        scores = tf.concat([-scores_pos, scores_neg], 0)
+        return tf.reduce_sum(tf.log(1 + tf.exp(scores)))
+
