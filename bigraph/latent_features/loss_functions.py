@@ -140,3 +140,19 @@ class Loss(abc.ABC):
             logger.error(msg)
             raise Exception(msg)
 
+    def _inputs_check(self, scores_pos, scores_neg):
+        """
+        Check and create dependencies needed by loss computations.
+
+        :param scores_pos: A tensor of scores assigned to the positive statements
+        :type scores_pos: tf.Tensor
+        :param scores_neg: A tensor of scores assigned to the negative statements
+        :type scores_neg: tf.Tensor
+        """
+
+        logger.debug('Creating dependencies before loss computations.')
+        self._dependencies = []
+        if LOSS_REGISTRY[self.name].class_params['require_same_size_pos_neg'] and self._loss_parameters['eta'] != 1:
+            logger.debug('Dependencies found: \n\tRequired same size positive and negative. \n\tEta is not 1.')
+            self._dependencies.append(tf.Assert(tf.equal(tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]),
+                                                [tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]]))
