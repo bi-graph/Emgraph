@@ -279,3 +279,13 @@ class NLLLoss(Loss):
         if hyperparam_dict is None:
             hyperparam_dict = {}
         super().__init__(eta, hyperparam_dict, verbose)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize, Verify and Store the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        """
+
+        return
