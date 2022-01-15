@@ -156,3 +156,19 @@ class Loss(abc.ABC):
             logger.debug('Dependencies found: \n\tRequired same size positive and negative. \n\tEta is not 1.')
             self._dependencies.append(tf.Assert(tf.equal(tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]),
                                                 [tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]]))
+
+    def _apply(self, scores_pos, scores_neg):
+        """
+        Apply the loss-function. All child classes must override this method.
+
+        :param scores_pos: A tensor of scores assigned to the positive statements
+        :type scores_pos: tf.Tensor
+        :param scores_neg: A tensor of scores assigned to the negative statements
+        :type scores_neg: tf.Tensor
+        :return: The loss value that is going to be minimized
+        :rtype: tf.Tensor
+        """
+
+        msg = 'This function is a placeholder in an abstract class.'
+        logger.error(msg)
+        NotImplementedError(msg)
