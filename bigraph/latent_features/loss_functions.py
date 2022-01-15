@@ -205,7 +205,7 @@ class PairwiseLoss(Loss):
     scoring function.
     """
 
-    def __init__(self, eta, loss_params=None, verbose=False):
+    def __init__(self, eta, hyperparam_dict=None, verbose=False):
         """
         Initialize the Loss class.
 
@@ -221,9 +221,9 @@ class PairwiseLoss(Loss):
         :type verbose: bool
         """
 
-        if loss_params is None:
-            loss_params = {'margin': DEFAULT_MARGIN}
-        super().__init__(eta, loss_params, verbose)
+        if hyperparam_dict is None:
+            hyperparam_dict = {'margin': DEFAULT_MARGIN}
+        super().__init__(eta, hyperparam_dict, verbose)
 
     def _init_hyperparams(self, hyperparam_dict):
         """
@@ -251,3 +251,31 @@ class PairwiseLoss(Loss):
         margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
         loss = tf.reduce_sum(tf.maximum(margin - scores_pos + scores_neg, 0))
         return loss
+
+
+@register_loss("nll")
+class NLLLoss(Loss):
+    r"""
+    Negative log-likelihood loss :cite:`trouillon2016complex`.
+    .. math::
+
+        \mathcal{L}(\Theta) = \sum_{t \in \mathcal{G} \cup \mathcal{C}}log(1 + exp(-y \, f_{model}(t;\Theta)))
+
+    where :math:`y \in {-1, 1}` denotes the label of the statement, :math:`\mathcal{G}` stands for the set of positives,
+    :math:`\mathcal{C}` shows the set of corruptions, :math:`f_{model}(t;\Theta)` is the model-specific scoring function.
+    """
+
+    def __init__(self, eta, hyperparam_dict=None, verbose=False):
+        """
+        Initialize NLL Loss class
+        :param eta: Number of negatives
+        :type eta: int
+        :param hyperparam_dict: Hyperparameters dictionary (non is required!)
+        :type hyperparam_dict: dict
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        if hyperparam_dict is None:
+            hyperparam_dict = {}
+        super().__init__(eta, hyperparam_dict, verbose)
