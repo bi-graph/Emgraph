@@ -172,3 +172,21 @@ class Loss(abc.ABC):
         msg = 'This function is a placeholder in an abstract class.'
         logger.error(msg)
         NotImplementedError(msg)
+
+    def apply(self, scores_pos, scores_neg):
+        """
+        Interface of the Loss class. Check, preprocess the inputs and apply the loss function.
+
+        :param scores_pos: A tensor of scores assigned to the positive statements
+        :type scores_pos: tf.Tensor
+        :param scores_neg: A tensor of scores assigned to the negative statements
+        :type scores_neg: tf.Tensor
+        :return: The loss value that is going to be minimized
+        :rtype: tf.Tensor
+        """
+
+        self._inputs_check(scores_pos, scores_neg)
+        with tf.control_dependencies(self._dependencies):
+            loss = self._apply(scores_pos, scores_neg)
+        return loss
+
