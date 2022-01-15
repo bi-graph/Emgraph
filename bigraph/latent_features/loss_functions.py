@@ -190,3 +190,37 @@ class Loss(abc.ABC):
             loss = self._apply(scores_pos, scores_neg)
         return loss
 
+
+@register_loss("pairwise", ['margin'])
+class PairwiseLoss(Loss):
+    r"""
+    Pairwise, max-margin loss. :cite:`bordes2013translating`.
+    .. math::
+
+        \mathcal{L}(\Theta) = \sum_{t^+ \in \mathcal{G}}\sum_{t^- \in \mathcal{C}}max(0, [\gamma + f_{model}(t^-;\Theta)
+         - f_{model}(t^+;\Theta)])
+
+    where :math:`\gamma` denotes the margin, :math:`\mathcal{G}` stands for the set of positives,
+    :math:`\mathcal{C}` shows the set of corruptions and :math:`f_{model}(t;\Theta)` is the model-specific
+    scoring function.
+    """
+
+    def __init__(self, eta, loss_params=None, verbose=False):
+        """
+        Initialize the Loss class.
+
+        :param eta: Number of negatives
+        :type eta: int
+        :param hyperparam_dict: Hyperparameters dictionary
+
+            - **'margin'**: (float). Margin to be used in pairwise loss computation (default: 1)
+
+            Example: ``loss_params={'margin': 0}``
+        :type hyperparam_dict: dict
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        if loss_params is None:
+            loss_params = {'margin': DEFAULT_MARGIN}
+        super().__init__(eta, loss_params, verbose)
