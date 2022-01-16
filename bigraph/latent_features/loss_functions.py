@@ -353,3 +353,19 @@ class AbsoluteMarginLoss(Loss):
         """
 
         self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN)
+
+    def _apply(self, scores_pos, scores_neg):
+        """
+        Apply the loss function.
+
+        :param scores_pos: A tensor of scores assigned to the positive statements
+        :type scores_pos: tf.Tensor, shape [n, 1]
+        :param scores_neg: A tensor of scores assigned to the negative statements
+        :type scores_neg: tf.Tensor, shape [n, 1]
+        :return: The loss value that is going to be minimized
+        :rtype: tf.Tensor
+        """
+
+        margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
+        loss = tf.reduce_sum(tf.maximum(margin + scores_neg, 0) - scores_pos)
+        return loss
