@@ -307,3 +307,35 @@ class NLLLoss(Loss):
         scores = tf.concat([-scores_pos, scores_neg], 0)
         return tf.reduce_sum(tf.log(1 + tf.exp(scores)))
 
+@register_loss("absolute_margin", ['margin'])
+class AbsoluteMarginLoss(Loss):
+    r"""
+    Absolute margin, max-margin loss :cite:`Hamaguchi2017`.
+    .. math::
+
+        \mathcal{L}(\Theta) = \sum_{t^+ \in \mathcal{G}}\sum_{t^- \in \mathcal{C}} f_{model}(t^-;\Theta)
+        - max(0, [\gamma - f_{model}(t^+;\Theta)])
+
+    where :math:`\gamma` denotes the margin, :math:`\mathcal{G}` stands for the set of positives, :math:`\mathcal{C}`
+    shows the set of corruptions, :math:`f_{model}(t;\Theta)` is the model-specific scoring function.
+    """
+
+    def __init__(self, eta, hyperparam_dict=None, verbose=False):
+        """
+        Initialize the Absolute Margin Loss class.
+
+        :param eta: Number of negatives
+        :type eta: int
+        :param hyperparam_dict: Hyperparameters dictionary
+
+            - **'margin'**: (float). Margin to be used in pairwise loss computation (default: 1)
+
+            Example: ``loss_params={'margin': 0}``
+        :type hyperparam_dict: dict
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        if hyperparam_dict is None:
+            hyperparam_dict = {'margin': DEFAULT_MARGIN}
+        super().__init__(eta, hyperparam_dict, verbose)
