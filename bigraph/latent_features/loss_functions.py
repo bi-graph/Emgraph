@@ -413,3 +413,18 @@ class SelfAdversarialLoss(Loss):
         if hyperparam_dict is None:
             hyperparam_dict = {'margin': DEFAULT_MARGIN_ADVERSARIAL, 'alpha': DEFAULT_ALPHA_ADVERSARIAL}
         super().__init__(eta, hyperparam_dict, verbose)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize, Verify and Store the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+            - **margin** - Margin to be used in pairwise loss computation(default:1)
+            - **alpha** - Temperature of sampling (default:0.5)
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN_ADVERSARIAL)
+        self._loss_parameters['alpha'] = hyperparam_dict.get('alpha', DEFAULT_ALPHA_ADVERSARIAL)
