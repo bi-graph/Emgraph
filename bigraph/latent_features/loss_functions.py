@@ -428,3 +428,29 @@ class SelfAdversarialLoss(Loss):
 
         self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN_ADVERSARIAL)
         self._loss_parameters['alpha'] = hyperparam_dict.get('alpha', DEFAULT_ALPHA_ADVERSARIAL)
+
+
+    def _apply(self, scores_pos, scores_neg):
+        """
+        Apply the loss function.
+
+        :param scores_pos: A tensor of scores assigned to the positive statements
+        :type scores_pos: tf.Tensor, shape [n, 1]
+        :param scores_neg: A tensor of scores assigned to the negative statements
+        :type scores_neg: tf.Tensor, shape [n, 1]
+        :return: The loss value that is going to be minimized
+        :rtype: tf.Tensor
+        """
+
+        margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
+        alpha = tf.constant(self._loss_parameters['alpha'], dtype=tf.float32, name='alpha')
+
+        # Compute p(neg_samples) based on eq 4
+        scores_neg_reshaped = tf.reshape(scores_neg, [self._loss_parameters['eta'], tf.shape(scores_pos)[0]])
+        p_neg = tf.nn.softmax(alpha * scores_neg_reshaped, axis=0)
+
+        # Compute Loss based on eg 5
+        loss = tf.reduce_sum(-tf.log_sigmoid(margin - tf.negative(scores_pos))) - tf.reduce_sum(
+            tf.multiply(p_neg, tf.log_sigmoid(tf.negative(scores_neg_reshaped) - margin)))
+
+        return loss
