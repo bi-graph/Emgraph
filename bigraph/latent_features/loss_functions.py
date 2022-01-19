@@ -287,8 +287,7 @@ class NLLLoss(Loss):
         :param hyperparam_dict: Key-value dictionary for hyperparameters.
         :type hyperparam_dict: dict
         """
-
-        return
+        pass
 
     def _apply(self, scores_pos, scores_neg):
         """
@@ -492,3 +491,40 @@ class NLLMulticlass(Loss):
         if hyperparam_dict is None:
             hyperparam_dict = {}
         super().__init__(eta, hyperparam_dict, verbose)
+
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize, Verify and Store the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        pass
+
+    def _apply(self, scores_pos, scores_neg):
+        """
+        Apply the loss function.
+
+        :param scores_pos: A tensor of scores assigned to the positive statements
+        :type scores_pos: tf.Tensor, shape [n, 1]
+        :param scores_neg: A tensor of scores assigned to the negative statements
+        :type scores_neg: tf.Tensor, shape [n * negative_count, 1]
+        :return: The loss value that is going to be minimized
+        :rtype: tf.Tensor
+        """
+
+        # Fix for numerical instability of multiclass loss
+        scores_pos = clip_before_exp(scores_pos)
+        scores_neg = clip_before_exp(scores_neg)
+
+        scores_neg_reshaped = tf.reshape(scores_neg, [self._loss_parameters['eta'], tf.shape(scores_pos)[0]])
+        neg_exp = tf.exp(scores_neg_reshaped)
+        pos_exp = tf.exp(scores_pos)
+        softmax_score = pos_exp / (tf.reduce_sum(neg_exp, axis=0) + pos_exp)
+
+        loss = -tf.reduce_sum(tf.log(softmax_score))
+        return loss
