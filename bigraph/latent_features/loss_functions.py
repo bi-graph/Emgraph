@@ -605,3 +605,23 @@ class BCELoss(Loss):
 
         self._loss_parameters['label_smoothing'] = hyperparam_dict.get('label_smoothing', DEFAULT_LABEL_SMOOTHING)
         self._loss_parameters['label_weighting'] = hyperparam_dict.get('label_weighting', DEFAULT_LABEL_WEIGHTING)
+
+
+    def _set_hyperparams(self, key, value):
+        """
+        Set the hyperparameters for the loss function.
+
+        :param key: Key for the hyperparameters dictionary
+        :type key: str/int
+        :param value: Value for the hyperparameters dictionary
+        :type value: str/int
+        :return: -
+        :rtype: -
+        """
+
+        if key in self._loss_parameters.keys():
+            msg = '{} already exists in loss hyperparameters dict with value {} \n' \
+                  'Overriding with value {}.'.format(key, self._loss_parameters[key], value)
+            logger.info(msg)
+
+        self._loss_parameters[key] = value
