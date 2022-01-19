@@ -166,7 +166,7 @@ class Loss(abc.ABC):
         :param scores_neg: A tensor of scores assigned to the negative statements
         :type scores_neg: tf.Tensor
         :return: The loss value that is going to be minimized
-        :rtype: tf.Tensor
+        :rtype: float
         """
 
         msg = 'This function is a placeholder in an abstract class.'
@@ -245,7 +245,7 @@ class PairwiseLoss(Loss):
         :param scores_neg: A tensor of scores assigned to the negative statements
         :type scores_neg: tf.Tensor, shape [n, 1]
         :return: The loss value that is going to be minimized
-        :rtype: tf.Tensor
+        :rtype: float
         """
 
         margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
@@ -298,7 +298,7 @@ class NLLLoss(Loss):
         :param scores_neg: A tensor of scores assigned to the negative statements
         :type scores_neg: tf.Tensor, shape [n, 1]
         :return: The loss value that is going to be minimized
-        :rtype: tf.Tensor
+        :rtype: float
         """
 
         scores_neg = clip_before_exp(scores_neg)
@@ -362,7 +362,7 @@ class AbsoluteMarginLoss(Loss):
         :param scores_neg: A tensor of scores assigned to the negative statements
         :type scores_neg: tf.Tensor, shape [n, 1]
         :return: The loss value that is going to be minimized
-        :rtype: tf.Tensor
+        :rtype: float
         """
 
         margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
@@ -438,7 +438,7 @@ class SelfAdversarialLoss(Loss):
         :param scores_neg: A tensor of scores assigned to the negative statements
         :type scores_neg: tf.Tensor, shape [n, 1]
         :return: The loss value that is going to be minimized
-        :rtype: tf.Tensor
+        :rtype: float
         """
 
         margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
@@ -514,7 +514,7 @@ class NLLMulticlass(Loss):
         :param scores_neg: A tensor of scores assigned to the negative statements
         :type scores_neg: tf.Tensor, shape [n * negative_count, 1]
         :return: The loss value that is going to be minimized
-        :rtype: tf.Tensor
+        :rtype: float
         """
 
         # Fix for numerical instability of multiclass loss
@@ -641,4 +641,32 @@ class BCELoss(Loss):
         self._inputs_check(y_true, y_pred)
         with tf.control_dependencies(self._dependencies):
             loss = self._apply(y_true, y_pred)
+        return loss
+
+    def _apply(self, y_true, y_pred):
+        """
+        Apply the loss function.
+
+        :param y_true: Ground truth values tensor
+        :type y_true: tf.Tensor
+        :param y_pred: Predicted values tensor
+        :type y_pred: tf.Tensor
+        :return: The loss value that is going to be minimized
+        :rtype: float
+        """
+
+        if self._loss_parameters['label_smoothing'] is not None:
+            y_true = tf.add((1 - self._loss_parameters['label_smoothing']) * y_true,
+                            (self._loss_parameters['label_smoothing']) / self._loss_parameters['num_entities'])
+
+        if self._loss_parameters['label_weighting']:
+
+            eps = 1e-6
+            wt = tf.reduce_mean(y_true)
+            loss = -tf.reduce_sum((1 - wt) * y_true * tf.log_sigmoid(y_pred)
+                                  + wt * (1 - y_true) * tf.log(1 - tf.sigmoid(y_pred) + eps))
+
+        else:
+            loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=y_pred))
+
         return loss
