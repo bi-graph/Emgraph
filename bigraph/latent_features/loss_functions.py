@@ -454,3 +454,41 @@ class SelfAdversarialLoss(Loss):
             tf.multiply(p_neg, tf.log_sigmoid(tf.negative(scores_neg_reshaped) - margin)))
 
         return loss
+
+@register_loss("multiclass_nll", [], {'require_same_size_pos_neg': False})
+class NLLMulticlass(Loss):
+    r"""
+    Multiclass NLL loss introduced in :cite:`chen2015` where both the subject and objects are corrupted (to use it in
+    this way pass corrupt_sides = ['s', 'o'] to embedding_model_params).
+
+    This loss was re-engineered in :cite:`kadlecBK17` where only the object was corrupted to get improved
+    performance (to use it in this way pass corrupt_sides = 'o' to embedding_model_params).
+
+    .. math::
+
+        \mathcal{L(X)} = -\sum_{x_{e_1,e_2,r_k} \in X} log\,p(e_2|e_1,r_k)
+         -\sum_{x_{e_1,e_2,r_k} \in X} log\,p(e_1|r_k, e_2)
+
+    Examples
+    --------
+    >>> from bigraph.latent_features import TransE
+    >>> model = TransE(batches_count=1, seed=555, epochs=20, k=10,
+    >>>                embedding_model_params={'corrupt_sides':['s', 'o']},
+    >>>                loss='multiclass_nll', loss_params={})
+    """
+
+    def __init__(self, eta, hyperparam_dict=None, verbose=False):
+        """
+        Initialize the NLL Multiclass class.
+
+        :param eta: Number of negatives
+        :type eta: int
+        :param hyperparam_dict: Hyperparameters dictionary
+        :type hyperparam_dict: dict
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        if hyperparam_dict is None:
+            hyperparam_dict = {}
+        super().__init__(eta, hyperparam_dict, verbose)
