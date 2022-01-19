@@ -587,3 +587,21 @@ class BCELoss(Loss):
                       "Set using '_set_hyperparams('num_entities', value)'."
                 logger.error(msg)
                 raise Exception(msg)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize, Verify and Store the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+            - **label_smoothing** (float): Apply label smoothing to vector of true labels. Can improve multi-class
+            classification training by using soft targets that are a weighted average of hard targets and the
+            uniform distribution over labels. Default: None
+            - **label_weighting** (bool): Apply label weighting to vector of true labels. Gives lower weight to
+            outputs with more positives in one-hot vector. Default: False
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        self._loss_parameters['label_smoothing'] = hyperparam_dict.get('label_smoothing', DEFAULT_LABEL_SMOOTHING)
+        self._loss_parameters['label_weighting'] = hyperparam_dict.get('label_weighting', DEFAULT_LABEL_WEIGHTING)
