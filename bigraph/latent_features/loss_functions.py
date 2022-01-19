@@ -473,7 +473,7 @@ class NLLMulticlass(Loss):
     >>> from bigraph.latent_features import TransE
     >>> model = TransE(batches_count=1, seed=555, epochs=20, k=10,
     >>>                embedding_model_params={'corrupt_sides':['s', 'o']},
-    >>>                loss='multiclass_nll', loss_params={})
+    >>>                loss='multiclass_nll', hyperparam_dict={})
     """
 
     def __init__(self, eta, hyperparam_dict=None, verbose=False):
@@ -528,3 +528,34 @@ class NLLMulticlass(Loss):
 
         loss = -tf.reduce_sum(tf.log(softmax_score))
         return loss
+
+
+@register_loss('bce', ['label_smoothing', 'label_weighting'], {'require_same_size_pos_neg': False})
+class BCELoss(Loss):
+    r"""
+    Binary Cross Entropy Loss.
+
+    .. math::
+
+        \mathcal{L} = - \frac{1}{N} \sum_{i=1}^{N} y_i \cdot log(p(y_i)) + (1-y_i) \cdot log(1-p(y_i))
+
+    Examples
+    --------
+    >>> from bigraph.latent_features.models import ConvE
+    >>> model = ConvE(batches_count=1, seed=555, epochs=20, k=10, loss='bce', hyperparam_dict={})
+    """
+
+
+    def __init__(self, eta, hyperparam_dict={}, verbose=False):
+        """
+        Initialize the BCE loss class.
+
+        :param eta: Number of negatives
+        :type eta: int
+        :param hyperparam_dict: Hyperparameters dictionary
+        :type hyperparam_dict: dict
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        super().__init__(eta, hyperparam_dict, verbose)
