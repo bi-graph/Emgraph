@@ -625,3 +625,20 @@ class BCELoss(Loss):
             logger.info(msg)
 
         self._loss_parameters[key] = value
+
+    def apply(self, y_true, y_pred):
+        """
+        Interface of the Loss class. Check, preprocess the inputs and apply the loss function.
+
+        :param y_true: Ground truth values tensor
+        :type y_true: tf.Tensor
+        :param y_pred: Predicted values tensor
+        :type y_pred: tf.Tensor
+        :return: The loss value that is going to be minimized
+        :rtype: tf.Tensor
+        """
+
+        self._inputs_check(y_true, y_pred)
+        with tf.control_dependencies(self._dependencies):
+            loss = self._apply(y_true, y_pred)
+        return loss
