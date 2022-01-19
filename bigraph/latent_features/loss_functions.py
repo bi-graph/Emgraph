@@ -559,3 +559,31 @@ class BCELoss(Loss):
         """
 
         super().__init__(eta, hyperparam_dict, verbose)
+
+
+    def _inputs_check(self, y_true, y_pred):
+        """
+        Check and create dependencies needed by loss computations.
+
+        :param y_true: A tensor of ground truth values.
+        :type y_true: tf.Tensor
+        :param y_pred: A tensor of predicted values.
+        :type y_pred: tf.Tensor
+        :return: -
+        :rtype: -
+        """
+
+
+        logger.debug('Creating dependencies before loss computations.')
+
+        self._dependencies = []
+        logger.debug('Dependencies found: \n\tRequired same size y_true and y_pred. ')
+        self._dependencies.append(tf.Assert(tf.equal(tf.shape(y_pred)[0], tf.shape(y_true)[0]),
+                                            [tf.shape(y_pred)[0], tf.shape(y_true)[0]]))
+
+        if self._loss_parameters['label_smoothing'] is not None:
+            if 'num_entities' not in self._loss_parameters.keys():
+                msg = "To apply label smooth-ing the number of entities must be known. " \
+                      "Set using '_set_hyperparams('num_entities', value)'."
+                logger.error(msg)
+                raise Exception(msg)
