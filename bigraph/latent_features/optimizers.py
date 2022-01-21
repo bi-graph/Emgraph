@@ -10,6 +10,22 @@ logger.setLevel(logging.DEBUG)
 
 OPTIMIZER_REGISTRY = {}
 
+# Default learning rate for the optimizers
+DEFAULT_LR = 0.0005
+
+# Default momentum for the optimizers
+DEFAULT_MOMENTUM = 0.9
+
+DEFAULT_DECAY_CYCLE = 0
+
+DEFAULT_DECAY_CYCLE_MULTIPLE = 1
+
+DEFAULT_LR_DECAY_FACTOR = 2
+
+DEFAULT_END_LR = 1e-8
+
+DEFAULT_SINE = False
+
 def register_optimizer(name, external_params=[], class_params={}):
     """
     A wrapper for saving the wrapped optimizer in a dictionary.
@@ -31,3 +47,30 @@ def register_optimizer(name, external_params=[], class_params={}):
         return class_handle
 
     return insert_in_registry
+
+class Optimizer(abc.ABC):
+    """
+    Abstract class for the optimizers.
+
+    """
+
+    name = ""
+    external_params = []
+    class_params = {}
+
+    def __init__(self, optimizer_params, batches_count, verbose):
+        """
+        Initialize the optimizer.
+
+        :param optimizer_params: Key-value dictionary for parameters.
+        :type optimizer_params: dict
+        :param batches_count: Number of batches per epoch
+        :type batches_count: int
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        self.verbose = verbose
+        self._optimizer_params = {}
+        self._init_hyperparams(optimizer_params)
+        self.batches_count = batches_count

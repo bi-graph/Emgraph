@@ -71,7 +71,7 @@ def clip_before_exp(value):
 
 class Loss(abc.ABC):
     """
-    Abstract class for loss functions.
+    Abstract class for the loss functions.
 
     """
 
