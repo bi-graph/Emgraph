@@ -85,3 +85,17 @@ class Optimizer(abc.ABC):
         logger.info('Name : {}'.format(self.name))
         for key, value in self._optimizer_params.items():
             logger.info('{} : {}'.format(key, value))
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        self._optimizer_params['lr'] = hyperparam_dict.get('lr', DEFAULT_LR)
+        if self.verbose:
+            self._display_params()
