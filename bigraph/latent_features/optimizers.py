@@ -74,3 +74,14 @@ class Optimizer(abc.ABC):
         self._optimizer_params = {}
         self._init_hyperparams(optimizer_params)
         self.batches_count = batches_count
+
+
+    def _display_params(self):
+        """
+        Display the parameter values.
+
+        """
+        logger.info('\n------ Optimizer -----')
+        logger.info('Name : {}'.format(self.name))
+        for key, value in self._optimizer_params.items():
+            logger.info('{} : {}'.format(key, value))
