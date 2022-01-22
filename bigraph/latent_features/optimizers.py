@@ -111,3 +111,19 @@ class Optimizer(abc.ABC):
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
+
+    def update_feed_dict(self, feed_dict, batch_num, epoch_num):
+        """
+        Update values of placeholders created by the optimizer.
+
+        :param feed_dict: model sess.run feeding dictionary while being optimized
+        :type feed_dict: dict
+        :param batch_num: Current batch number
+        :type batch_num: int
+        :param epoch_num: Current epoch number
+        :type epoch_num: int
+        :return: -
+        :rtype: -
+        """
+
+        raise NotImplementedError('Abstract Method not implemented!')
