@@ -99,3 +99,15 @@ class Optimizer(abc.ABC):
         self._optimizer_params['lr'] = hyperparam_dict.get('lr', DEFAULT_LR)
         if self.verbose:
             self._display_params()
+
+    def minimize(self, loss):
+        """
+        Create an optimizer to minimize the model loss.
+
+        :param loss: Loss node for computing model loss.
+        :type loss: tf.Tensor
+        :return: Node that needs to be evaluated for minimizing the loss during training
+        :rtype: tf.Operation
+        """
+
+        raise NotImplementedError('Abstract Method not implemented!')
