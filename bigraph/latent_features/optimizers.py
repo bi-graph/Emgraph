@@ -275,3 +275,19 @@ class MomentumOptimizer(Optimizer):
 
         if self.verbose:
             self._display_params()
+
+
+    def minimize(self, loss):
+        """
+        Create an optimizer to minimize the model loss.
+
+        :param loss: Loss node for computing model loss.
+        :type loss: tf.Tensor
+        :return: Node that needs to be evaluated for minimizing the loss during training
+        :rtype: tf.Operation
+        """
+        self.optimizer = tf.train.MomentumOptimizer(learning_rate=self._optimizer_params['lr'],
+                                                    momentum=self._optimizer_params['momentum'])
+
+        train = self.optimizer.minimize(loss)
+        return train
