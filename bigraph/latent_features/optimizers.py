@@ -257,21 +257,21 @@ class MomentumOptimizer(Optimizer):
         :param verbose: Set / unset verbose mode
         :type verbose: bool
         """
-        """Initialize the Optimizer
-
-        Parameters
-        ----------
-        optimizer_params : dict
-            Consists of key-value pairs. The optimizer will check the keys to get the corresponding params:
-
-            - **'lr'**: (float). Learning Rate (default: 0.0005)
-            - **'momentum'**: (float). Momentum (default: 0.9)
-
-            Example: ``optimizer_params={'lr': 0.001, 'momentum':0.90}``
-        batches_count: int
-            number of batches in an epoch
-        verbose : bool
-            Enable/disable verbose mode
-        """
 
         super(MomentumOptimizer, self).__init__(optimizer_params, batches_count, verbose)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        self._optimizer_params['lr'] = hyperparam_dict.get('lr', DEFAULT_LR)
+        self._optimizer_params['momentum'] = hyperparam_dict.get('momentum', DEFAULT_MOMENTUM)
+
+        if self.verbose:
+            self._display_params()
