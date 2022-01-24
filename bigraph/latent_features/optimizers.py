@@ -151,3 +151,17 @@ class AdagradOptimizer(Optimizer):
         """
 
         super(AdagradOptimizer, self).__init__(optimizer_params, batches_count, verbose)
+
+    def minimize(self, loss):
+        """
+        Create an optimizer to minimize the model loss.
+
+        :param loss: Loss node for computing model loss.
+        :type loss: tf.Tensor
+        :return: Node that needs to be evaluated for minimizing the loss during training
+        :rtype: tf.Operation
+        """
+
+        self.optimizer = tf.train.AdagradOptimizer(learning_rate=self._optimizer_params['lr'])
+        train = self.optimizer.minimize(loss)
+        return train
