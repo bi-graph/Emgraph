@@ -127,3 +127,27 @@ class Optimizer(abc.ABC):
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
+
+
+@register_optimizer("adagrad", ['lr'])
+class AdagradOptimizer(Optimizer):
+    """
+    Wrapper around adagrad optimizer.
+
+    """
+
+    def __init__(self, optimizer_params, batches_count, verbose=False):
+        """
+        Initialize  the optimizer.
+
+        :param optimizer_params: Key-value dictionary for hyperparameters.
+            - **'lr'**: (float). Learning Rate (default: 0.0005)
+            Example: ``optimizer_params={'lr': 0.001}``
+        :type optimizer_params: dict
+        :param batches_count: Number of batches per epoch
+        :type batches_count: int
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        super(AdagradOptimizer, self).__init__(optimizer_params, batches_count, verbose)
