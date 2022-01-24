@@ -165,3 +165,43 @@ class AdagradOptimizer(Optimizer):
         self.optimizer = tf.train.AdagradOptimizer(learning_rate=self._optimizer_params['lr'])
         train = self.optimizer.minimize(loss)
         return train
+
+    def update_feed_dict(self, feed_dict, batch_num, epoch_num):
+        """
+        Update values of placeholders created by the optimizer.
+
+        :param feed_dict: model sess.run feeding dictionary while being optimized
+        :type feed_dict: dict
+        :param batch_num: Current batch number
+        :type batch_num: int
+        :param epoch_num: Current epoch number
+        :type epoch_num: int
+        :return: -
+        :rtype: -
+        """
+        return
+
+
+@register_optimizer("adam", ['lr'])
+class AdamOptimizer(Optimizer):
+    """
+    Wrapper around Adam Optimizer.
+
+    """
+
+    def __init__(self, optimizer_params, batches_count, verbose=False):
+        """
+        Initialize the optimizer.
+
+        :param optimizer_params: Key-value dictionary for hyperparameters.
+            - **'lr'**: (float). Learning Rate (default: 0.0005)
+
+            Example: ``optimizer_params={'lr': 0.001}``
+        :type optimizer_params: dict
+        :param batches_count: Number of batches per epoch
+        :type batches_count: int
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        super(AdamOptimizer, self).__init__(optimizer_params, batches_count, verbose)
