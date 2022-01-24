@@ -234,3 +234,44 @@ class AdamOptimizer(Optimizer):
         :rtype: -
         """
         return
+
+@register_optimizer("momentum", ['lr', 'momentum'])
+class MomentumOptimizer(Optimizer):
+    """
+    Wrapper around Momentum Optimizer.
+
+    """
+
+    def __init__(self, optimizer_params, batches_count, verbose=False):
+        """
+        Initialize the optimizer.
+
+        :param optimizer_params: Key-value dictionary for hyperparameters.
+            - **'lr'**: (float). Learning Rate (default: 0.0005)
+            - **'momentum'**: (float). Momentum (default: 0.9)\
+
+            Example: ``optimizer_params={'lr': 0.001, 'momentum':0.90}``
+        :type optimizer_params: dict
+        :param batches_count: Number of batches per epoch
+        :type batches_count: int
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+        """Initialize the Optimizer
+
+        Parameters
+        ----------
+        optimizer_params : dict
+            Consists of key-value pairs. The optimizer will check the keys to get the corresponding params:
+
+            - **'lr'**: (float). Learning Rate (default: 0.0005)
+            - **'momentum'**: (float). Momentum (default: 0.9)
+
+            Example: ``optimizer_params={'lr': 0.001, 'momentum':0.90}``
+        batches_count: int
+            number of batches in an epoch
+        verbose : bool
+            Enable/disable verbose mode
+        """
+
+        super(MomentumOptimizer, self).__init__(optimizer_params, batches_count, verbose)
