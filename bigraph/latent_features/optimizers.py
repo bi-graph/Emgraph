@@ -397,3 +397,54 @@ class SGDOptimizer(Optimizer):
         # create the operation that minimizes the loss
         train = self.optimizer.minimize(loss)
         return train
+
+    def update_feed_dict(self, feed_dict, batch_num, epoch_num):
+        """
+        Update values of placeholders created by the optimizer.
+
+        :param feed_dict: model sess.run feeding dictionary while being optimized
+        :type feed_dict: dict
+        :param batch_num: Current batch number
+        :type batch_num: int
+        :param epoch_num: Current epoch number
+        :type epoch_num: int
+        :return: -
+        :rtype: -
+        """
+
+        # Sinusoidal Decay
+        if self.is_cosine_decay:
+            # compute the cycle number
+            current_cycle_num = \
+                ((epoch_num - 1 - self.curr_start) * self.batches_count + (batch_num - 1)) / \
+                (self.curr_cycle_length * self.batches_count)
+            # compute a learning rate for the current batch/epoch
+            self.current_lr = \
+                self.end_lr + (self.start_lr - self.end_lr) * 0.5 * (1 + math.cos(math.pi * current_cycle_num))
+
+            # Start the next cycle and Expand the cycle/Decay the learning rate
+            if epoch_num % (self.next_cycle_epoch - 1) == 0 and batch_num == self.batches_count:
+                self.curr_cycle_length = self.curr_cycle_length * self.decay_cycle_expand_factor
+                self.next_cycle_epoch = self.next_cycle_epoch + self.curr_cycle_length
+                self.curr_start = epoch_num
+                self.start_lr = self.start_lr / self.decay_lr_rate
+
+            if self.current_lr < self.end_lr:
+                self.current_lr = self.end_lr
+
+        # fixed rate decay
+        elif self.decay_cycle_rate > 0:
+            if epoch_num % (self.next_cycle_epoch) == 0 and batch_num == 1:
+                if self.current_lr > self.end_lr:
+                    self.next_cycle_epoch = self.decay_cycle_rate + \
+                        ((self.next_cycle_epoch - 1) * self.decay_cycle_expand_factor) + 1
+                    self.current_lr = self.current_lr / self.decay_lr_rate
+
+                    if self.current_lr < self.end_lr:
+                        self.current_lr = self.end_lr
+
+        # no change to the learning rate
+        else:
+            pass
+
+        feed_dict.update({self.lr_placeholder: self.current_lr})
