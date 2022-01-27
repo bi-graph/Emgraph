@@ -336,3 +336,23 @@ class SGDOptimizer(Optimizer):
         """
 
         super(SGDOptimizer, self).__init__(optimizer_params, batches_count, verbose)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        self._optimizer_params['lr'] = hyperparam_dict.get('lr', DEFAULT_LR)
+        self._optimizer_params['decay_cycle'] = hyperparam_dict.get('decay_cycle', DEFAULT_DECAY_CYCLE)
+        self._optimizer_params['cosine_decay'] = hyperparam_dict.get('cosine_decay', DEFAULT_SINE)
+        self._optimizer_params['expand_factor'] = hyperparam_dict.get('expand_factor', DEFAULT_DECAY_CYCLE_MULTIPLE)
+        self._optimizer_params['decay_lr_rate'] = hyperparam_dict.get('decay_lr_rate', DEFAULT_LR_DECAY_FACTOR)
+        self._optimizer_params['end_lr'] = hyperparam_dict.get('end_lr', DEFAULT_END_LR)
+
+        if self.verbose:
+            self._display_params()
