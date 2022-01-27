@@ -356,3 +356,44 @@ class SGDOptimizer(Optimizer):
 
         if self.verbose:
             self._display_params()
+
+
+    def minimize(self, loss):
+        """
+        Create an optimizer to minimize the model loss.
+
+        :param loss: Loss node for computing model loss.
+        :type loss: tf.Tensor
+        :return: Node that needs to be evaluated for minimizing the loss during training
+        :rtype: tf.Operation
+        """
+
+        # create a placeholder for learning rate
+        self.lr_placeholder = tf.placeholder(tf.float32)
+        # create the optimizer with the placeholder
+        self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.lr_placeholder)
+
+        # load the hyperparameters that would be used while generating the learning rate per batch
+        # start learning rate
+        self.start_lr = self._optimizer_params['lr']
+        self.current_lr = self.start_lr
+
+        # cycle rate for learning rate decay
+        self.decay_cycle_rate = self._optimizer_params['decay_cycle']
+        self.end_lr = self._optimizer_params['end_lr']
+
+        # check if it is a sinudoidal decay or constant decay
+        self.is_cosine_decay = self._optimizer_params['cosine_decay']
+        self.next_cycle_epoch = self.decay_cycle_rate + 1
+
+        # Get the cycle expand factor
+        self.decay_cycle_expand_factor = self._optimizer_params['expand_factor']
+
+        # Get the LR decay factor at the start of each cycle
+        self.decay_lr_rate = self._optimizer_params['decay_lr_rate']
+        self.curr_cycle_length = self.decay_cycle_rate
+        self.curr_start = 0
+
+        # create the operation that minimizes the loss
+        train = self.optimizer.minimize(loss)
+        return train
