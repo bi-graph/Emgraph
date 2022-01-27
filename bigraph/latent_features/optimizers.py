@@ -306,3 +306,33 @@ class MomentumOptimizer(Optimizer):
         :rtype: -
         """
         return
+
+@register_optimizer("sgd", ['lr', 'decay_cycle', 'end_lr', 'sine_decay', 'expand_factor', 'decay_lr_rate'])
+class SGDOptimizer(Optimizer):
+    '''
+    Wrapper around SGD Optimizer.
+
+    '''
+    def __init__(self, optimizer_params, batches_count, verbose=False):
+        """
+        Initialize  the optimizer.
+
+        :param optimizer_params: Key-value dictionary for hyperparameters.
+            - **'lr'**: (float). Learning Rate upper bound (default: 0.0005)
+            - **'decay_cycle'**: (int). Cycle of epoch over which to decay (default: 0)
+            - **'end_lr'**: (float). Learning Rate lower bound (default: 1e-8)
+            - **'cosine_decay'**: (bool). Use cosine decay or to fixed rate decay (default: False)
+            - **'expand_factor'**: (float). Expand the decay cycle length by this factor after each cycle \
+                (default: 1)
+            - **'decay_lr_rate'**: (float). Decay factor to decay the start lr after each cycle \
+                (default: 2)
+
+            Example: ``optimizer_params={'lr': 0.01, 'decay_cycle':30, 'end_lr':0.0001, 'sine_decay':True}``
+        :type optimizer_params: dict
+        :param batches_count: Number of batches per epoch
+        :type batches_count: int
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        super(SGDOptimizer, self).__init__(optimizer_params, batches_count, verbose)
