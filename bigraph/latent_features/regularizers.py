@@ -124,3 +124,15 @@ class Regularizer(abc.ABC):
 
         logger.error('This function is a placeholder in an abstract class')
         raise NotImplementedError("This function is a placeholder in an abstract class")
+
+    def apply(self, trainable_params):
+        """
+        Interface of the Loss class. Apply the regularization function. All children must override this method.
+
+        :param trainable_params: Trainable to-be-regularized params' list
+        :type trainable_params: list, shape [n]
+        :return: Regularization loss
+        :rtype: tf.Tensor
+        """
+        loss = self._apply(trainable_params)
+        return loss
