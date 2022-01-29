@@ -79,3 +79,22 @@ class Regularizer(abc.ABC):
             msg = 'Some of the hyperparams for regularizer were not passed.\n{}'.format(e)
             logger.error(msg)
             raise Exception(msg)
+
+
+    def get_state(self, param_name):
+        """
+        Get the state.
+
+        :param param_name: Name of the state being queried
+        :type param_name: str
+        :return: Value of the queried state
+        :rtype:
+        """
+
+        try:
+            param_value = REGULARIZER_REGISTRY[self.name].class_params.get(param_name)
+            return param_value
+        except KeyError as e:
+            msg = 'Invalid Key.\n{}'.format(e)
+            logger.error(msg)
+            raise Exception(msg)
