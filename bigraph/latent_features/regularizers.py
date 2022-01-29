@@ -45,8 +45,37 @@ def register_regularizer(name, external_params=None, class_params=None):
     return insert_in_registry
 
 
-# defalut lambda to be used in L1, L2 and L3 regularizer
-DEFAULT_LAMBDA = 1e-5
+class Regularizer(abc.ABC):
+    """
+    Abstract class for Regularizer.
 
-# default regularization - L2
-DEFAULT_NORM = 2
+    """
+
+    name = ""
+    external_params = []
+    class_params = {}
+
+    def __init__(self, hyperparam_dict, verbose=False):
+        """
+
+        :param hyperparam_dict: Key-value dictionary for parameters.
+        :type hyperparam_dict: dict
+        :param verbose: Set / unset verbose mode
+        :type verbose: bool
+        """
+
+        self._regularizer_parameters = {}
+
+        # perform check to see if all the required external hyperparams are passed
+        try:
+            self._init_hyperparams(hyperparam_dict)
+            if verbose:
+                logger.info('\n------ Regularizer -----')
+                logger.info('Name : {}'.format(self.name))
+                for key, value in self._regularizer_parameters.items():
+                    logger.info('{} : {}'.format(key, value))
+
+        except KeyError as e:
+            msg = 'Some of the hyperparams for regularizer were not passed.\n{}'.format(e)
+            logger.error(msg)
+            raise Exception(msg)
