@@ -98,3 +98,16 @@ class Regularizer(abc.ABC):
             msg = 'Invalid Key.\n{}'.format(e)
             logger.error(msg)
             raise Exception(msg)
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        logger.error('This function is a placeholder in an abstract class')
+        raise NotImplementedError("This function is a placeholder in an abstract class")
