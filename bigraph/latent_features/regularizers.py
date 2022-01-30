@@ -177,3 +177,30 @@ class LPRegularizer(Regularizer):
         if regularizer_params is None:
             regularizer_params = {'lambda': DEFAULT_LAMBDA, 'p': DEFAULT_NORM}
         super().__init__(regularizer_params, verbose)
+
+
+    def _init_hyperparams(self, hyperparam_dict):
+        """
+        Initialize, Verify and Store the hyperparameters.
+
+        :param hyperparam_dict: Key-value dictionary for hyperparameters.
+
+        lambda': list or float
+                weight for regularizer loss for each parameter(default: 1e-5).
+                If list, size must be equal to no. of parameters.
+
+            'p': int
+                Norm of the regularizer (``1`` for L1 regularizer, ``2`` for L2 and so on.) (default:2)
+
+        :type hyperparam_dict: dict
+        :return: -
+        :rtype: -
+        """
+
+        self._regularizer_parameters['lambda'] = hyperparam_dict.get('lambda', DEFAULT_LAMBDA)
+        self._regularizer_parameters['p'] = hyperparam_dict.get('p', DEFAULT_NORM)
+        if not isinstance(self._regularizer_parameters['p'], (int, np.integer)):
+            msg = 'Invalid value for regularizer parameter p:{}. Supported type int, np.int32 or np.int64'.format(
+                self._regularizer_parameters['p'])
+            logger.error(msg)
+            raise Exception(msg)
