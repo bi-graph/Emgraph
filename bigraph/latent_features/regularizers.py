@@ -204,3 +204,31 @@ class LPRegularizer(Regularizer):
                 self._regularizer_parameters['p'])
             logger.error(msg)
             raise Exception(msg)
+
+    def _apply(self, trainable_params):
+        """
+        Apply the regularizer.
+
+        :param trainable_params: Trainable parameters that are going to be regularized
+        :type trainable_params: list, shape [n]
+        :return: Regularization loss
+        :rtype: tf.Tensor
+        """
+
+        if np.isscalar(self._regularizer_parameters['lambda']):
+            self._regularizer_parameters['lambda'] = [self._regularizer_parameters['lambda']] * len(trainable_params)
+        elif isinstance(self._regularizer_parameters['lambda'], list) and len(
+                self._regularizer_parameters['lambda']) == len(trainable_params):
+            pass
+        else:
+            logger.error('Regularizer weight must be a scalar or a list with length equal to number of params passes')
+            raise ValueError(
+                "Regularizer weight must be a scalar or a list with length equal to number of params passes")
+
+        loss_reg = 0
+        for i in range(len(trainable_params)):
+            loss_reg += (self._regularizer_parameters['lambda'][i] * tf.reduce_sum(
+                tf.pow(tf.abs(trainable_params[i]), self._regularizer_parameters['p'])))
+
+        return loss_reg
+
