@@ -185,7 +185,7 @@ class AdagradOptimizer(Optimizer):
 @register_optimizer("adam", ['lr'])
 class AdamOptimizer(Optimizer):
     """
-    Wrapper around Adam Optimizer.
+    Adam Optimizer.
 
     """
 
@@ -238,7 +238,7 @@ class AdamOptimizer(Optimizer):
 @register_optimizer("momentum", ['lr', 'momentum'])
 class MomentumOptimizer(Optimizer):
     """
-    Wrapper around Momentum Optimizer.
+    Momentum Optimizer.
 
     """
 
@@ -309,10 +309,11 @@ class MomentumOptimizer(Optimizer):
 
 @register_optimizer("sgd", ['lr', 'decay_cycle', 'end_lr', 'sine_decay', 'expand_factor', 'decay_lr_rate'])
 class SGDOptimizer(Optimizer):
-    '''
-    Wrapper around SGD Optimizer.
+    """
+    SGD Optimizer.
 
-    '''
+    """
+
     def __init__(self, optimizer_params, batches_count, verbose=False):
         """
         Initialize  the optimizer.
