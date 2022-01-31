@@ -127,3 +127,36 @@ def mrr_score(ranks):
         ranks = np.asarray(ranks)
     ranks = ranks.reshape(-1)
     return np.sum(1 / ranks) / len(ranks)
+
+def rank_score(y_true, y_pred, pos_lab=1):
+    """Rank of a triple
+
+        The rank of a positive element against a list of negatives.
+
+    .. math::
+
+        rank_{(s, p, o)_i}
+
+    :param y_true: An array of binary labels each containing only one positive value.
+    :type y_true: ndarray, shape[n]
+    :param y_pred: An array of scores for the positive value and the n-1 negatives
+    :type y_pred: ndaray, shape[n]
+    :param pos_lab: The value of the positive label (default = 1)
+    :type pos_lab: int
+    :return: The rank of the positive element against the negatives
+    :rtype: int
+
+    Examples:
+    >>> import numpy as np
+    >>> from bigraph.evaluation.metrics import rank_score
+    >>> y_pred = np.array([.434, .65, .21, .84])
+    >>> y_true = np.array([0, 0, 1, 0])
+    >>> rank_score(y_true, y_pred)
+    4
+    """
+
+    logger.debug('Calculating the Rank Score.')
+    idx = np.argsort(y_pred)[::-1]
+    y_ord = y_true[idx]
+    rank = np.where(y_ord == pos_lab)[0][0] + 1
+    return rank
