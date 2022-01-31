@@ -139,7 +139,7 @@ class Initializer(abc.ABC):
         :param init_type: Initializer type (tf: Tensorflow, np: Numpy)
         :type init_type: str
         :return: Weights initializer
-        :rtype: tf.Op / nd-array
+        :rtype: tf.Op / nd-array /
         """
 
         assert init_type in ['tf', 'np'], 'Invalid initializer type!'
