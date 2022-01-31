@@ -50,8 +50,7 @@ def hits_at_n_score(ranks, n):
     :return: The hits-at-n score
     :rtype: float
 
-    Examples
-    --------
+    Examples:
     >>> import numpy as np
     >>> from bigraph.evaluation.metrics import hits_at_n_score
     >>> rankings = np.array([1, 12, 6, 2])
@@ -65,3 +64,66 @@ def hits_at_n_score(ranks, n):
         ranks = np.asarray(ranks)
     ranks = ranks.reshape(-1)
     return np.sum(ranks <= n) / len(ranks)
+
+
+def mrr_score(ranks):
+    r"""Mean Reciprocal Rank (MRR)
+
+    The function computes the mean of the reciprocal of elements of a vector of rankings ``ranks``.
+
+    It is used in conjunction with the learning to rank evaluation protocol of
+    :meth:`ampligraph.evaluation.evaluate_performance`.
+
+    It is formally defined as follows:
+
+    .. math::
+
+        MRR = \frac{1}{|Q|}\sum_{i = 1}^{|Q|}\frac{1}{rank_{(s, p, o)_i}}
+
+    where :math:`Q` is a set of triples and :math:`(s, p, o)` is a triple :math:`\in Q`.
+
+    .. note::
+        This metric is similar to mean rank (MR) :meth:`ampligraph.evaluation.mr_score`. Instead of averaging ranks,
+        it averages their reciprocals. This is done to obtain a metric which is more robust to outliers.
+
+
+    Consider the following example. Each of the two positive triples identified by ``*`` are ranked
+    against four corruptions each. When scored by an embedding model, the first triple ranks 2nd, and the other triple
+    ranks first. The resulting MRR is: ::
+
+        s	 p	   o		score	rank
+        Jack   born_in   Ireland	0.789	   1
+        Jack   born_in   Italy		0.753	   2  *
+        Jack   born_in   Germany	0.695	   3
+        Jack   born_in   China		0.456	   4
+        Jack   born_in   Thomas		0.234	   5
+
+        s	 p	   o		score	rank
+        Jack   friend_with   Thomas	0.901	   1  *
+        Jack   friend_with   China      0.345	   2
+        Jack   friend_with   Italy      0.293	   3
+        Jack   friend_with   Ireland	0.201	   4
+        Jack   friend_with   Germany    0.156	   5
+
+        MRR=0.75
+
+    :param ranks: Ranking of ``n`` test statements
+    :type ranks: list or ndarray, shape [n] or [n, 2]
+    :return: The MRR score
+    :rtype: float
+
+    Examples:
+    >>> import numpy as np
+    >>> from bigraph.evaluation.metrics import mrr_score
+    >>> rankings = np.array([1, 12, 6, 2])
+    >>> mrr_score(rankings)
+    0.4375
+
+    """
+
+    logger.debug('Calculating the Mean Reciprocal Rank.')
+    if isinstance(ranks, list):
+        logger.debug('Converting ranks to numpy array.')
+        ranks = np.asarray(ranks)
+    ranks = ranks.reshape(-1)
+    return np.sum(1 / ranks) / len(ranks)
