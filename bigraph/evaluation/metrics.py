@@ -129,7 +129,7 @@ def mrr_score(ranks):
     return np.sum(1 / ranks) / len(ranks)
 
 def rank_score(y_true, y_pred, pos_lab=1):
-    """Rank of a triple
+    r"""Rank of a triple
 
         The rank of a positive element against a list of negatives.
 
@@ -160,3 +160,61 @@ def rank_score(y_true, y_pred, pos_lab=1):
     y_ord = y_true[idx]
     rank = np.where(y_ord == pos_lab)[0][0] + 1
     return rank
+
+def mr_score(ranks):
+    r"""Mean Rank (MR)
+
+    The function computes the mean of of a vector of rankings ``ranks``.
+
+    It can be used in conjunction with the learning to rank evaluation protocol of
+    :meth:`ampligraph.evaluation.evaluate_performance`.
+
+    It is formally defined as follows:
+
+    .. math::
+        MR = \frac{1}{|Q|}\sum_{i = 1}^{|Q|}rank_{(s, p, o)_i}
+
+    where :math:`Q` is a set of triples and :math:`(s, p, o)` is a triple :math:`\in Q`.
+
+    .. note::
+        This metric is not robust to outliers.
+        It is usually presented along the more reliable MRR :meth:`ampligraph.evaluation.mrr_score`.
+
+    Consider the following example. Each of the two positive triples identified by ``*`` are ranked
+    against four corruptions each. When scored by an embedding model, the first triple ranks 2nd, and the other triple
+    ranks first. The resulting MR is: ::
+
+        s	 p	   o		score	rank
+        Jack   born_in   Ireland	0.789	   1
+        Jack   born_in   Italy		0.753	   2  *
+        Jack   born_in   Germany	0.695	   3
+        Jack   born_in   China		0.456	   4
+        Jack   born_in   Thomas		0.234	   5
+
+        s	 p	   o		score	rank
+        Jack   friend_with   Thomas	0.901	   1  *
+        Jack   friend_with   China      0.345	   2
+        Jack   friend_with   Italy      0.293	   3
+        Jack   friend_with   Ireland	0.201	   4
+        Jack   friend_with   Germany    0.156	   5
+
+        MR=1.5
+
+    :param ranks: Ranking of ``n`` test statements
+    :type ranks: list or ndarray, shape [n] or [n, 2]
+    :return: The MR score
+    :rtype: float
+
+    Examples:
+    >>> from bigraph.evaluation import mr_score
+    >>> ranks= [5, 3, 4, 10, 1]
+    >>> mr_score(ranks)
+    4.6
+    """
+
+    logger.debug('Calculating the Mean Average Rank score.')
+    if isinstance(ranks, list):
+        logger.debug('Converting ranks to numpy array.')
+        ranks = np.asarray(ranks)
+    ranks = ranks.reshape(-1)
+    return np.sum(ranks) / len(ranks)
