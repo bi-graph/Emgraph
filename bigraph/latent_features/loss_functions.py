@@ -236,6 +236,7 @@ class PairwiseLoss(Loss):
 
         self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN)
 
+    #TODO: rename this to call or something else
     def _apply(self, scores_pos, scores_neg):
         """
         Apply the loss function.

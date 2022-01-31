@@ -1,0 +1,1 @@
+#todo: add more models from here https://github.com/Sujit-O/pykg2vec/tree/master/pykg2vec/models

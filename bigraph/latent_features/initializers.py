@@ -24,7 +24,8 @@ DEFAULT_NORMAL_STD = 0.05
 # Default value indicating whether to use xavier uniform or normal
 DEFAULT_XAVIER_IS_UNIFORM = False
 
-
+#TODO: Add more initializers from Tensorflow
+#TODO: Rename this to bigraph_export
 def register_initializer(name, external_params=[], class_params={}):
     """
     Wrapper for Saving the initializer class info in the INITIALIZER_REGISTRY dictionary.

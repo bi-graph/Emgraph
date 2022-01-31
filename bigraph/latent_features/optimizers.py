@@ -48,6 +48,7 @@ def register_optimizer(name, external_params=[], class_params={}):
 
     return insert_in_registry
 
+#todo: add more from https://github.com/tensorflow/tensorflow/tree/master/tensorflow/python/keras/optimizer_v2
 class Optimizer(abc.ABC):
     """
     Abstract class for the optimizers.

@@ -16,7 +16,9 @@ BIGRAPH_ENV_NAME = 'BIGRAPH_DATA_HOME'
 DatasetMetadata = namedtuple('DatasetMetadata', ['dataset_name', 'filename', 'url', 'train_name', 'valid_name',
                                                  'test_name', 'train_checksum', 'valid_checksum', 'test_checksum'])
 
-
+#todo: try this as well for the datasets: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/datasets.py
+#todo: add generators: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/generator.py
+#todo: use this structure for the core graph class: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/kgcontroller.py
 def _clean_data(X, return_idx=False):
 
     if X["train"].shape[1] == 3:
