@@ -43,3 +43,8 @@ class SQLiteAdapter(BigraphDatasetAdapter):
             self.using_existing_db = True
             self.rel_to_idx = rel_to_idx
             self.ent_to_idx = ent_to_idx
+
+    def get_db_name(self):
+        """Returns the db name
+        """
+        return self.dbname
