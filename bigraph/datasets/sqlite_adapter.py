@@ -81,3 +81,33 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         conn.commit()
         cur.close()
         conn.close()
+
+    def generate_mappings(self, use_all=False, regenerate=False):
+        """
+        Generate mappings from either train set or use all dataset to generate mappings.
+
+        :param use_all: Whether to use all the data or not. If True it uses all the data else the train
+        set (default: False)
+        :type use_all: bool
+        :param regenerate: Whether to regenerate the mappings from all the data. If True it regenerates the mappings.
+        In that case it will recreate the database to add new mappings.
+        :type regenerate: bool
+        :return: Rel-to-idx: Relation to idx mapping - ent-to-idx mapping
+        :rtype: dict, dict
+        """
+
+        if (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0 or (regenerate is True)) \
+                and (not self.using_existing_db):
+            from ..evaluation import create_mappings
+            self._create_schema()
+            if use_all:
+                complete_dataset = []
+                for key in self.dataset.keys():
+                    complete_dataset.append(self.dataset[key])
+                self.rel_to_idx, self.ent_to_idx = create_mappings(np.concatenate(complete_dataset, axis=0))
+
+            else:
+                self.rel_to_idx, self.ent_to_idx = create_mappings(self.dataset["train"])
+
+            self._insert_entities_in_db()
+        return self.rel_to_idx, self.ent_to_idx
