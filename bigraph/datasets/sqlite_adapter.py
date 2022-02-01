@@ -126,3 +126,19 @@ class SQLiteAdapter(BigraphDatasetAdapter):
             conn.rollback()
         cur.close()
         conn.close()
+
+
+    def use_mappings(self, rel_to_idx, ent_to_idx):
+        """Use an existing mapping with the datasource.
+        """
+        # cannot change mappings for an existing database.
+        if self.using_existing_db:
+            raise Exception('Cannot change the mappings for an existing DB')
+        super().use_mappings(rel_to_idx, ent_to_idx)
+        self._create_schema()
+
+        for key in self.dataset.keys():
+            self.mapped_status[key] = False
+            self.persistance_status[key] = False
+
+        self._insert_entities_in_db()
