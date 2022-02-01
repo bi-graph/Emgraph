@@ -111,3 +111,18 @@ class SQLiteAdapter(BigraphDatasetAdapter):
 
             self._insert_entities_in_db()
         return self.rel_to_idx, self.ent_to_idx
+
+    def _insert_entities_in_db(self):
+        """Insert entities in the database
+        """
+        # TODO: can change it to just use the values of the dictionary
+        pg_entity_values = np.arange(len(self.ent_to_idx)).reshape(-1, 1).tolist()
+        conn = sqlite3.connect("{}".format(self.dbname))
+        cur = conn.cursor()
+        try:
+            cur.executemany('INSERT INTO entity_table VALUES (?)', pg_entity_values)
+            conn.commit()
+        except sqlite3.Error:
+            conn.rollback()
+        cur.close()
+        conn.close()
