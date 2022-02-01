@@ -48,3 +48,36 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         """Returns the db name
         """
         return self.dbname
+
+    def _create_schema(self):
+        """Create the database schema
+        """
+        if self.using_existing_db:
+            return
+        if self.dbname is not None:
+            self.cleanup()
+
+        self.temp_dir = tempfile.TemporaryDirectory(suffix=None, prefix='ampligraph_', dir=None)
+        self.dbname = os.path.join(self.temp_dir.name, 'Ampligraph_{}.db'.format(int(time.time())))
+
+        conn = sqlite3.connect("{}".format(self.dbname))
+        cur = conn.cursor()
+        cur.execute("CREATE TABLE entity_table (entity_type integer primary key);")
+        cur.execute("CREATE TABLE triples_table (subject integer, \
+                                                    predicate integer, \
+                                                    object integer, \
+                                                    dataset_type text(50), \
+                                                    foreign key (object) references entity_table(entity_type), \
+                                                    foreign key (subject) references entity_table(entity_type) \
+                                                    );")
+
+        cur.execute("CREATE INDEX triples_table_sp_idx ON triples_table (subject, predicate);")
+        cur.execute("CREATE INDEX triples_table_po_idx ON triples_table (predicate, object);")
+        cur.execute("CREATE INDEX triples_table_type_idx ON triples_table (dataset_type);")
+
+        cur.execute("CREATE TABLE integrity_check (validity integer primary key);")
+
+        cur.execute('INSERT INTO integrity_check VALUES (0)')
+        conn.commit()
+        cur.close()
+        conn.close()
