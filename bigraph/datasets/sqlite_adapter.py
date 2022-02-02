@@ -322,4 +322,65 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         if (np.shape(data)[1]) != 3:
             msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
             raise ValueError(msg)
+    
+    def set_data(self, dataset, dataset_type=None, mapped_status=False, persistence_status=False):
+        """set the dataset based on the type.
+            Note: If you pass the same dataset type it will be appended
 
+            #Used for extremely large datasets:
+            from bigraph.datasets import SQLiteAdapter
+            adapt = SQLiteAdapter()
+
+            #compute the mappings from the large dataset.
+            #Let's assume that the mappings are already computed in rel_to_idx, ent_to_idx.
+            #Set the mappings
+            adapt.use_mappings(rel_to_idx, ent_to_idx)
+
+            #load and store parts of data in the db as train test or valid
+            #if you have already mapped the entity names to index, set mapped_status = True
+            adapt.set_data(load_part1, 'train', mapped_status = True)
+            adapt.set_data(load_part2, 'train', mapped_status = True)
+            adapt.set_data(load_part3, 'train', mapped_status = True)
+
+            #if mapped_status = False, then the adapter will map the entities to index before persisting
+            adapt.set_data(load_part1, 'test', mapped_status = False)
+            adapt.set_data(load_part2, 'test', mapped_status = False)
+
+            adapt.set_data(load_part1, 'valid', mapped_status = False)
+            adapt.set_data(load_part2, 'valid', mapped_status = False)
+
+            #create the model
+            model = ComplEx(batches_count=10000, seed=0, epochs=10, k=50, eta=10)
+            model.fit(adapt)
+        
+        :param dataset: Dataset of triples
+        :type dataset: dict or nd-array
+        :param dataset_type: If dataset == nd-array then indicates the type of the data
+        :type dataset_type: str
+        :param mapped_status: Whether the dataset is mapped to the indices
+        :type mapped_status: bool
+        :param persistence_status: Whether the data is written to the database
+        :type persistence_status: bool
+        :return: -
+        :rtype: -
+        """
+
+        if self.using_existing_db:
+            raise Exception('Cannot change the existing DB')
+
+        if isinstance(dataset, dict):
+            for key in dataset.keys():
+                self._validate_data(dataset[key])
+                self.dataset[key] = dataset[key]
+                self.mapped_status[key] = mapped_status
+                self.persistance_status[key] = persistence_status
+        elif dataset_type is not None:
+            self._validate_data(dataset)
+            self.dataset[dataset_type] = dataset
+            self.mapped_status[dataset_type] = mapped_status
+            self.persistance_status[dataset_type] = persistence_status
+        else:
+            raise Exception("Incorrect usage. Expected a dictionary or a combination of dataset and it's type.")
+
+        if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
+            self.map_data()
