@@ -57,8 +57,8 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         if self.dbname is not None:
             self.cleanup()
 
-        self.temp_dir = tempfile.TemporaryDirectory(suffix=None, prefix='ampligraph_', dir=None)
-        self.dbname = os.path.join(self.temp_dir.name, 'Ampligraph_{}.db'.format(int(time.time())))
+        self.temp_dir = tempfile.TemporaryDirectory(suffix=None, prefix='bigraph_', dir=None)
+        self.dbname = os.path.join(self.temp_dir.name, 'bigraph_{}.db'.format(int(time.time())))
 
         conn = sqlite3.connect("{}".format(self.dbname))
         cur = conn.cursor()
@@ -384,3 +384,48 @@ class SQLiteAdapter(BigraphDatasetAdapter):
 
         if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
             self.map_data()
+
+    
+    def get_participating_entities(self, x_triple):
+        """Return the entities included in the relation ?-p-o and s-p-?
+
+        :param x_triple: Queried triple (s-p-o)
+        :type x_triple: nd-array (3,)
+        :return: ent_participating_as_objects: entities participating in the relation s-p-?
+        ent_participating_as_subjects: entities participating in the relation ?-p-o
+        :rtype: nd-array (n,1), nd-array (n,1)
+        """
+
+        x_triple = np.squeeze(x_triple)
+        conn = sqlite3.connect("{}".format(self.dbname))
+        cur1 = conn.cursor()
+        cur2 = conn.cursor()
+        cur_integrity = conn.cursor()
+        cur_integrity.execute("SELECT * FROM integrity_check")
+
+        if cur_integrity.fetchone()[0] == 0:
+            raise Exception('Data integrity is corrupted. The tables have been modified.')
+
+        query1 = "select " + str(x_triple[2]) + " union select distinct object from triples_table INDEXED BY \
+                    triples_table_sp_idx  where subject=" + str(x_triple[0]) + " and predicate=" + str(x_triple[1])
+        query2 = "select  " + str(x_triple[0]) + " union select distinct subject from triples_table INDEXED BY \
+                    triples_table_po_idx where predicate=" + str(x_triple[1]) + " and object=" + str(x_triple[2])
+
+        cur1.execute(query1)
+        cur2.execute(query2)
+
+        ent_participating_as_objects = np.array(cur1.fetchall())
+        ent_participating_as_subjects = np.array(cur2.fetchall())
+        '''
+        if ent_participating_as_objects.ndim>=1:
+            ent_participating_as_objects = np.squeeze(ent_participating_as_objects)
+
+        if ent_participating_as_subjects.ndim>=1:
+            ent_participating_as_subjects = np.squeeze(ent_participating_as_subjects)
+        '''
+        cur1.close()
+        cur2.close()
+        cur_integrity.close()
+        conn.close()
+
+        return ent_participating_as_objects, ent_participating_as_subjects
