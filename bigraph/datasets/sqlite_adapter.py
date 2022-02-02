@@ -306,3 +306,20 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         cur.close()
         conn.close()
 
+    def _validate_data(self, data):
+        """Validate the data.
+
+        :param data: Data to be validated
+        :type data: np.ndarray
+        :return: -
+        :rtype: -
+        """
+
+        if type(data) != np.ndarray:
+            msg = 'Invalid type for input data. Expected ndarray, got {}'.format(type(data))
+            raise ValueError(msg)
+
+        if (np.shape(data)[1]) != 3:
+            msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
+            raise ValueError(msg)
+
