@@ -142,3 +142,20 @@ class SQLiteAdapter(BigraphDatasetAdapter):
             self.persistance_status[key] = False
 
         self._insert_entities_in_db()
+
+    def get_size(self, dataset_type="train"):
+        """Return the size of the specified dataset.
+
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :return: Size of the specified dataset
+        :rtype: int
+        """
+
+        select_query = "SELECT count(*) from triples_table where dataset_type ='{}'"
+        conn = sqlite3.connect("{}".format(self.dbname))
+        cur1 = conn.cursor()
+        cur1.execute(select_query.format(dataset_type))
+        out = cur1.fetchall()
+        cur1.close()
+        return out[0][0]
