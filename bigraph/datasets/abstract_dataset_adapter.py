@@ -123,7 +123,7 @@ class BigraphDatasetAdapter(abc.ABC):
             if use_filter is set to true.
         participating_subjects: all subjects that were involved in the ?-p-o relation. This is returned only
             if use_filter is set to true.
-        :rtype: nd-array
+        :rtype: nd-array, nd-array [n,1], nd-array [n,1]
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
