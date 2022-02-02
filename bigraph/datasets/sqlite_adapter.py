@@ -226,3 +226,83 @@ class SQLiteAdapter(BigraphDatasetAdapter):
             cur.close()
 
         conn.close()
+
+    def map_data(self, remap=False):
+        """Map the data to the mappings of ent_to_idx and rel_to_idx
+
+        :param remap: Remap flag to update the mappings from the dictionary
+        :type remap: bool
+        :return: -
+        :rtype: -
+        """
+
+        if self.using_existing_db:
+            # since the assumption is that the persisted data is already mapped for an existing db
+            return
+        from ..evaluation import to_idx
+        if len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0:
+            self.generate_mappings()
+
+        for key in self.dataset.keys():
+            if isinstance(self.dataset[key], np.ndarray):
+                if (not self.mapped_status[key]) or (remap is True):
+                    self.dataset[key] = to_idx(self.dataset[key],
+                                               ent_to_idx=self.ent_to_idx,
+                                               rel_to_idx=self.rel_to_idx)
+                    self.mapped_status[key] = True
+                if not self.persistance_status[key]:
+                    self._insert_triples(self.dataset[key], key)
+                    self.persistance_status[key] = True
+
+        conn = sqlite3.connect("{}".format(self.dbname))
+        cur = conn.cursor()
+        # to maintain integrity of data
+        cur.execute('Update integrity_check set validity=1 where validity=0')
+        conn.commit()
+
+        cur.execute('''CREATE TRIGGER IF NOT EXISTS triples_table_ins_integrity_check_trigger
+                        AFTER INSERT ON triples_table
+                        BEGIN
+                            Update integrity_check set validity=0 where validity=1;
+                        END
+                            ;
+                    ''')
+        cur.execute('''CREATE TRIGGER IF NOT EXISTS triples_table_upd_integrity_check_trigger
+                        AFTER UPDATE ON triples_table
+                        BEGIN
+                            Update integrity_check set validity=0 where validity=1;
+                        END
+                            ;
+                    ''')
+        cur.execute('''CREATE TRIGGER IF NOT EXISTS triples_table_del_integrity_check_trigger
+                        AFTER DELETE ON triples_table
+                        BEGIN
+                            Update integrity_check set validity=0 where validity=1;
+                        END
+                            ;
+                    ''')
+
+        cur.execute('''CREATE TRIGGER IF NOT EXISTS entity_table_upd_integrity_check_trigger
+                        AFTER UPDATE ON entity_table
+                        BEGIN
+                            Update integrity_check set validity=0 where validity=1;
+                        END
+                        ;
+                    ''')
+        cur.execute('''CREATE TRIGGER IF NOT EXISTS entity_table_ins_integrity_check_trigger
+                        AFTER INSERT ON entity_table
+                        BEGIN
+                            Update integrity_check set validity=0 where validity=1;
+                        END
+                        ;
+                    ''')
+        cur.execute('''CREATE TRIGGER IF NOT EXISTS entity_table_del_integrity_check_trigger
+                        AFTER DELETE ON entity_table
+                        BEGIN
+                            Update integrity_check set validity=0 where validity=1;
+                        END
+                        ;
+                    ''')
+        cur.close()
+        conn.close()
+
