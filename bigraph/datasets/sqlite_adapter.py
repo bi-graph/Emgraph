@@ -429,3 +429,41 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         conn.close()
 
         return ent_participating_as_objects, ent_participating_as_subjects
+
+    def cleanup(self):
+        """Clean up the database
+        """
+
+        if self.using_existing_db:
+            # if using an existing db then dont remove
+            self.dbname = None
+            self.using_existing_db = False
+            return
+
+        # Drop the created tables
+        if self.dbname is not None:
+            conn = sqlite3.connect("{}".format(self.dbname))
+            cur = conn.cursor()
+            cur.execute("drop trigger IF EXISTS entity_table_del_integrity_check_trigger")
+            cur.execute("drop trigger IF EXISTS entity_table_ins_integrity_check_trigger")
+            cur.execute("drop trigger IF EXISTS entity_table_upd_integrity_check_trigger")
+
+            cur.execute("drop trigger IF EXISTS triples_table_del_integrity_check_trigger")
+            cur.execute("drop trigger IF EXISTS triples_table_upd_integrity_check_trigger")
+            cur.execute("drop trigger IF EXISTS triples_table_ins_integrity_check_trigger")
+            cur.execute("drop table IF EXISTS integrity_check")
+            cur.execute("drop index IF EXISTS triples_table_po_idx")
+            cur.execute("drop index IF EXISTS triples_table_sp_idx")
+            cur.execute("drop index IF EXISTS triples_table_type_idx")
+            cur.execute("drop table IF EXISTS triples_table")
+            cur.execute("drop table IF EXISTS entity_table")
+            cur.close()
+            conn.close()
+            try:
+                if self.temp_dir is not None:
+                    self.temp_dir.cleanup()
+            except OSError:
+                logger.warning('Unable to remove the created temperory files.')
+                logger.warning('Filename:{}'.format(self.dbname))
+
+            self.dbname = None
