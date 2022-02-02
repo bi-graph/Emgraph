@@ -201,3 +201,28 @@ class SQLiteAdapter(BigraphDatasetAdapter):
                 yield out, participating_objects, participating_subjects
             else:
                 yield out
+
+    def _insert_triples(self, triples, key=""):
+        """inserts triples in the database for the specified category
+
+        :param triples: Triples of entity-relation-entity
+        :type triples: set
+        :param key: Key for the triple values
+        :type key: str
+        :return: -
+        :rtype: -
+        """
+
+        conn = sqlite3.connect("{}".format(self.dbname))
+        key = np.array([[key]])
+        for j in range(int(np.ceil(triples.shape[0] / 500000.0))):
+            pg_triple_values = triples[j * 500000:(j + 1) * 500000]
+            pg_triple_values = np.concatenate((pg_triple_values, np.repeat(key,
+                                                                           pg_triple_values.shape[0], axis=0)), axis=1)
+            pg_triple_values = pg_triple_values.tolist()
+            cur = conn.cursor()
+            cur.executemany('INSERT INTO triples_table VALUES (?,?,?,?)', pg_triple_values)
+            conn.commit()
+            cur.close()
+
+        conn.close()
