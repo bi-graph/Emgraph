@@ -35,3 +35,21 @@ def _create_unique_mappings(unique_obj, unique_rel):
     obj_to_idx = dict(zip(unique_obj, range(obj_count)))
     return rel_to_idx, obj_to_idx
 
+
+def create_mappings(X):
+    """Create string-IDs mappings for entities and relations.
+
+    Entities and relations are assigned incremental, unique integer IDs.
+    Mappings are preserved in two distinct dictionaries,
+    and counters are separated for entities and relations mappings.
+
+    :param X: The triples to extract mappings
+    :type X: ndarray, shape [n, 3]
+    :return: Rel-to-idx: Relation to idx mapping - ent-to-idx mapping: entity to idx mapping
+    :rtype: dict, dict
+    """
+
+    logger.debug('Creating mappings for entities and relations.')
+    unique_ent = np.unique(np.concatenate((X[:, 0], X[:, 2])))
+    unique_rel = np.unique(X[:, 1])
+    return _create_unique_mappings(unique_ent, unique_rel)
