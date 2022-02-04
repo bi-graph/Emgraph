@@ -92,7 +92,7 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         :param regenerate: Whether to regenerate the mappings from all the data. If True it regenerates the mappings.
         In that case it will recreate the database to add new mappings.
         :type regenerate: bool
-        :return: Rel-to-idx: Relation to idx mapping - ent-to-idx mapping
+        :return: Rel-to-idx: Relation to idx mapping - ent-to-idx mapping: entity to idx mapping
         :rtype: dict, dict
         """
 
