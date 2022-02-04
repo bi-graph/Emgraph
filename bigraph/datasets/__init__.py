@@ -4,3 +4,5 @@ from .datasets import load_from_csv, load_from_rdf, load_fb15k, load_wn18, load_
 
 
 from .abstract_dataset_adapter import BigraphDatasetAdapter
+from .sqlite_adapter import SQLiteAdapter
+
