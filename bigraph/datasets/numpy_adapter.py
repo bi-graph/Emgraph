@@ -48,3 +48,14 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         """
 
         super().use_mappings(rel_to_idx, ent_to_idx)
+
+    def get_size(self, dataset_type="train"):
+        """Return the size of the specified dataset
+
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :return: Size of the specified dataset
+        :rtype: int
+        """
+
+        return self.dataset[dataset_type].shape[0]
