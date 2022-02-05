@@ -28,6 +28,15 @@ class BigraphDatasetAdapter(abc.ABC):
 
     def use_mappings(self, rel_to_idx, ent_to_idx):
         """
+
+        :param rel_to_idx: Relation to idx mapping
+        :type rel_to_idx: dict
+        :param ent_to_idx: entity to idx mapping
+        :type ent_to_idx: dict
+        :return: -
+        :rtype: -
+        """
+        """
         Use an existing mapping with the datasource.
 
         """

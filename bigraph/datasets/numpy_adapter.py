@@ -35,3 +35,16 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
             self.rel_to_idx, self.ent_to_idx = create_mappings(self.dataset["train"])
 
         return self.rel_to_idx, self.ent_to_idx
+
+    def use_mappings(self, rel_to_idx, ent_to_idx):
+        """Use an existing mapping with the datasource.
+
+        :param rel_to_idx: Relation to idx mapping
+        :type rel_to_idx: dict
+        :param ent_to_idx: entity to idx mapping
+        :type ent_to_idx: dict
+        :return: -
+        :rtype: -
+        """
+
+        super().use_mappings(rel_to_idx, ent_to_idx)

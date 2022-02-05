@@ -4,8 +4,9 @@
 
 
 from .metrics import mrr_score, mr_score, hits_at_n_score, rank_score
+from .protocol import create_mappings
 
-__all__ = ['mrr_score', 'mr_score', 'hits_at_n_score', 'rank_score', 'evaluation']
+__all__ = ['mrr_score', 'mr_score', 'hits_at_n_score', 'rank_score', 'evaluation', 'create_mappings']
 
 # import bigraph.evaluation.evaluation
 # from bigraph.evaluation import evaluation
