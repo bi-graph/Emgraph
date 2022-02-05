@@ -59,3 +59,14 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         """
 
         return self.dataset[dataset_type].shape[0]
+
+    def data_exists(self, dataset_type="train"):
+        """Checks if a dataset_type exists in the adapter.
+
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :return: True if exists, False otherwise
+        :rtype: bool
+        """
+
+        return dataset_type in self.dataset.keys()
