@@ -117,3 +117,24 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
                 output.append(participating_subjects)
 
             yield output
+
+
+    def map_data(self, remap=False):
+        """Map the data to the mappings of ent_to_idx and rel_to_idx
+
+        :param remap: Remap flag to update the mappings from the dictionary
+        :type remap: bool
+        :return: -
+        :rtype: -
+        """
+
+        from ..evaluation import to_idx
+        if len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0:
+            self.generate_mappings()
+
+        for key in self.dataset.keys():
+            if (not self.mapped_status[key]) or (remap is True):
+                self.dataset[key] = to_idx(self.dataset[key],
+                                           ent_to_idx=self.ent_to_idx,
+                                           rel_to_idx=self.rel_to_idx)
+                self.mapped_status[key] = True

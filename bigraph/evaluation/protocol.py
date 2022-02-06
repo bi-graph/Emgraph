@@ -53,3 +53,45 @@ def create_mappings(X):
     unique_ent = np.unique(np.concatenate((X[:, 0], X[:, 2])))
     unique_rel = np.unique(X[:, 1])
     return _create_unique_mappings(unique_ent, unique_rel)
+
+def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
+    """
+    Convert to idx.
+
+    :param X: The statements to be converted.
+    :type X: ndarray
+    :param ent_to_idx: Entity to idx mappings
+    :type ent_to_idx: dict
+    :param rel_to_idx: Relation to idx mappings
+    :type rel_to_idx: dict
+    :param obj_to_idx: Object to idx mappings
+    :type obj_to_idx: dict
+    :return: Converted stack of inputs
+    :rtype: np.dstack
+    """
+    unseen_msg = 'Input triples include one or more {concept_type} not present in the training set. ' \
+                 'Please filter all concepts in X that do not occur in the training test ' \
+                 '(set filter_unseen=True in evaluate_performance) or retrain the model on a ' \
+                 'training set that includes all the desired concept types.'
+
+    try:
+        x_idx_s = np.vectorize(ent_to_idx.get)(X[:, 0])
+        x_idx_p = np.vectorize(rel_to_idx.get)(X[:, 1])
+        x_idx_o = np.vectorize(obj_to_idx.get)(X[:, 2])
+    except TypeError:
+        unseen_msg = unseen_msg.format(**{'concept_type': 'concepts'})
+        logger.error(unseen_msg)
+        raise ValueError(unseen_msg)
+
+    if None in x_idx_s or None in x_idx_o:
+        unseen_msg = unseen_msg.format(**{'concept_type': 'entities'})
+        logger.error(unseen_msg)
+        raise ValueError(unseen_msg)
+
+    if None in x_idx_p:
+        unseen_msg = unseen_msg.format(**{'concept_type': 'relations'})
+        logger.error(unseen_msg)
+        raise ValueError(unseen_msg)
+
+    return np.dstack([x_idx_s, x_idx_p, x_idx_o]).reshape((-1, 3))
+
