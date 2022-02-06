@@ -55,8 +55,7 @@ def create_mappings(X):
     return _create_unique_mappings(unique_ent, unique_rel)
 
 def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
-    """
-    Convert to idx.
+    """Convert statements (triples) into integer IDs.
 
     :param X: The statements to be converted.
     :type X: ndarray
@@ -66,8 +65,8 @@ def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
     :type rel_to_idx: dict
     :param obj_to_idx: Object to idx mappings
     :type obj_to_idx: dict
-    :return: Converted stack of inputs
-    :rtype: np.dstack
+    :return: Converted statements
+    :rtype: ndarray, shape [n, 3]
     """
     unseen_msg = 'Input triples include one or more {concept_type} not present in the training set. ' \
                  'Please filter all concepts in X that do not occur in the training test ' \
@@ -95,3 +94,21 @@ def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
 
     return np.dstack([x_idx_s, x_idx_p, x_idx_o]).reshape((-1, 3))
 
+
+def to_idx(X, ent_to_idx, rel_to_idx):
+    """Convert statements (triples) into integer IDs.
+
+    :param X: The statements to be converted.
+    :type X: ndarray
+    :param ent_to_idx: Entity to idx mappings
+    :type ent_to_idx: dict
+    :param rel_to_idx: Relation to idx mappings
+    :type rel_to_idx: dict
+    :return: Converted statements
+    :rtype: ndarray, shape [n, 3]
+    """
+
+    logger.debug('Converting statements to integer ids.')
+    if X.ndim == 1:
+        X = X[np.newaxis, :]
+    return _convert_to_idx(X, ent_to_idx, rel_to_idx, ent_to_idx)
