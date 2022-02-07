@@ -138,3 +138,59 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
                                            ent_to_idx=self.ent_to_idx,
                                            rel_to_idx=self.rel_to_idx)
                 self.mapped_status[key] = True
+
+
+    def _validate_data(self, data):
+        """Validate the data.
+
+        :param data: Data to be validated
+        :type data: np.ndarray
+        :return: -
+        :rtype: -
+        """
+
+        if type(data) != np.ndarray:
+            msg = 'Invalid type for input data. Expected ndarray, got {}'.format(type(data))
+            raise ValueError(msg)
+
+        if (np.shape(data)[1]) != 3:
+            msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
+            raise ValueError(msg)
+
+
+    def set_data(self, dataset, dataset_type=None, mapped_status=False, focusE_numeric_edge_values=None):
+        """set the dataset based on the type.
+            Note: If you pass the same dataset type it will be appended
+
+        :param dataset: Dataset of triples
+        :type dataset: dict or nd-array
+        :param dataset_type: If dataset == nd-array then indicates the type of the data
+        :type dataset_type: str
+        :param mapped_status: Whether the dataset is mapped to the indices
+        :type mapped_status: bool
+        :param focusE_numeric_edge_values: List of all the numeric values associated with the link
+        :type focusE_numeric_edge_values: ndarray
+        :return: -
+        :rtype: -
+        """
+
+        if isinstance(dataset, dict):
+            for key in dataset.keys():
+                self._validate_data(dataset[key])
+                self.dataset[key] = dataset[key]
+                self.mapped_status[key] = mapped_status
+                if focusE_numeric_edge_values is not None:
+                    self.focusE_numeric_edge_values[key] = focusE_numeric_edge_values[key]
+        elif dataset_type is not None:
+            self._validate_data(dataset)
+            self.dataset[dataset_type] = dataset
+            self.mapped_status[dataset_type] = mapped_status
+            if focusE_numeric_edge_values is not None:
+                self.focusE_numeric_edge_values[dataset_type] = focusE_numeric_edge_values
+        else:
+            raise Exception("Incorrect usage. Expected a dictionary or a combination of dataset and it's type.")
+
+        # If the concept-idx mappings are present, then map the passed dataset
+        if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
+            self.map_data()
+
