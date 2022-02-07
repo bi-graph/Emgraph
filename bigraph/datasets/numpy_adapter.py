@@ -194,3 +194,19 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
             self.map_data()
 
+
+    def set_filter(self, filter_triples, mapped_status=False):
+        """Set filters for generating the evaluation batch.
+            Note: This adapter uses SQL backend for filtering
+
+        :param filter_triples: Filtering triples
+        :type filter_triples: nd-array
+        :param mapped_status: Whether the dataset is mapped to the indices
+        :type mapped_status: bool
+        :return:
+        :rtype:
+        """
+
+        self.filter_adapter = SQLiteAdapter()
+        self.filter_adapter.use_mappings(self.rel_to_idx, self.ent_to_idx)
+        self.filter_adapter.set_data(filter_triples, "filter", mapped_status)
