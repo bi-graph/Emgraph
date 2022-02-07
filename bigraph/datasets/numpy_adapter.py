@@ -210,3 +210,10 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         self.filter_adapter = SQLiteAdapter()
         self.filter_adapter.use_mappings(self.rel_to_idx, self.ent_to_idx)
         self.filter_adapter.set_data(filter_triples, "filter", mapped_status)
+
+    def cleanup(self):
+        """Cleans up the internal state.
+        """
+        if self.filter_adapter is not None:
+            self.filter_adapter.cleanup()
+            self.filter_adapter = None
