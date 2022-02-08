@@ -203,8 +203,8 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         :type filter_triples: nd-array
         :param mapped_status: Whether the dataset is mapped to the indices
         :type mapped_status: bool
-        :return:
-        :rtype:
+        :return: -
+        :rtype: -
         """
 
         self.filter_adapter = SQLiteAdapter()

@@ -66,3 +66,17 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
         self.low_memory = low_memory
 
 
+    def set_filter(self, filter_triples, mapped_status=False):
+        """Set filters for generating the evaluation batch.
+            Note: This adapter uses SQL backend for filtering
+
+        :param filter_triples: Filtering triples
+        :type filter_triples: nd-array
+        :param mapped_status: Whether the dataset is mapped to the indices
+        :type mapped_status: bool
+        :return: -
+        :rtype: -
+        """
+
+        self.set_data(filter_triples, 'filter', mapped_status)
+        self.filter_mapping = self.generate_output_mapping('filter')
