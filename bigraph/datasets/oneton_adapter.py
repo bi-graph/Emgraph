@@ -141,3 +141,23 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
             # Set flags indicating filter and unique pair status of outputs for given dataset.
             self.filtered_status[dataset_type] = use_filter
             self.paired_status[dataset_type] = unique_pairs
+
+    def generate_output_mapping(self, dataset_type='train'):
+        """Create dictionary keyed on (subject, predicate) to list of objects
+
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :return: Dictionary of mapped data
+        :rtype: dict
+        """
+
+        # if data is not already mapped, then map before creating output map
+        if not self.mapped_status[dataset_type]:
+            self.map_data()
+
+        output_mapping = dict()
+
+        for s, p, o in self.dataset[dataset_type]:
+            output_mapping.setdefault((s, p), []).append(o)
+
+        return output_mapping
