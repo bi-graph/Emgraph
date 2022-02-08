@@ -182,3 +182,21 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
         # Clear any onehot outputs previously generated
         if clear_outputs:
             self.clear_outputs()
+
+    def clear_outputs(self, dataset_type=None):
+        """Clear the internal memory containing generated one-hot outputs.
+
+        :param dataset_type: Dataset type to clear its outputs. (Default: None (clear all))
+        :type dataset_type:
+        :return:
+        :rtype:
+        """
+
+        if dataset_type is None:
+            self.output_onehot = {}
+            self.filtered_status = {}
+            self.paired_status = {}
+        else:
+            del self.output_onehot[dataset_type]
+            del self.filtered_status[dataset_type]
+            del self.paired_status[dataset_type]
