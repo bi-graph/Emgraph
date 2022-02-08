@@ -80,3 +80,64 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
 
         self.set_data(filter_triples, 'filter', mapped_status)
         self.filter_mapping = self.generate_output_mapping('filter')
+
+    def generate_outputs(self, dataset_type='train', use_filter=False, unique_pairs=True):
+        """Generate one-hot outputs for the specified dataset.
+
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :param use_filter: Whether to generate outputs using the filter set by `set_filter()`. Default: False
+        :type use_filter: bool
+        :param unique_pairs: Whether to generate outputs according to unique pairs of (subject, predicate), otherwise
+            will generate outputs in same row-order as the triples in the specified dataset. Default: True.
+        :type unique_pairs: bool
+        :return: -
+        :rtype: -
+        """
+
+        if dataset_type not in self.dataset.keys():
+            msg = 'Unable to generate outputs: dataset `{}` not found. ' \
+                  'Use `set_data` to set dataset in adapter first.'.format(dataset_type)
+            raise KeyError(msg)
+
+        if dataset_type in ['valid', 'test']:
+            if unique_pairs:
+                # This is just a friendly warning - in most cases the test and valid sets should NOT be unique_pairs.
+                msg = 'Generating outputs for dataset `{}` with unique_pairs=True. ' \
+                      'Are you sure this is desired behaviour?'.format(dataset_type)
+                logger.warning(msg)
+
+        if use_filter:
+            if self.filter_mapping is None:
+                msg = 'Filter not found: cannot generate one-hot outputs with `use_filter=True` ' \
+                      'if a filter has not been set.'
+                raise ValueError(msg)
+            else:
+                output_dict = self.filter_mapping
+        else:
+            if self.output_mapping is None:
+                msg = 'Output mapping was not created before generating one-hot vectors. '
+                raise ValueError(msg)
+            else:
+                output_dict = self.output_mapping
+
+        if self.low_memory:
+            # With low_memory=True the output indices are generated on the fly in the batch yield function
+            pass
+        else:
+            if unique_pairs:
+                X = np.unique(self.dataset[dataset_type][:, [0, 1]], axis=0).astype(np.int32)
+            else:
+                X = self.dataset[dataset_type]
+
+            # Initialize np.array of shape [len(X), num_entities]
+            self.output_onehot[dataset_type] = np.zeros((len(X), len(self.ent_to_idx)), dtype=np.int8)
+
+            # Set one-hot indices using output_dict
+            for i, x in enumerate(X):
+                indices = output_dict.get((x[0], x[1]), [])
+                self.output_onehot[dataset_type][i, indices] = 1
+
+            # Set flags indicating filter and unique pair status of outputs for given dataset.
+            self.filtered_status[dataset_type] = use_filter
+            self.paired_status[dataset_type] = unique_pairs
