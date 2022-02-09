@@ -309,3 +309,63 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
                     out_onehot[j, indices] = 1
 
                 yield out, out_onehot
+
+    def get_next_batch_subject_corruptions(self, batch_size=-1, dataset_type='train', use_filter=True):
+        """Batch generator for subject corruptions.
+
+        To avoid multiple redundant forward-passes through the network, subject corruptions are performed once for
+        each relation, and results accumulated for valid test triples.
+
+        If there are no test triples for a relation, then that relation is ignored.
+
+        Use batch_size to control memory usage (as a batch_size*N tensor will be allocated, where N is number
+        of unique entities.)
+
+        :param batch_size: Maximum size of the returned batch
+        :type batch_size: int
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :param use_filter: Flag whether to generate the one-hot outputs from filtered or not-filtered dataset
+        :type use_filter: bool
+        :return: test_triples: The set of all triples from the dataset type specified that include the
+        predicate currently returned in batch_triples.
+        batch_triples: A batch of triples corresponding to subject corruptions of just one predicate.
+        batch_onehot: A batch of onehot arrays corresponding to the batch_triples output.
+        :rtype: nd-array of shape (?, 3), nd-array of shape (M, 3) where M is the subject corruption batch size,
+        nd-array of shape (M, N), where N is number of unique entities
+        """
+
+        if use_filter:
+            output_dict = self.filter_mapping
+        else:
+            output_dict = self.output_mapping
+
+        if batch_size == -1:
+            batch_size = len(self.ent_to_idx)
+
+        ent_list = np.array(list(self.ent_to_idx.values()))
+        rel_list = np.array(list(self.rel_to_idx.values()))
+
+        for rel in rel_list:
+
+            # Select test triples that have this relation
+            rel_idx = self.dataset[dataset_type][:, 1] == rel
+            test_triples = self.dataset[dataset_type][rel_idx]
+
+            ent_idx = 0
+
+            while ent_idx < len(ent_list):
+
+                ents = ent_list[ent_idx:ent_idx + batch_size]
+                ent_idx += batch_size
+
+                # Note: the object column is just a dummy value so set to 0
+                out = np.stack([ents, np.repeat(rel, len(ents)), np.repeat(0, len(ents))], axis=1)
+
+                # Set one-hot filter
+                out_filter = np.zeros((out.shape[0], len(ent_list)), dtype=np.int8)
+                for j, x in enumerate(out):
+                    indices = output_dict.get((x[0], x[1]), [])
+                    out_filter[j, indices] = 1
+
+                yield test_triples, out, out_filter
