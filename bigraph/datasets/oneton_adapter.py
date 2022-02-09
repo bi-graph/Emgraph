@@ -386,3 +386,34 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
         if (np.shape(data)[1]) != 3:
             msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
             raise ValueError(msg)
+
+    def set_data(self, dataset, dataset_type=None, mapped_status=False):
+        """Set the dataset based on the type.
+        Note: If you pass the same dataset type (which exists) it will be overwritten
+
+        :param dataset: Dataset of triples
+        :type dataset: dict or nd-array
+        :param dataset_type: If dataset == nd-array then indicates the type of the data
+        :type dataset_type: str
+        :param mapped_status: Whether the dataset is mapped to the indices
+        :type mapped_status: bool
+        :return: -
+        :rtype: -
+        """
+
+        if isinstance(dataset, dict):
+            for key in dataset.keys():
+                self._validate_data(dataset[key])
+                self.dataset[key] = dataset[key]
+                self.mapped_status[key] = mapped_status
+        elif dataset_type is not None:
+            self._validate_data(dataset)
+            self.dataset[dataset_type] = dataset
+            self.mapped_status[dataset_type] = mapped_status
+        else:
+            raise Exception("Incorrect usage. Expected a dictionary or a combination of dataset and it's type.")
+
+        # If the concept-idx mappings are present, then map the passed dataset
+        if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
+            print('Mapping set data: {}'.format(dataset_type))
+            self.map_data()
