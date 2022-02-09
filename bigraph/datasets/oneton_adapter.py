@@ -200,3 +200,37 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
             del self.output_onehot[dataset_type]
             del self.filtered_status[dataset_type]
             del self.paired_status[dataset_type]
+
+    def verify_outputs(self, dataset_type, use_filter, unique_pairs):
+        """Verify the correspondence of the generated outputs and specified filters and unique pairs.
+
+        :param dataset_type: Dataset type
+        :type dataset_type: str
+        :param use_filter: Whether to generate one-hot outputs from filtered or not-filtered datasets
+        :type use_filter: bool
+        :param unique_pairs: Whether to generate one-hot outputs based on the unique (s, p) pairs or dataset order
+        :type unique_pairs: bool
+        :return: False if outputs need to be regenerated for the specified dataset and parameters, otherwise True
+        :rtype: bool
+        """
+
+        if dataset_type not in self.output_onehot.keys():
+            # One-hot outputs have not been generated for this dataset_type
+            return False
+
+        if dataset_type not in self.filtered_status.keys():
+            # This shouldn't happen.
+            logger.debug('Dataset {} is in adapter, but filtered_status is not set.'.format(dataset_type))
+            return False
+
+        if dataset_type not in self.paired_status.keys():
+            logger.debug('Dataset {} is in adapter, but paired_status is not set.'.format(dataset_type))
+            return False
+
+        if use_filter != self.filtered_status[dataset_type]:
+            return False
+
+        if unique_pairs != self.paired_status[dataset_type]:
+            return False
+
+        return True
