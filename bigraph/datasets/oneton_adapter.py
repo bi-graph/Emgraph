@@ -234,3 +234,78 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
             return False
 
         return True
+
+    def get_next_batch(self, batches_count=-1, dataset_type='train', use_filter=False, unique_pairs=True):
+        """Generate the next batch of data.
+
+        :param batches_count: Number of batches per epoch (defaults to -1 means batch size of 1)
+        :type batches_count: int
+        :param dataset_type: Type of the dataset
+        :type dataset_type: str
+        :param use_filter: Flag whether to generate the one-hot outputs from filtered or not-filtered dataset
+        :type use_filter: bool
+        :param unique_pairs: Flag Whether to generate one-hot outputs based on the unique (s, p) pairs or dataset order
+        :type unique_pairs: bool
+        :return: Batch_output: A batch of triples from the specified dataset type. If unique_pairs=True, then the
+        object column will be set to zeros.
+        batch_onehot: A batch of onehot arrays corresponding to `batch_output` triples
+        :rtype: nd-array, shape=[batch_size, 3], nd-array
+        """
+
+        # if data is not already mapped, then map before returning the batch
+        if not self.mapped_status[dataset_type]:
+            self.map_data()
+
+        if unique_pairs:
+            X = np.unique(self.dataset[dataset_type][:, [0, 1]], axis=0).astype(np.int32)
+            X = np.c_[X, np.zeros(len(X))]  # Append dummy object columns
+        else:
+            X = self.dataset[dataset_type]
+        dataset_size = len(X)
+
+        if batches_count == -1:
+            batch_size = 1
+            batches_count = dataset_size
+        else:
+            batch_size = int(np.ceil(dataset_size / batches_count))
+
+        if use_filter and self.filter_mapping is None:
+            msg = 'Cannot set `use_filter=True` if a filter has not been set in the adapter. '
+            logger.error(msg)
+            raise ValueError(msg)
+
+        if not self.low_memory:
+
+            if not self.verify_outputs(dataset_type, use_filter=use_filter, unique_pairs=unique_pairs):
+                # Verifies that onehot outputs are as expected given filter and unique_pair settings
+                msg = 'Generating one-hot outputs for {} [filtered: {}, unique_pairs: {}]'\
+                    .format(dataset_type, use_filter, unique_pairs)
+                logger.info(msg)
+                self.generate_outputs(dataset_type, use_filter=use_filter, unique_pairs=unique_pairs)
+
+            # Yield batches
+            for i in range(batches_count):
+
+                out = np.int32(X[(i * batch_size):((i + 1) * batch_size), :])
+                out_onehot = self.output_onehot[dataset_type][(i * batch_size):((i + 1) * batch_size), :]
+
+                yield out, out_onehot
+
+        else:
+            # Low-memory, generate one-hot outputs per batch on the fly
+            if use_filter:
+                output_dict = self.filter_mapping
+            else:
+                output_dict = self.output_mapping
+
+            # Yield batches
+            for i in range(batches_count):
+
+                out = np.int32(X[(i * batch_size):((i + 1) * batch_size), :])
+                out_onehot = np.zeros(shape=[out.shape[0], len(self.ent_to_idx)], dtype=np.int32)
+
+                for j, x in enumerate(out):
+                    indices = output_dict.get((x[0], x[1]), [])
+                    out_onehot[j, indices] = 1
+
+                yield out, out_onehot
