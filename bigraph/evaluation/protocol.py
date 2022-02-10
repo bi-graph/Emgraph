@@ -301,9 +301,82 @@ def _train_test_split_no_unseen_old(X, test_size=100, seed=0, allow_duplication=
     return X[idx_train, :], X[idx_test, :]
 
 
+def train_test_split_no_unseen(X, test_size=100, seed=0, allow_duplication=False,
+                               filtered_test_predicates=None, backward_compatible=False):
+    """Split into train and test sets.
+
+     This function carves out a test set that contains only entities
+     and relations which also occur in the training set.
 
 
+    :param X: The dataset to split.
+    :type X: ndarray, size[n, 3]
+    :param test_size: Number of triples in the test set (if it was int)
+    The percentage of total triples (if it was float)
+    :type test_size: int, float
+    :param seed: 'Random' seed used in splitting the dataset
+    :type seed: int
+    :param allow_duplication: Flag to allow duplicates in the test set
+    :type allow_duplication: bool
+    :param filtered_test_predicates: If None, all predicate types will be considered for the test set.
+        If it was a list, only the predicate types in the list will be considered in
+        the test set.
+    :type filtered_test_predicates: None, list
+    :param backward_compatible: Uses the old (slower) version of the API for reproducibility of splits in older pipelines(if any)
+        Avoid setting this to True, unless necessary. Set this flag only if you want to use the
+        train_test_split_no_unseen of Ampligraph versions 1.3.2 and below. The older version is slow and inefficient
+    :type backward_compatible: bool
+    :return: Training set, test set
+    :rtype: ndarray, size[n, 3], ndarray, size[n, 3]
 
+    Examples:
+
+    >>> import numpy as np
+    >>> from bigraph.evaluation import train_test_split_no_unseen
+    >>> # load your dataset to X
+    >>> X = np.array([['a', 'y', 'b'],
+    >>>               ['f', 'y', 'e'],
+    >>>               ['b', 'y', 'a'],
+    >>>               ['a', 'y', 'c'],
+    >>>               ['c', 'y', 'a'],
+    >>>               ['a', 'y', 'd'],
+    >>>               ['c', 'y', 'd'],
+    >>>               ['b', 'y', 'c'],
+    >>>               ['f', 'y', 'e']])
+    >>> # if you want to split into train/test datasets
+    >>> X_train, X_test = train_test_split_no_unseen(X, test_size=2)
+    >>> X_train
+    array([['a', 'y', 'd'],
+       ['b', 'y', 'a'],
+       ['a', 'y', 'c'],
+       ['f', 'y', 'e'],
+       ['a', 'y', 'b'],
+       ['c', 'y', 'a'],
+       ['b', 'y', 'c']], dtype='<U1')
+    >>> X_test
+    array([['f', 'y', 'e'],
+       ['c', 'y', 'd']], dtype='<U1')
+    >>> # if you want to split into train/valid/test datasets, call it 2 times
+    >>> X_train_valid, X_test = train_test_split_no_unseen(X, test_size=2)
+    >>> X_train, X_valid = train_test_split_no_unseen(X_train_valid, test_size=2)
+    >>> X_train
+    array([['a', 'y', 'b'],
+       ['a', 'y', 'd'],
+       ['a', 'y', 'c'],
+       ['c', 'y', 'a'],
+       ['f', 'y', 'e']], dtype='<U1')
+    >>> X_valid
+    array([['c', 'y', 'd'],
+       ['f', 'y', 'e']], dtype='<U1')
+    >>> X_test
+    array([['b', 'y', 'c'],
+       ['b', 'y', 'a']], dtype='<U1')
+    """
+
+    if backward_compatible:
+        return _train_test_split_no_unseen_old(X, test_size, seed, allow_duplication, filtered_test_predicates)
+
+    return _train_test_split_no_unseen_fast(X, test_size, seed, allow_duplication, filtered_test_predicates)
 
 
 def _create_unique_mappings(unique_obj, unique_rel):
