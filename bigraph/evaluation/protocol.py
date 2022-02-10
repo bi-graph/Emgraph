@@ -167,6 +167,145 @@ def _train_test_split_no_unseen_fast(X, test_size=100, seed=0, allow_duplication
 
     return X_train, X_test
 
+
+def _train_test_split_no_unseen_old(X, test_size=100, seed=0, allow_duplication=False, filtered_test_predicates=None):
+    """Split into train and test sets.
+
+     This function carves out a test set that contains only entities
+     and relations which also occur in the training set.
+
+     This is very slow as it runs an infinite loop and samples a triples and appends to test set and checks if it is
+     unique or not. This is very time consuming process and highly inefficient.
+
+    :param X: The dataset to split.
+    :type X: ndarray, size[n, 3]
+    :param test_size: Number of triples in the test set (if it was int)
+    The percentage of total triples (if it was float)
+    :type test_size: int, float
+    :param seed: 'Random' seed used in splitting the dataset
+    :type seed: int
+    :param allow_duplication: Flag to allow duplicates in the test set
+    :type allow_duplication: bool
+    :param filtered_test_predicates: If None, all predicate types will be considered for the test set.
+        If it was a list, only the predicate types in the list will be considered in
+        the test set.
+    :type filtered_test_predicates: None, list
+    :return: Training set, test set
+    :rtype: ndarray, size[n, 3], ndarray, size[n, 3]
+
+    Examples:
+
+    >>> import numpy as np
+    >>> from bigraph.evaluation import train_test_split_no_unseen
+    >>> # load your dataset to X
+    >>> X = np.array([['a', 'y', 'b'],
+    >>>               ['f', 'y', 'e'],
+    >>>               ['b', 'y', 'a'],
+    >>>               ['a', 'y', 'c'],
+    >>>               ['c', 'y', 'a'],
+    >>>               ['a', 'y', 'd'],
+    >>>               ['c', 'y', 'd'],
+    >>>               ['b', 'y', 'c'],
+    >>>               ['f', 'y', 'e']])
+    >>> # if you want to split into train/test datasets
+    >>> X_train, X_test = train_test_split_no_unseen(X, test_size=2, backward_compatible=True)
+    >>> X_train
+    array([['a', 'y', 'b'],
+        ['f', 'y', 'e'],
+        ['b', 'y', 'a'],
+        ['c', 'y', 'a'],
+        ['c', 'y', 'd'],
+        ['b', 'y', 'c'],
+        ['f', 'y', 'e']], dtype='<U1')
+    >>> X_test
+    array([['a', 'y', 'c'],
+        ['a', 'y', 'd']], dtype='<U1')
+    >>> # if you want to split into train/valid/test datasets, call it 2 times
+    >>> X_train_valid, X_test = train_test_split_no_unseen(X, test_size=2, backward_compatible=True)
+    >>> X_train, X_valid = train_test_split_no_unseen(X_train_valid, test_size=2, backward_compatible=True)
+    >>> X_train
+    array([['a', 'y', 'b'],
+        ['b', 'y', 'a'],
+        ['c', 'y', 'd'],
+        ['b', 'y', 'c'],
+        ['f', 'y', 'e']], dtype='<U1')
+    >>> X_valid
+    array([['f', 'y', 'e'],
+        ['c', 'y', 'a']], dtype='<U1')
+    >>> X_test
+    array([['a', 'y', 'c'],
+        ['a', 'y', 'd']], dtype='<U1')
+    """
+    """
+    
+    """
+
+    logger.debug('Creating train test split.')
+    if type(test_size) is float:
+        logger.debug('Test size is of type float. Converting to int.')
+        test_size = int(len(X) * test_size)
+
+    rnd = np.random.RandomState(seed)
+
+    subs, subs_cnt = np.unique(X[:, 0], return_counts=True)
+    objs, objs_cnt = np.unique(X[:, 2], return_counts=True)
+    rels, rels_cnt = np.unique(X[:, 1], return_counts=True)
+    dict_subs = dict(zip(subs, subs_cnt))
+    dict_objs = dict(zip(objs, objs_cnt))
+    dict_rels = dict(zip(rels, rels_cnt))
+
+    idx_test = np.array([], dtype=int)
+    logger.debug('Selecting test cases using random search.')
+
+    loop_count = 0
+    tolerance = len(X) * 10
+    # Set the indices of test set triples. If filtered, reduce candidate triples to certain predicate types.
+    if filtered_test_predicates:
+        test_triples_idx = np.where(np.isin(X[:, 1], filtered_test_predicates))[0]
+    else:
+        test_triples_idx = np.arange(len(X))
+
+    while idx_test.shape[0] < test_size:
+        i = rnd.choice(test_triples_idx)
+        if dict_subs[X[i, 0]] > 1 and dict_objs[X[i, 2]] > 1 and dict_rels[X[i, 1]] > 1:
+            dict_subs[X[i, 0]] -= 1
+            dict_objs[X[i, 2]] -= 1
+            dict_rels[X[i, 1]] -= 1
+            if allow_duplication:
+                idx_test = np.append(idx_test, i)
+            else:
+                idx_test = np.unique(np.append(idx_test, i))
+
+        loop_count += 1
+
+        # in case can't find solution
+        if loop_count == tolerance:
+            if allow_duplication:
+                raise Exception("Cannot create a test split of the desired size. "
+                                "Some entities will not occur in both training and test set. "
+                                "Change seed values, remove filter on test predicates or set "
+                                "test_size to a smaller value.")
+            else:
+                raise Exception("Cannot create a test split of the desired size. "
+                                "Some entities will not occur in both training and test set. "
+                                "Set allow_duplication=True,"
+                                "change seed values, remove filter on test predicates or "
+                                "set test_size to a smaller value.")
+
+    logger.debug('Completed random search.')
+
+    idx = np.arange(len(X))
+    idx_train = np.setdiff1d(idx, idx_test)
+    logger.debug('Train test split completed.')
+
+    return X[idx_train, :], X[idx_test, :]
+
+
+
+
+
+
+
 def _create_unique_mappings(unique_obj, unique_rel):
     """Create unique mappings.
 
