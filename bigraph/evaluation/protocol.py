@@ -415,6 +415,86 @@ def create_mappings(X):
     unique_rel = np.unique(X[:, 1])
     return _create_unique_mappings(unique_ent, unique_rel)
 
+
+def generate_corruptions_for_eval(X, entities_for_corruption, corrupt_side='s,o'):
+    """
+
+    :param X: Currently, a single positive triples that will be used to create corruptions
+    :type X: Tensor, shape [1, 3]
+    :param entities_for_corruption: All the entity IDs which are to be used for generation of corruptions
+    :type entities_for_corruption: tensor
+    :param corrupt_side: Specifies which side of the triple to corrupt:
+
+        - 's': corrupt only subject.
+        - 'o': corrupt only object
+        - 's+o': corrupt both subject and object
+        - 's,o': corrupt both subject and object but ranks are computed separately.
+    :type corrupt_side: str
+    :return: An array of corruptions for the triples for x.
+    :rtype: Tensor, shape [1, 3]
+    """
+
+    logger.debug('Generating corruptions for evaluation.')
+
+    logger.debug('Getting repeating subjects.')
+    if corrupt_side == 's,o':
+        # Both subject and object are corrupted but ranks are computed separately.
+        corrupt_side = 's+o'
+
+    if corrupt_side not in ['s+o', 's', 'o']:
+        msg = 'Invalid argument value for corruption side passed for evaluation'
+        logger.error(msg)
+        raise ValueError(msg)
+
+    if corrupt_side in ['s+o', 'o']:  # object is corrupted - so we need subjects as it is
+        repeated_subjs = tf.keras.backend.repeat(
+            tf.slice(X,
+                     [0, 0],  # subj
+                     [tf.shape(X)[0], 1]),
+            tf.shape(entities_for_corruption)[0])
+        repeated_subjs = tf.squeeze(repeated_subjs, 2)
+
+    logger.debug('Getting repeating object.')
+    if corrupt_side in ['s+o', 's']:  # subject is corrupted - so we need objects as it is
+        repeated_objs = tf.keras.backend.repeat(
+            tf.slice(X,
+                     [0, 2],  # Obj
+                     [tf.shape(X)[0], 1]),
+            tf.shape(entities_for_corruption)[0])
+        repeated_objs = tf.squeeze(repeated_objs, 2)
+
+    logger.debug('Getting repeating relationships.')
+    repeated_relns = tf.keras.backend.repeat(
+        tf.slice(X,
+                 [0, 1],  # reln
+                 [tf.shape(X)[0], 1]),
+        tf.shape(entities_for_corruption)[0])
+    repeated_relns = tf.squeeze(repeated_relns, 2)
+
+    rep_ent = tf.keras.backend.repeat(tf.expand_dims(entities_for_corruption, 0), tf.shape(X)[0])
+    rep_ent = tf.squeeze(rep_ent, 0)
+
+    if corrupt_side == 's+o':
+        stacked_out = tf.concat([tf.stack([repeated_subjs, repeated_relns, rep_ent], 1),
+                                 tf.stack([rep_ent, repeated_relns, repeated_objs], 1)], 0)
+
+    elif corrupt_side == 'o':
+        stacked_out = tf.stack([repeated_subjs, repeated_relns, rep_ent], 1)
+
+    else:
+        stacked_out = tf.stack([rep_ent, repeated_relns, repeated_objs], 1)
+
+    out = tf.reshape(tf.transpose(stacked_out, [0, 2, 1]), (-1, 3))
+
+    return out
+
+
+
+
+
+
+
+
 def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
     """Convert statements (triples) into integer IDs.
 
