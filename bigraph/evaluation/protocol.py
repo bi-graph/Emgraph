@@ -878,3 +878,60 @@ def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_un
         if dataset_handle is not None:
             dataset_handle.cleanup()
         raise e
+
+
+def check_filter_size(model, corruption_entities):
+    """Raise a warning when trying to evaluate with too many entities.
+
+        Doing so will likely result in shooting in your feet, as the protocol will be excessively hard,
+        hence the warning message.
+
+        Addresses #186.
+
+    :param model: A knowledge graph embedding model
+    :type model: EmbeddingModel
+    :param corruption_entities: the corruption_entities used in the protocol
+    :type corruption_entities: ndarray
+    :return: -
+    :rtype: -
+    """
+
+    warn_msg = """You are attempting to use %d distinct entities to generate synthetic negatives in the evaluation
+    protocol. This may be unnecessary and will lead to a 'harder' task. Besides, it will lead to a much slower
+    evaluation procedure. We recommended to set the 'corruption_entities' argument to a reasonably sized set
+    of entities. The size of corruption_entities depends on your domain-specific task."""
+
+    if corruption_entities is None:
+        ent_for_corruption_size = len(model.ent_to_idx)
+    else:
+        ent_for_corruption_size = len(corruption_entities)
+
+    if ent_for_corruption_size >= TOO_MANY_ENTITIES_TH:
+        warnings.warn(warn_msg % ent_for_corruption_size)
+        logger.warning(warn_msg, ent_for_corruption_size)
+
+def filter_unseen_entities(X, model, verbose=False):
+    """Filter unseen entities in the test set.
+
+    :param X: An array of test triples.
+    :type X: ndarray, shape [n, 3]
+    :param model: A knowledge graph embedding model.
+    :type model: EmbeddingModel
+    :param verbose:  Verbose mode
+    :type verbose: bool
+    :return: filtered X: An array of test triples containing no unseen entities.
+    :rtype: ndarray, shape [n, 3]
+    """
+
+    logger.debug('Finding entities in the dataset that are not previously seen by model')
+    ent_seen = np.unique(list(model.ent_to_idx.keys()))
+    df = pd.DataFrame(X, columns=['s', 'p', 'o'])
+    filtered_df = df[df.s.isin(ent_seen) & df.o.isin(ent_seen)]
+    n_removed_ents = df.shape[0] - filtered_df.shape[0]
+    if n_removed_ents > 0:
+        msg = 'Removing {} triples containing unseen entities. '.format(n_removed_ents)
+        if verbose:
+            logger.info(msg)
+        logger.debug(msg)
+        return filtered_df.values
+    return X
