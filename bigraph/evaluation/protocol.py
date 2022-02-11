@@ -10,7 +10,7 @@ import tensorflow as tf
 
 
 from ..evaluation import mrr_score, hits_at_n_score, mr_score
-from ..datasets import BigraphDatasetAdapter
+from ..datasets import BigraphDatasetAdapter, NumpyDatasetAdapter, OneToNDatasetAdapter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -599,12 +599,6 @@ def generate_corruptions_for_fit(X, entities_list=None, eta=1, corrupt_side='s,o
     return out
 
 
-
-
-
-
-
-
 def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
     """Convert statements (triples) into integer IDs.
 
@@ -663,3 +657,224 @@ def to_idx(X, ent_to_idx, rel_to_idx):
     if X.ndim == 1:
         X = X[np.newaxis, :]
     return _convert_to_idx(X, ent_to_idx, rel_to_idx, ent_to_idx)
+
+
+def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_unseen=True, entities_subset=None,
+                         corrupt_side='s,o', ranking_strategy='worst', use_default_protocol=False):
+    """Evaluate the performance of an embedding model.
+
+    The evaluation protocol follows the procedure defined in :cite:`bordes2013translating` and can be summarised as:
+
+    #. Artificially generate negative triples by corrupting first the subject and then the object.
+
+    #. Remove the positive triples from the set returned by (1) -- positive triples \
+    are usually the concatenation of training, validation and test sets.
+
+    #. Rank each test triple against all remaining triples returned by (2).
+
+
+    With the ranks of both object and subject corruptions, one may compute metrics such as the MRR by
+    calculating them separately and then averaging them out.
+    Note that the metrics implemented in AmpliGraph's ``evaluate.metrics`` module will already work that way
+    when provided with the input returned by ``evaluate_performance``.
+
+    The artificially generated negatives are compliant with the local closed world assumption (LCWA),
+    as described in :cite:`nickel2016review`. In practice, that means only one side of the triple is corrupted at a time
+    (i.e. either the subject or the object).
+
+    .. note::
+        The evaluation protocol assigns the worst rank
+        to a positive test triple in case of a tie with negatives. This is the agreed upon behaviour in literature.
+
+    .. hint::
+        When ``entities_subset=None``, the method will use all distinct entities in the knowledge graph ``X``
+        to generate negatives to rank against. This might slow down the eval. Some of the corruptions may not even
+        make sense for the task that one may be interested in.
+
+        For eg, consider the case <Actor, acted_in, ?>, where we are mainly interested in such movies that an actor
+        has acted in. A sensible way to evaluate this would be to rank against all the movie entities and compute
+        the desired metrics. In such cases, where focus us on particular task, it is recommended to pass the desired
+        entities to use to generate corruptions to ``entities_subset``. Besides, trying to rank a positive against an
+        extremely large number of negatives may be overkilling.
+
+        As a reference, the popular FB15k-237 dataset has ~15k distinct entities. The evaluation protocol ranks each
+        positives against 15k corruptions per side.
+
+    :param X: An array of test triples.
+    :type X: ndarray, shape [n, 3]
+    :param model: A knowledge graph embedding model
+    :type model: EmbeddingModel
+    :param filter_triples: The triples used to filter negatives.
+
+        .. note::
+            When *filtered* mode is enabled (i.e. `filtered_triples` is not ``None``),
+            to speed up the procedure, we use a database based filtering. This strategy is as described below:
+
+            * Store the filter_triples in the DB
+            * For each test triple, we generate corruptions for evaluation and score them.
+            * The corruptions may contain some False Negatives. We find such statements by quering the database.
+            * From the computed scores we retrieve the scores of the False Negatives.
+            * We compute the rank of the test triple by comparing against ALL the corruptions.
+            * We then compute the number of False negatives that are ranked higher than the test triple; and then
+              subtract this value from the above computed rank to yield the final filtered rank.
+
+            **Execution Time:** This method takes ~4 minutes on FB15K using ComplEx
+            (Intel Xeon Gold 6142, 64 GB Ubuntu 16.04 box, Tesla V100 16GB)
+    :type filter_triples: ndarray of shape [n, 3] or None
+    :param verbose: Verbose mode
+    :type verbose: bool
+    :param filter_unseen: This can be set to False to skip filtering of unseen entities if train_test_split_unseen() was used to
+        split the original dataset.
+    :type filter_unseen: bool
+    :param entities_subset: List of entities to use for corruptions. If None, will generate corruptions
+        using all distinct entities. Default is None.
+    :type entities_subset: ndarray
+    :param corrupt_side: Specifies which side of the triple to corrupt:
+
+        - 's': corrupt only subject.
+        - 'o': corrupt only object.
+        - 's+o': corrupt both subject and object.
+        - 's,o': corrupt subject and object sides independently and return 2 ranks. This corresponds to the \
+        evaluation protocol used in literature, where head and tail corruptions are evaluated separately.
+
+        .. note::
+            When ``corrupt_side='s,o'`` the function will return 2*n ranks as a [n, 2] array.
+            The first column of the array represents the subject corruptions.
+            The second column of the array represents the object corruptions.
+            Otherwise, the function returns n ranks as [n] array.
+    :type corrupt_side: str
+    :param ranking_strategy: Specifies the type of score comparison strategy to use while ranking:
+
+        - 'worst': assigns the worst rank when scores are equal
+        - 'best': assigns the best rank when scores are equal
+        - 'middle': assigns the middle rank when scores are equal
+
+        Our recommendation is to use ``worst``.
+        Think of a model which assigns constant score to any triples. If you use the ``best`` strategy then
+        the ranks will always be 1 (which is incorrect because the model has not learnt anything). If you choose
+        this model and try to do knowledge discovery, you will not be able to deduce anything as all triples will
+        get the same scores. So to be on safer side while choosing the model, we would recommend either ``worst``
+        or ``middle`` strategy.
+    :type ranking_strategy: str
+    :param use_default_protocol: Flag to indicate whether to use the standard protocol used in literature defined in
+        :cite:`bordes2013translating` (default: False).
+        If set to `True`, ``corrupt_side`` will be set to `'s,o'`.
+        This corresponds to the evaluation protocol used in literature, where head and tail corruptions
+        are evaluated separately, i.e. in corrupt_side='s,o' mode
+    :type use_default_protocol: bool
+    :return: An array of ranks of test triples.
+        When ``corrupt_side='s,o'`` the function returns [n,2]. The first column represents the rank against
+        subject corruptions and the second column represents the rank against object corruptions.
+        In other cases, it returns [n] i.e. rank against the specified corruptions.
+    :rtype: ndarray, shape [n] or [n,2] depending on the value of corrupt_side.
+
+    Examples:
+    >>> import numpy as np
+    >>> from bigraph.datasets import load_wn18
+    >>> from bigraph.latent_features import ComplEx
+    >>> from bigraph.evaluation import evaluate_performance, mrr_score, hits_at_n_score
+    >>>
+    >>> X = load_wn18()
+    >>> model = ComplEx(batches_count=10, seed=0, epochs=10, k=150, eta=1,
+    >>>                 loss='nll', optimizer='adam')
+    >>> model.fit(np.concatenate((X['train'], X['valid'])))
+    >>>
+    >>> filter_triples = np.concatenate((X['train'], X['valid'], X['test']))
+    >>> ranks = evaluate_performance(X['test'][:5], model=model,
+    >>>                              filter_triples=filter_triples,
+    >>>                              corrupt_side='s+o',
+    >>>                              use_default_protocol=False)
+    >>> ranks
+    array([  1, 582, 543,   6,  31])
+    >>> mrr_score(ranks)
+    0.24049691297347323
+    >>> hits_at_n_score(ranks, n=10)
+    0.4
+    """
+
+    from bigraph.latent_features import ConvE  # avoids circular import hell
+
+    dataset_handle = None
+
+    # try-except block is mainly to handle clean up in case of exception or manual stop in jupyter notebook
+    try:
+        if use_default_protocol:
+            logger.warning('DeprecationWarning: use_default_protocol will be removed in future. '
+                           'Please use corrupt_side argument instead.')
+            corrupt_side = 's,o'
+
+        logger.debug('Evaluating the performance of the embedding model.')
+        assert corrupt_side in ['s', 'o', 's+o', 's,o'], 'Invalid value for corrupt_side.'
+        if isinstance(X, np.ndarray):
+
+            if filter_unseen:
+                X = filter_unseen_entities(X, model, verbose=verbose)
+            else:
+                logger.warning("If your test set or filter triples contain unseen entities you may get a"
+                               "runtime error. You can filter them by setting filter_unseen=True")
+
+            if isinstance(model, ConvE):
+                dataset_handle = OneToNDatasetAdapter()
+            else:
+                dataset_handle = NumpyDatasetAdapter()
+
+            dataset_handle.use_mappings(model.rel_to_idx, model.ent_to_idx)
+            dataset_handle.set_data(X, 'test')
+
+        elif isinstance(X, BigraphDatasetAdapter):
+            dataset_handle = X
+        else:
+            msg = "X must be either a numpy array or an AmpligraphDatasetAdapter."
+            logger.error(msg)
+            raise ValueError(msg)
+
+        if filter_triples is not None:
+            if isinstance(filter_triples, np.ndarray):
+                logger.debug('Getting filtered triples.')
+
+                if filter_unseen:
+                    filter_triples = filter_unseen_entities(filter_triples, model, verbose=verbose)
+                dataset_handle.set_filter(filter_triples)
+                model.set_filter_for_eval()
+            elif isinstance(X, BigraphDatasetAdapter):
+                if not isinstance(filter_triples, bool):
+                    raise Exception('Expected a boolean type')
+                if filter_triples is True:
+                    model.set_filter_for_eval()
+            else:
+                raise Exception('Invalid datatype for filter. Expected a numpy array or preset data in the adapter.')
+
+        eval_dict = {}
+
+        # #186: print warning when trying to evaluate with too many entities.
+        #      Thus will likely result in shooting in your feet, as the protocol will be excessively hard.
+        check_filter_size(model, entities_subset)
+
+        if entities_subset is not None:
+            idx_entities = np.asarray([idx for uri, idx in model.ent_to_idx.items() if uri in entities_subset])
+            eval_dict['corruption_entities'] = idx_entities
+
+        logger.debug('Evaluating the test set by corrupting side : {}'.format(corrupt_side))
+        eval_dict['corrupt_side'] = corrupt_side
+
+        assert ranking_strategy in ['worst', 'best', 'middle'], 'Invalid ranking_strategy!'
+
+        eval_dict['ranking_strategy'] = ranking_strategy
+
+        logger.debug('Configuring evaluation protocol.')
+        model.configure_evaluation_protocol(eval_dict)
+
+        logger.debug('Making predictions.')
+        ranks = model.get_ranks(dataset_handle)
+
+        logger.debug('Ending Evaluation')
+        model.end_evaluation()
+
+        logger.debug('Returning ranks of positive test triples obtained by corrupting {}.'.format(corrupt_side))
+        return np.array(ranks)
+
+    except BaseException as e:
+        model.end_evaluation()
+        if dataset_handle is not None:
+            dataset_handle.cleanup()
+        raise e
