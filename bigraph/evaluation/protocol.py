@@ -489,6 +489,116 @@ def generate_corruptions_for_eval(X, entities_for_corruption, corrupt_side='s,o'
     return out
 
 
+def generate_corruptions_for_fit(X, entities_list=None, eta=1, corrupt_side='s,o', entities_size=0, rnd=None):
+    """Generate corruptions for training.
+
+    Creates corrupted triples for each statement in an array of statements,
+    as described by :cite:`trouillon2016complex`.
+
+    .. note::
+        Collisions are not checked, as this will be computationally expensive :cite:`trouillon2016complex`.
+        That means that some corruptions *may* result in being positive statements (i.e. *unfiltered* settings).
+
+    .. note::
+        When processing large knowledge graphs, it may be useful to generate corruptions only using entities from
+        a single batch.
+        This also brings the benefit of creating more meaningful negatives, as entities used to corrupt are
+        sourced locally.
+        The function can be configured to generate corruptions *only* using the entities from the current batch.
+        You can enable such behaviour be setting ``entities_size=0``. In such case, if ``entities_list=None``
+        all entities from the *current batch* will be used to generate corruptions.
+
+    :param X: An array of positive triples that will be used to create corruptions.
+    :type X: Tensor, shape [n, 3]
+    :param entities_list: List of entities to be used for generating corruptions. (default:None).
+        If ``entities_list=None`` and ``entities_size`` is the number of all entities,
+        all entities will be used to generate corruptions (default behaviour).
+
+        If ``entities_list=None`` and ``entities_size=0``, the batch entities will be used to generate corruptions.
+    :type entities_list: list
+    :param eta: Number of corruptions per triple that must be generated
+    :type eta: int
+    :param corrupt_side: Specifies which side of the triple to corrupt:
+
+        - 's': corrupt only subject.
+        - 'o': corrupt only object
+        - 's+o': corrupt both subject and object
+        - 's,o': corrupt both subject and object
+    :type corrupt_side: str
+    :param entities_size: Size of entities to be used while generating corruptions. It assumes entity id's start from 0 and are
+        continuous. (default: 0).
+        When processing large knowledge graphs, it may be useful to generate corruptions only using entities from
+        a single batch.
+        This also brings the benefit of creating more meaningful negatives, as entities used to corrupt are
+        sourced locally.
+        The function can be configured to generate corruptions *only* using the entities from the current batch.
+        You can enable such behaviour be setting ``entities_size=0``. In such case, if ``entities_list=None``
+        all entities from the *current batch* will be used to generate corruptions.
+    :type entities_size: int
+    :param rnd: A random number generator.
+    :type rnd: numpy.random.RandomState
+    :return: An array of corruptions for a list of positive triples X. For each row in X the corresponding corruption
+        indexes can be found at [index+i*n for i in range(eta)]
+
+    :rtype: tensor, shape [n * eta, 3]
+    """
+
+    logger.debug('Generating corruptions for fit.')
+    if corrupt_side == 's,o':
+        # Both subject and object are corrupted but ranks are computed separately.
+        corrupt_side = 's+o'
+
+    if corrupt_side not in ['s+o', 's', 'o']:
+        msg = 'Invalid argument value {} for corruption side passed for evaluation.'.format(corrupt_side)
+        logger.error(msg)
+        raise ValueError(msg)
+
+    dataset = tf.reshape(tf.tile(tf.reshape(X, [-1]), [eta]), [tf.shape(X)[0] * eta, 3])
+
+    if corrupt_side == 's+o':
+        keep_subj_mask = tf.cast(tf.random_uniform([tf.shape(X)[0] * eta], 0, 2, dtype=tf.int32, seed=rnd), tf.bool)
+    else:
+        keep_subj_mask = tf.cast(tf.ones(tf.shape(X)[0] * eta, tf.int32), tf.bool)
+        if corrupt_side == 's':
+            keep_subj_mask = tf.logical_not(keep_subj_mask)
+
+    keep_obj_mask = tf.logical_not(keep_subj_mask)
+    keep_subj_mask = tf.cast(keep_subj_mask, tf.int32)
+    keep_obj_mask = tf.cast(keep_obj_mask, tf.int32)
+
+    logger.debug('Created corruption masks.')
+
+    if entities_size != 0:
+        replacements = tf.random_uniform([tf.shape(dataset)[0]], 0, entities_size, dtype=tf.int32, seed=rnd)
+    else:
+        if entities_list is None:
+            # use entities in the batch
+            entities_list, _ = tf.unique(tf.squeeze(
+                tf.concat([tf.slice(X, [0, 0], [tf.shape(X)[0], 1]),
+                           tf.slice(X, [0, 2], [tf.shape(X)[0], 1])],
+                          0)))
+
+        random_indices = tf.random.uniform(shape=(tf.shape(dataset)[0],),
+                                           maxval=tf.shape(entities_list)[0],
+                                           dtype=tf.int32,
+                                           seed=rnd)
+        replacements = tf.gather(entities_list, random_indices)
+
+    subjects = tf.math.add(tf.math.multiply(keep_subj_mask, dataset[:, 0]),
+                           tf.math.multiply(keep_obj_mask, replacements))
+    logger.debug('Created corrupted subjects.')
+    relationships = dataset[:, 1]
+    logger.debug('Retained relationships.')
+    objects = tf.math.add(tf.math.multiply(keep_obj_mask, dataset[:, 2]),
+                          tf.math.multiply(keep_subj_mask, replacements))
+    logger.debug('Created corrupted objects.')
+
+    out = tf.transpose(tf.stack([subjects, relationships, objects]))
+
+    logger.debug('Returning corruptions for fit.')
+    return out
+
+
 
 
 
