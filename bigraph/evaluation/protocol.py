@@ -974,3 +974,25 @@ def _remove_unused_params(params):
         _param_without_unused(params, MODEL_REGISTRY, params["model_name"], "embedding_model_params")
 
     return params
+
+
+def _flatten_nested_keys(dictionary):
+    """Flatten the nested values of a dictionary into tuple keys
+    E.g. {"a": {"b": [1], "c": [2]}} becomes {("a", "b"): [1], ("a", "c"): [2]}
+
+    :param dictionary: Dictionary to be flattened into tuples
+    :type dictionary: dict
+    :return: Dictionary of the flattened tuples of the `dictionary`
+    :rtype: dict
+    """
+    """
+    
+    """
+    # Find the parameters that are nested dictionaries
+    nested_keys = {k for k, v in dictionary.items() if type(v) is dict}
+    # Flatten them into tuples
+    flattened_nested_keys = {(nk, k): dictionary[nk][k] for nk in nested_keys for k in dictionary[nk]}
+    # Get original dictionary without the nested keys
+    dictionary_without_nested_keys = {k: v for k, v in dictionary.items() if k not in nested_keys}
+    # Return merged dicts
+    return {**dictionary_without_nested_keys, **flattened_nested_keys}
