@@ -1038,3 +1038,39 @@ def _get_param_hash(param):
     # For example, if the regularization is None, there is no need for the regularization lambda
     flattened_params = _flatten_nested_keys(_remove_unused_params(_unflatten_nested_keys(param)))
     return hash(frozenset(flattened_params.items()))
+
+
+class ParamHistory(object):
+    """
+    Used to evaluates whether a particular parameter configuration has already been previously seen or not.
+    To achieve that, we hash each parameter configuration, removing unused parameters first.
+    """
+    def __init__(self):
+        """The param history is a set of hashes."""
+        self.param_hash_history = set()
+
+    def add(self, param):
+        """Add hash of parameter configuration to history.
+
+        :param param: Parameter configuration.
+        Example::
+            param_grid = {"k": 50, "eta": 2, "optimizer_params": {"lr": 0.1}}
+        :type param: dict
+        :return: -
+        :rtype: -
+        """
+
+        self.param_hash_history.add(_get_param_hash(param))
+
+    def __contains__(self, other):
+        """Verify whether hash of parameter configuration is present in history.
+
+        :param other: Parameter configuration.
+        Example::
+            param_grid = {"k": 50, "eta": 2, "optimizer_params": {"lr": 0.1}}
+        :type other: dict
+        :return: Hash of the other dictionary.
+        :rtype: str
+        """
+
+        return _get_param_hash(other) in self.param_hash_history
