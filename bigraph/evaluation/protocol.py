@@ -996,3 +996,25 @@ def _flatten_nested_keys(dictionary):
     dictionary_without_nested_keys = {k: v for k, v in dictionary.items() if k not in nested_keys}
     # Return merged dicts
     return {**dictionary_without_nested_keys, **flattened_nested_keys}
+
+
+def _unflatten_nested_keys(dictionary):
+    """Unflatten the nested values of a dictionary based on the keys that are tuples
+    E.g. {("a", "b"): [1], ("a", "c"): [2]} becomes {"a": {"b": [1], "c": [2]}}
+
+    :param dictionary: Dictionary to be un-flattened
+    :type dictionary: dict
+    :return: Dictionary of the un-flattened tuples
+    :rtype: dict
+    """
+    """
+    
+    """
+    # Find the parameters that are nested dictionaries
+    nested_keys = {k[0] for k in dictionary if type(k) is tuple}
+    # Select the parameters which were originally nested and unflatten them
+    nested_dict = {nk: {k[1]: v for k, v in dictionary.items() if k[0] == nk} for nk in nested_keys}
+    # Get original dictionary without the nested keys
+    dictionary_without_nested_keys = {k: v for k, v in dictionary.items() if type(k) is not tuple}
+    # Return merged dicts
+    return {**dictionary_without_nested_keys, **nested_dict}
