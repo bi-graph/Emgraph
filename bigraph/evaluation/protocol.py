@@ -1018,3 +1018,23 @@ def _unflatten_nested_keys(dictionary):
     dictionary_without_nested_keys = {k: v for k, v in dictionary.items() if type(k) is not tuple}
     # Return merged dicts
     return {**dictionary_without_nested_keys, **nested_dict}
+
+
+def _get_param_hash(param):
+    """Get the hash of a param dictionary.
+    It first unflattens nested dicts, removes unused nested parameters, nests them again and then create a frozenset
+    based on the resulting items (tuples).
+    Note that the flattening and unflattening dict functions are idempotent.
+
+    :param param: Parameter configuration.
+        Example::
+            param_grid = {"k": 50, "eta": 2, "optimizer_params": {"lr": 0.1}}
+    :type param: dict
+    :return: Hash of the param dictionary.
+    :rtype: str
+    """
+
+    # Remove parameters that are not used by particular configurations
+    # For example, if the regularization is None, there is no need for the regularization lambda
+    flattened_params = _flatten_nested_keys(_remove_unused_params(_unflatten_nested_keys(param)))
+    return hash(frozenset(flattened_params.items()))
