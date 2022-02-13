@@ -1104,3 +1104,28 @@ def _next_hyperparam(param_grid):
             param_history.add(param)
             # Yields nested configuration (unflattened) without useless parameters
             yield _remove_unused_params(_unflatten_nested_keys(param))
+
+
+def _sample_parameters(param_grid):
+    """Given a param_grid with callables and lists, execute callables and sample lists to return of random combination
+    of parameters.
+
+    :param param_grid: Parameter configurations.
+        Example::
+            param_grid = {"k": [50, 100], "eta": [1, 2, 3]}
+    :type param_grid: dict
+    :return: Return dictionary containing sampled parameters.
+    :rtype: dict
+    """
+
+    param = {}
+    for k, v in param_grid.items():
+        if callable(v):
+            param[k] = v()
+        elif type(v) is dict:
+            param[k] = _sample_parameters(v)
+        elif isinstance(v, Iterable) and type(v) is not str:
+            param[k] = np.random.choice(v)
+        else:
+            param[k] = v
+    return param
