@@ -1174,3 +1174,328 @@ def _scalars_into_lists(param_grid):
             _scalars_into_lists(v)
 
 
+def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid, max_combinations=None,
+                              param_grid_random_seed=0, use_filter=True, early_stopping=False,
+                              early_stopping_params=None, use_test_for_selection=False, entities_subset=None,
+                              corrupt_side='s,o', use_default_protocol=False, retrain_best_model=False, verbose=False):
+    """Model selection routine for embedding models via either grid search or random search.
+
+    For grid search, pass a fixed ``param_grid`` and leave ``max_combinations`` as `None`
+    so that all combinations will be explored.
+
+    For random search, delimit ``max_combinations`` to your computational budget
+    and optionally set some parameters to be callables instead of a list (see the documentation for ``param_grid``).
+
+    .. note::
+        Random search is more efficient than grid search as the number of parameters grows :cite:`bergstra2012random`.
+        It is also a strong baseline against more advanced methods such as
+        Bayesian optimization :cite:`li2018hyperband`.
+
+    The function also retrains the best performing model on the concatenation of training and validation sets.
+
+    Note we generate negatives at runtime according to the strategy described in :cite:`bordes2013translating`.
+
+    .. note::
+        By default, model selection is done with raw MRR for better runtime performance (``use_filter=False``).
+
+    :param model_class: The class of the EmbeddingModel to evaluate (TransE, DistMult, ComplEx, etc).
+    :type model_class: class
+    :param X_train: An array of training triples.
+    :type X_train: ndarray, shape [n, 3]
+    :param X_valid: An array of validation triples.
+    :type X_valid: ndarray, shape [n, 3]
+    :param X_test: An array of test triples.
+    :type X_test: ndarray, shape [n, 3]
+    :param param_grid: A grid of hyperparameters to use in model selection. The routine will train a model for each combination
+        of these hyperparameters.
+
+        Parameters can be either callables or lists.
+        If callable, it must take no parameters and return a constant value.
+        If any parameter is a callable, ``max_combinations`` must be set to some value.
+
+        For example, the learning rate could either be ``"lr": [0.1, 0.01]``
+        or ``"lr": lambda: np.random.uniform(0.01, 0.1)``.
+    :type param_grid: dict
+    :param max_combinations: Maximum number of combinations to explore.
+        By default (None) all combinations will be explored,
+        which makes it incompatible with random parameters for random search.
+    :type max_combinations: int
+    :param param_grid_random_seed: Random seed for the parameters that are callables and random.
+    :type param_grid_random_seed: int
+    :param use_filter: If True, will use the entire input dataset X to compute filtered MRR (default: True).
+    :type use_filter: bool
+    :param early_stopping: Flag to enable early stopping (default:False).
+
+        If set to ``True``, the training loop adopts the following early stopping heuristic:
+
+        - The model will be trained regardless of early stopping for ``burn_in`` epochs.
+        - Every ``check_interval`` epochs the method will compute the metric specified in ``criteria``.
+
+        If such metric decreases for ``stop_interval`` checks, we stop training early.
+
+        Note the metric is computed on ``x_valid``. This is usually a validation set that you held out.
+
+        Also, because ``criteria`` is a ranking metric, it requires generating negatives.
+        Entities used to generate corruptions can be specified, as long as the side(s) of a triple to corrupt.
+        The method supports filtered metrics, by passing an array of positives to ``x_filter``. This will be used to
+        filter the negatives generated on the fly (i.e. the corruptions).
+
+        .. note::
+
+            Keep in mind the early stopping criteria may introduce a certain overhead
+            (caused by the metric computation).
+            The goal is to strike a good trade-off between such overhead and saving training epochs.
+
+            A common approach is to use MRR unfiltered: ::
+
+                early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}
+
+            Note the size of validation set also contributes to such overhead.
+            In most cases a smaller validation set would be enough.
+    :type early_stopping: bool
+    :param early_stopping_params: Dictionary of parameters for early stopping.
+
+        The following keys are supported:
+
+            * x_valid: ndarray, shape [n, 3] : Validation set to be used for early stopping. Uses X['valid'] by default.
+
+            * criteria: criteria for early stopping ``hits10``, ``hits3``, ``hits1`` or ``mrr``. (default)
+
+            * x_filter: ndarray, shape [n, 3] : Filter to be used(no filter by default)
+
+            * burn_in: Number of epochs to pass before kicking in early stopping(default: 100)
+
+            * check_interval: Early stopping interval after burn-in(default:10)
+
+            * stop_interval: Stop if criteria is performing worse over n consecutive checks (default: 3)
+    :type early_stopping_params: dict
+    :param use_test_for_selection: Use test set for model selection. If False, uses validation set (default: False).
+    :type use_test_for_selection: bool
+    :param entities_subset: List of entities to use for corruptions. If None, will generate corruptions
+        using all distinct entities (default: None).
+    :type entities_subset: ndarray
+    :param corrupt_side: Specifies which side to corrupt the entities:
+        ``s`` is to corrupt only subject.
+        ``o`` is to corrupt only object.
+        ``s+o`` is to corrupt both subject and object.
+        ``s,o`` is to corrupt both subject and object but ranks are computed separately (default).
+    :type corrupt_side: str
+    :param use_default_protocol: Flag to indicate whether to evaluate head and tail corruptions separately(default:False).
+        If this is set to true, it will ignore corrupt_side argument and corrupt both head
+        and tail separately and rank triples i.e. corrupt_side='s,o' mode.
+    :type use_default_protocol: bool
+    :param retrain_best_model: Flag to indicate whether best model should be re-trained at the end with the validation set used in the search.
+        Default: False.
+    :type retrain_best_model: bool
+    :param verbose: Verbose mode for the model selection procedure (which is independent of the verbose mode in the model fit).
+
+        Verbose mode includes display of the progress bar, logging info for each iteration,
+        evaluation information, and exception details.
+
+        If you need verbosity inside the model training itself, change the verbose parameter within the ``param_grid``.
+
+    :type verbose: bool
+    :return: best_model: The best trained embedding model obtained in model selection.
+
+    best_params: The hyperparameters of the best embedding model `best_model`.
+
+    best_mrr_train: The MRR (unfiltered) of the best model computed over the validation set in the model selection loop.
+
+    ranks_test: An array of ranks of test triples.
+        When ``corrupt_side='s,o'`` the function returns [n,2]. The first column represents the rank against
+        subject corruptions and the second column represents the rank against object corruptions.
+        In other cases, it returns [n] i.e. rank against the specified corruptions.
+
+    mrr_test : The MRR (filtered) of the best model, retrained on the concatenation of training and validation sets,
+        computed over the test set.
+
+    experimental_history: A list containing all the intermediate experimental results:
+        the model parameters and the corresponding validation metrics.
+    :rtype: EmbeddingModel, dict, float, ndarray, shape [n] or [n,2] (depending on the value of corrupt_side),
+    float, list of dict
+
+    Examples
+    --------
+    >>> from bigraph.datasets import load_wn18
+    >>> from bigraph.latent_features import ComplEx
+    >>> from bigraph.evaluation import select_best_model_ranking
+    >>> import numpy as np
+    >>>
+    >>> X = load_wn18()
+    >>>
+    >>> model_class = ComplEx
+    >>> param_grid = {
+    >>>     "batches_count": [50],
+    >>>     "seed": 0,
+    >>>     "epochs": [100],
+    >>>     "k": [100, 200],
+    >>>     "eta": [5, 10, 15],
+    >>>     "loss": ["pairwise", "nll"],
+    >>>     "loss_params": {
+    >>>         "margin": [2]
+    >>>     },
+    >>>     "embedding_model_params": {
+    >>>     },
+    >>>     "regularizer": ["LP", None],
+    >>>     "regularizer_params": {
+    >>>         "p": [1, 3],
+    >>>         "lambda": [1e-4, 1e-5]
+    >>>     },
+    >>>     "optimizer": ["adagrad", "adam"],
+    >>>     "optimizer_params": {
+    >>>         "lr": lambda: np.random.uniform(0.0001, 0.01)
+    >>>     },
+    >>>     "verbose": False
+    >>> }
+    >>> select_best_model_ranking(model_class, X['train'], X['valid'], X['test'],
+    >>>                           param_grid,
+    >>>                           max_combinations=100,
+    >>>                           use_filter=True,
+    >>>                           verbose=True,
+    >>>                           early_stopping=True)
+    """
+
+    logger.debug('Starting gridsearch over hyperparameters. {}'.format(param_grid))
+    if use_default_protocol:
+        logger.warning('DeprecationWarning: use_default_protocol will be removed in future. \
+                        Please use corrupt_side argument instead.')
+        corrupt_side = 's,o'
+
+    if early_stopping_params is None:
+        early_stopping_params = {}
+
+    # Verify missing parameters for the model class (default values will be used)
+    undeclared_args = set(model_class.__init__.__code__.co_varnames[1:]) - set(param_grid.keys())
+    if len(undeclared_args) != 0:
+        logger.debug("The following arguments were not defined in the parameter grid"
+                     " and thus the default values will be used: {}".format(', '.join(undeclared_args)))
+
+    param_grid["model_name"] = model_class.name
+    _scalars_into_lists(param_grid)
+
+    if max_combinations is not None:
+        np.random.seed(param_grid_random_seed)
+        model_params_combinations = islice(_next_hyperparam_random(param_grid), max_combinations)
+    else:
+        model_params_combinations = _next_hyperparam(param_grid)
+
+    best_mrr_train = 0
+    best_model = None
+    best_params = None
+
+    if early_stopping:
+        try:
+            early_stopping_params['x_valid']
+        except KeyError:
+            logger.debug('Early stopping enable but no x_valid parameter set. Setting x_valid to {}'.format(X_valid))
+            early_stopping_params['x_valid'] = X_valid
+
+    if use_filter:
+        X_filter = np.concatenate((X_train, X_valid, X_test))
+    else:
+        X_filter = None
+
+    if use_test_for_selection:
+        selection_dataset = X_test
+    else:
+        selection_dataset = X_valid
+
+    experimental_history = []
+
+    def evaluation(ranks):
+        mrr = mrr_score(ranks)
+        mr = mr_score(ranks)
+        hits_1 = hits_at_n_score(ranks, n=1)
+        hits_3 = hits_at_n_score(ranks, n=3)
+        hits_10 = hits_at_n_score(ranks, n=10)
+        return mrr, mr, hits_1, hits_3, hits_10
+
+    for model_params in tqdm(model_params_combinations, total=max_combinations, disable=(not verbose)):
+        current_result = {
+            "model_name": model_params["model_name"],
+            "model_params": model_params
+        }
+        del model_params["model_name"]
+        try:
+            model = model_class(**model_params)
+            model.fit(X_train, early_stopping, early_stopping_params)
+            ranks = evaluate_performance(selection_dataset, model=model,
+                                         filter_triples=X_filter, verbose=verbose,
+                                         entities_subset=entities_subset,
+                                         use_default_protocol=use_default_protocol,
+                                         corrupt_side=corrupt_side)
+
+            curr_mrr, mr, hits_1, hits_3, hits_10 = evaluation(ranks)
+
+            current_result["results"] = {
+                "mrr": curr_mrr,
+                "mr": mr,
+                "hits_1": hits_1,
+                "hits_3": hits_3,
+                "hits_10": hits_10
+            }
+
+            info = 'mr: {} mrr: {} hits 1: {} hits 3: {} hits 10: {}, model: {}, params: {}'.format(
+                mr, curr_mrr, hits_1, hits_3, hits_10, type(model).__name__, model_params
+            )
+
+            logger.debug(info)
+            if verbose:
+                logger.info(info)
+
+            if curr_mrr > best_mrr_train:
+                best_mrr_train = curr_mrr
+                best_model = model
+                best_params = model_params
+        except Exception as e:
+            current_result["results"] = {
+                "exception": str(e)
+            }
+
+            if verbose:
+                logger.error('Exception occurred for parameters:{}'.format(model_params))
+                logger.error(str(e))
+            else:
+                pass
+        experimental_history.append(current_result)
+
+    if best_model is not None:
+        if retrain_best_model:
+            best_model.fit(np.concatenate((X_train, X_valid)), early_stopping, early_stopping_params)
+
+        ranks_test = evaluate_performance(X_test, model=best_model,
+                                          filter_triples=X_filter, verbose=verbose,
+                                          entities_subset=entities_subset,
+                                          use_default_protocol=use_default_protocol,
+                                          corrupt_side=corrupt_side)
+
+        test_mrr, test_mr, test_hits_1, test_hits_3, test_hits_10 = evaluation(ranks_test)
+
+        info = \
+            'Best model test results: mr: {} mrr: {} hits 1: {} hits 3: {} hits 10: {}, model: {}, params: {}'.format(
+                test_mrr, test_mr, test_hits_1, test_hits_3, test_hits_10, type(best_model).__name__, best_params
+            )
+
+        logger.debug(info)
+        if verbose:
+            logger.info(info)
+
+        test_evaluation = {
+            "mrr": test_mrr,
+            "mr": test_mr,
+            "hits_1": test_hits_1,
+            "hits_3": test_hits_3,
+            "hits_10": test_hits_10
+        }
+    else:
+        ranks_test = []
+
+        test_evaluation = {
+            "mrr": np.nan,
+            "mr": np.nan,
+            "hits_1": np.nan,
+            "hits_3": np.nan,
+            "hits_10": np.nan
+        }
+
+    return best_model, best_params, best_mrr_train, ranks_test, test_evaluation, experimental_history
