@@ -1129,3 +1129,28 @@ def _sample_parameters(param_grid):
         else:
             param[k] = v
     return param
+
+
+def _next_hyperparam_random(param_grid):
+    """Iterator that gets the next parameter combination from a dictionary containing lists of parameters or callables.
+    The parameter combinations are randomly chosen each iteration.
+
+    :param param_grid: Parameter configurations.
+        Example::
+            param_grid = {"k": [50, 100], "eta": [1, 2, 3]}
+    :type param_grid: dict
+    :return: One particular combination of parameters.
+    :rtype: iterator
+    """
+
+    param_history = ParamHistory()
+
+    while True:
+        param = _sample_parameters(param_grid)
+
+        # Only yield unique parameter combinations
+        if param in param_history:
+            continue
+        else:
+            param_history.add(param)
+            yield _remove_unused_params(param)
