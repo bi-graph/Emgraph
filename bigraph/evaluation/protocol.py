@@ -1074,3 +1074,33 @@ class ParamHistory(object):
         """
 
         return _get_param_hash(other) in self.param_hash_history
+
+
+def _next_hyperparam(param_grid):
+    """Iterator that gets the next parameter combination from a dictionary containing lists of parameters.
+    The parameter combinations are deterministic and go over all possible combinations present in the parameter grid.
+
+    :param param_grid: Parameter configurations.
+        Example::
+            param_grid = {"k": [50, 100], "eta": [1, 2, 3]}
+    :type param_grid: dict
+    :return:  One particular combination of parameters.
+    :rtype: iterator
+    """
+
+    param_history = ParamHistory()
+
+    # Flatten nested dictionaries so we can apply itertools.product to get all possible parameter combinations
+    flattened_param_grid = _flatten_nested_keys(param_grid)
+
+    for values in product(*flattened_param_grid.values()):
+        # Get one single parameter combination as a flattened dictionary
+        param = dict(zip(flattened_param_grid.keys(), values))
+
+        # Only yield unique parameter combinations
+        if param in param_history:
+            continue
+        else:
+            param_history.add(param)
+            # Yields nested configuration (unflattened) without useless parameters
+            yield _remove_unused_params(_unflatten_nested_keys(param))
