@@ -1154,3 +1154,23 @@ def _next_hyperparam_random(param_grid):
         else:
             param_history.add(param)
             yield _remove_unused_params(param)
+
+
+def _scalars_into_lists(param_grid):
+    """For a param_grid with scalars (instead of lists or callables), transform scalars into lists of size one.
+
+    :param param_grid: Parameter configurations.
+        Example::
+            param_grid = {"k": [50, 100], "eta": lambda: np.random.choice([1, 2, 3]}
+    :type param_grid: dict
+    :return: -
+    :rtype: -
+    """
+
+    for k, v in param_grid.items():
+        if not (callable(v) or isinstance(v, Iterable)) or type(v) is str:
+            param_grid[k] = [v]
+        elif type(v) is dict:
+            _scalars_into_lists(v)
+
+
