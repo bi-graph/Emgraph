@@ -1499,3 +1499,4 @@ def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid,
         }
 
     return best_model, best_params, best_mrr_train, ranks_test, test_evaluation, experimental_history
+
