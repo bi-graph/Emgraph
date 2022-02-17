@@ -150,3 +150,130 @@ def restore_model(model_name_path=None):
         raise FileNotFoundError(msg)
 
     return model
+
+def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=True, export_tsv_embeddings=True):
+    """Export embeddings to Tensorboard.
+
+    This function exports embeddings to disk in a format used by
+    `TensorBoard <https://www.tensorflow.org/tensorboard>`_ and
+    `TensorBoard Embedding Projector <https://projector.tensorflow.org>`_.
+    The function exports:
+
+    * A number of checkpoint and graph embedding files in the provided location that will allow
+      you to visualize embeddings using Tensorboard. This is generally for use with a
+      `local Tensorboard instance <https://www.tensorflow.org/tensorboard/r1/overview>`_.
+    * a tab-separated file of embeddings ``embeddings_projector.tsv``. This is generally used to
+      visualize embeddings by uploading to `TensorBoard Embedding Projector <https://projector.tensorflow.org>`_.
+    * embeddings metadata (i.e. the embeddings labels from the original knowledge graph), saved to ``metadata.tsv``.
+      Such file can be used in TensorBoard or uploaded to TensorBoard Embedding Projector.
+
+    The content of ``loc`` will look like: ::
+
+        tensorboard_files/
+            ├── checkpoint
+            ├── embeddings_projector.tsv
+            ├── graph_embedding.ckpt.data-00000-of-00001
+            ├── graph_embedding.ckpt.index
+            ├── graph_embedding.ckpt.meta
+            ├── metadata.tsv
+            └── projector_config.pbtxt
+
+    .. Note ::
+        A TensorBoard guide is available at `this address <https://www.tensorflow.org/tensorboard/r1/overview>`_.
+
+    .. Note ::
+        Uploading ``embeddings_projector.tsv`` and ``metadata.tsv`` to
+        `TensorBoard Embedding Projector <https://projector.tensorflow.org>`_ will give a result
+        similar to the picture below:
+
+        .. image:: ../img/embeddings_projector.png
+
+    :param model: A trained neural knowledge graph embedding model, the model must be an instance of TransE,
+    DistMult, ComplEx, or HolE.
+    :type model: EmbeddingModel
+    :param loc: Directory where the files are written
+    :type loc: str
+    :param labels: Label(s) for each embedding point in the Tensorboard visualization.
+    Default behaviour is to use the embeddings labels included in the model.
+    :type labels: pd.DataFrame
+    :param write_metadata: If True will write a file named 'metadata.tsv' in the same directory as path (default: True).
+    :type write_metadata: bool
+    :param export_tsv_embeddings: If True, will generate a tab-separated file of embeddings at the given path. This is
+    generally used to visualize embeddings by uploading to `TensorBoard Embedding Projector
+    <https://projector.tensorflow.org>`_. (default: True)
+    :type export_tsv_embeddings: bool
+    :return:
+    :rtype:
+
+    Examples:
+
+    >>> import numpy as np
+    >>> from bigraph.latent_features import TransE
+    >>> from bigraph.utils import create_tensorboard_visualizations
+    >>>
+    >>> X = np.array([['a', 'y', 'b'],
+    >>>               ['b', 'y', 'a'],
+    >>>               ['a', 'y', 'c'],
+    >>>               ['c', 'y', 'a'],
+    >>>               ['a', 'y', 'd'],
+    >>>               ['c', 'y', 'd'],
+    >>>               ['b', 'y', 'c'],
+    >>>               ['f', 'y', 'e']])
+    >>>
+    >>> model = TransE(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
+    >>>                loss_params={'margin':5})
+    >>> model.fit(X)
+    >>>
+    >>> create_tensorboard_visualizations(model, 'tensorboard_files')
+    """
+
+    # Create loc if it doesn't exist
+    if not os.path.exists(loc):
+        logger.debug('Creating Tensorboard visualization directory: %s' % loc)
+        os.mkdir(loc)
+
+    if not model.is_fitted:
+        raise ValueError('Cannot write embeddings if model is not fitted.')
+
+    # If no label data supplied, use model ent_to_idx keys as labels
+    if labels is None:
+
+        logger.info('Using model entity dictionary to create Tensorboard metadata.tsv')
+        labels = list(model.ent_to_idx.keys())
+    else:
+        if len(labels) != len(model.ent_to_idx):
+            raise ValueError('Label data rows must equal number of embeddings.')
+
+    if write_metadata:
+        logger.debug('Writing metadata.tsv to: %s' % loc)
+        write_metadata_tsv(loc, labels)
+
+    if export_tsv_embeddings:
+        tsv_filename = "embeddings_projector.tsv"
+        logger.info('Writing embeddings tsv to: %s' % os.path.join(loc, tsv_filename))
+        np.savetxt(os.path.join(loc, tsv_filename), model.trained_model_params[0], delimiter='\t')
+
+    checkpoint_path = os.path.join(loc, 'graph_embedding.ckpt')
+
+    # Create embeddings Variable
+    embedding_var = tf.Variable(model.trained_model_params[0], name='graph_embedding')
+
+    with tf.Session() as sess:
+        saver = tf.train.Saver([embedding_var])
+
+        sess.run(embedding_var.initializer)
+
+        saver.save(sess, checkpoint_path)
+
+        config = projector.ProjectorConfig()
+
+        # One can add multiple embeddings.
+        embedding = config.embeddings.add()
+        embedding.tensor_name = embedding_var.name
+
+        # Link this tensor to its metadata file (e.g. labels).
+        embedding.metadata_path = 'metadata.tsv'
+
+        # Saves a config file that TensorBoard will read during startup.
+        projector.visualize_embeddings(tf.summary.FileWriter(loc), config)
+
