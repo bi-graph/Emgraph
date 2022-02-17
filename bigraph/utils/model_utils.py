@@ -277,3 +277,28 @@ def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=Tr
         # Saves a config file that TensorBoard will read during startup.
         projector.visualize_embeddings(tf.summary.FileWriter(loc), config)
 
+def write_metadata_tsv(loc, data):
+    """Write Tensorboard metadata.tsv file.
+
+    :param loc: Directory where the file is written.
+    :type loc: str
+    :param data: Label(s) for each embedding point in the Tensorboard visualization.
+        If data is a list of strings then no header will be written. If it is a pandas DataFrame with multiple
+        columns then headers will be written.
+    :type data: list, pd.DataFrame
+    :return:
+    :rtype:
+    """
+
+    # Write metadata.tsv
+    metadata_path = os.path.join(loc, 'metadata.tsv')
+
+    if isinstance(data, list):
+        with open(metadata_path, 'w+', encoding='utf8') as metadata_file:
+            for row in data:
+                metadata_file.write('%s\n' % row)
+
+    elif isinstance(data, pd.DataFrame):
+        data.to_csv(metadata_path, sep='\t', index=False)
+
+
