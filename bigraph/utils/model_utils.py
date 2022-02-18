@@ -302,3 +302,36 @@ def write_metadata_tsv(loc, data):
         data.to_csv(metadata_path, sep='\t', index=False)
 
 
+def dataframe_to_triples(X, schema):
+    """Convert DataFrame into triple format.
+
+    :param X: Data being converted to triple
+    :type X: pd.DataFrame
+    :param schema: List of (subject, relation_name, object) tuples
+            where subject and object are in the headers of the data frame
+    :type schema: list
+    :return: Converted dataframe
+    :rtype: np.array
+
+    Examples:
+
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> from bigraph.utils.model_utils import dataframe_to_triples
+    >>>
+    >>> X = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
+    >>>
+    >>> schema = [['species', 'has_sepal_length', 'sepal_length']]
+    >>>
+    >>> dataframe_to_triples(X, schema)[0]
+    array(['setosa', 'has_sepal_length', '5.1'], dtype='<U16')
+    """
+
+    triples = []
+    request_headers = set(np.delete(np.array(schema), 1, 1).flatten())
+    diff = request_headers.difference(set(X.columns))
+    if len(diff) > 0:
+        raise Exception("Subject/Object {} are not in data frame headers".format(diff))
+    for s, p, o in schema:
+        triples.extend([[si, p, oi] for si, oi in zip(X[s], X[o])])
+    return np.array(triples)
