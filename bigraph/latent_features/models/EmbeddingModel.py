@@ -24,3 +24,14 @@ MODEL_REGISTRY = {}
 ENTITY_THRESHOLD = 5e5
 
 
+def set_entity_threshold(threshold):
+    """Sets the entity threshold (threshold after which large graph mode is initiated)
+
+    :param threshold: Threshold for a graph to be considered as a big graph
+    :type threshold: int
+    :return:
+    :rtype:
+    """
+
+    global ENTITY_THRESHOLD
+    ENTITY_THRESHOLD = threshold
