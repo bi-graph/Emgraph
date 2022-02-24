@@ -307,8 +307,8 @@ def dataframe_to_triples(X, schema):
 
     :param X: Data being converted to triple
     :type X: pd.DataFrame
-    :param schema: List of (subject, relation_name, object) tuples
-            where subject and object are in the headers of the data frame
+    :param schema: List of (subject, relation_name, object) tuples where subject and object are in the headers of the
+    data frame
     :type schema: list
     :return: Converted dataframe
     :rtype: np.array
@@ -335,3 +335,4 @@ def dataframe_to_triples(X, schema):
     for s, p, o in schema:
         triples.extend([[si, p, oi] for si, oi in zip(X[s], X[o])])
     return np.array(triples)
+
