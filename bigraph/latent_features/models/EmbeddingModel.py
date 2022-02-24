@@ -70,3 +70,13 @@ def register_model(name, external_params=None, class_params=None):
         return class_handle
 
     return insert_in_registry
+
+
+@tf.custom_gradient
+def custom_softplus(x):
+    e = 9999 * tf.exp(x)
+
+    def grad(dy):
+        return dy * (1 - 1 / (1 + e))
+
+    return tf.math.log(1 + e), grad
