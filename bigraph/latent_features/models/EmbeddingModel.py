@@ -37,8 +37,36 @@ def set_entity_threshold(threshold):
     ENTITY_THRESHOLD = threshold
 
 
+
 def reset_entity_threshold():
     """Resets the entity threshold
     """
     global ENTITY_THRESHOLD
     ENTITY_THRESHOLD = 5e5
+
+
+def register_model(name, external_params=None, class_params=None):
+    """Wrapper for Saving the class info in the MODEL_REGISTRY dictionary.
+
+    :param name: Name of the class
+    :type name: str
+    :param external_params: External parameters
+    :type external_params: list
+    :param class_params: Class parameters
+    :type class_params: dict
+    :return: Class object
+    :rtype: object
+    """
+    if external_params is None:
+        external_params = []
+    if class_params is None:
+        class_params = {}
+
+    def insert_in_registry(class_handle):
+        MODEL_REGISTRY[name] = class_handle
+        class_handle.name = name
+        MODEL_REGISTRY[name].external_params = external_params
+        MODEL_REGISTRY[name].class_params = class_params
+        return class_handle
+
+    return insert_in_registry
