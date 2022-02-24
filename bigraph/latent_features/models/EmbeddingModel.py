@@ -35,3 +35,10 @@ def set_entity_threshold(threshold):
 
     global ENTITY_THRESHOLD
     ENTITY_THRESHOLD = threshold
+
+
+def reset_entity_threshold():
+    """Resets the entity threshold
+    """
+    global ENTITY_THRESHOLD
+    ENTITY_THRESHOLD = 5e5
