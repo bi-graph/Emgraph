@@ -289,3 +289,24 @@ class EmbeddingModel(abc.ABC):
         self.train_dataset_handle = None
         self.is_calibrated = False
         self.calibration_parameters = []
+
+    @abc.abstractmethod
+    def _fn(self, e_s, e_p, e_o):
+        """The scoring function of the model.
+
+        Assigns a score to a list of triples, with a model-specific strategy.
+        Triples are passed as lists of subject, predicate, object embeddings.
+        This function must be overridden by every model to return corresponding score.
+
+        :param e_s: The embeddings of a list of subjects.
+        :type e_s: Tensor, shape [n]
+        :param e_p: The embeddings of a list of predicates.
+        :type e_p: Tensor, shape [n]
+        :param e_o: The embeddings of a list of objects.
+        :type e_o: Tensor, shape [n]
+        :return: The operation corresponding to the scoring function.
+        :rtype: tf.Op
+        """
+
+        logger.error('_fn is a placeholder function in an abstract class')
+        NotImplementedError("This function is a placeholder in an abstract class")
