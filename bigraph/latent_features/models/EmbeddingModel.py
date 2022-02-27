@@ -373,3 +373,48 @@ class EmbeddingModel(abc.ABC):
         params_to_save.append(self.sess_train.run(self.rel_emb))
 
         self.trained_model_params = params_to_save
+
+    def _load_model_from_trained_params(self):
+        """Load the model from trained params.
+        While restoring make sure that the order of loaded parameters match the saved order.
+        It's the duty of the embedding model to load the variables correctly.
+        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings).
+        This function also set's the evaluation mode to do lazy loading of variables based on the number of
+        distinct entities present in the graph.
+        """
+
+        # Generate the batch size based on entity length and batch_count
+        self.batch_size = int(np.ceil(len(self.ent_to_idx) / self.batches_count))
+
+        if len(self.ent_to_idx) > ENTITY_THRESHOLD:
+            self.dealing_with_large_graphs = True
+
+            logger.warning('Your graph has a large number of distinct entities. '
+                           'Found {} distinct entities'.format(len(self.ent_to_idx)))
+
+            logger.warning('Changing the variable loading strategy to use lazy loading of variables...')
+            logger.warning('Evaluation would take longer than usual.')
+
+        if not self.dealing_with_large_graphs:
+            # (We use tf.variable for future - to load and continue training)
+            self.ent_emb = tf.Variable(self.trained_model_params[0], dtype=tf.float32)
+        else:
+            # Embeddings of all the corruptions entities will not fit on GPU.
+            # During training we loaded batch_size*2 embeddings on GPU as only 2* batch_size unique
+            # entities can be present in one batch.
+            # During corruption generation in eval mode, one side(s/o) is fixed and only the other side varies.
+            # Hence we use a batch size of 2 * training_batch_size for corruption generation i.e. those many
+            # corruption embeddings would be loaded per batch on the GPU. In other words, those corruptions
+            # would be processed as a batch.
+
+            self.corr_batch_size = self.batch_size * 2
+
+            # Load the entity embeddings on the cpu
+            self.ent_emb_cpu = self.trained_model_params[0]
+            # (We use tf.variable for future - to load and continue training)
+            # create empty variable on GPU.
+            # we initialize it with zeros because the actual embeddings will be loaded on the fly.
+            self.ent_emb = tf.Variable(np.zeros((self.corr_batch_size, self.internal_k)), dtype=tf.float32)
+
+        # (We use tf.variable for future - to load and continue training)
+        self.rel_emb = tf.Variable(self.trained_model_params[1], dtype=tf.float32)
