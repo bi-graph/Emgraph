@@ -358,3 +358,18 @@ class EmbeddingModel(abc.ABC):
         except KeyError:
             # For backward compatibility
             self.dealing_with_large_graphs = False
+
+    def _save_trained_params(self):
+        """After fitting the model, save all parameters in trained_model_params in some order.
+        The order is used while loading the model.
+        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings).
+        """
+        params_to_save = []
+        if not self.dealing_with_large_graphs:
+            params_to_save.append(self.sess_train.run(self.ent_emb))
+        else:
+            params_to_save.append(self.ent_emb_cpu)
+
+        params_to_save.append(self.sess_train.run(self.rel_emb))
+
+        self.trained_model_params = params_to_save
