@@ -310,3 +310,13 @@ class EmbeddingModel(abc.ABC):
 
         logger.error('_fn is a placeholder function in an abstract class')
         NotImplementedError("This function is a placeholder in an abstract class")
+
+
+    def get_hyperparameter_dict(self):
+        """Return the hyperparameters of the model.
+
+        :return: Dictionary of hyperparameters that were used for training.
+        :rtype: dict
+        """
+
+        return self.all_params
