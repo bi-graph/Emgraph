@@ -1,4 +1,4 @@
-
+# todo: rename most of these functions' names
 import numpy as np
 import tensorflow as tf
 from sklearn.utils import check_random_state
@@ -320,3 +320,16 @@ class EmbeddingModel(abc.ABC):
         """
 
         return self.all_params
+
+    def get_embedding_model_params(self, output_dict):
+        """Save the model parameters in the dictionary.
+
+        :param output_dict: Saved parameters dictionary. The model saves the parameters, and it can be restored later
+        :type output_dict: dict
+        :return:
+        :rtype:
+        """
+
+        output_dict['model_params'] = self.trained_model_params
+        output_dict['large_graph'] = self.dealing_with_large_graphs
+        output_dict['calibration_parameters'] = self.calibration_parameters
