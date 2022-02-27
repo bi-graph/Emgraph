@@ -333,3 +333,28 @@ class EmbeddingModel(abc.ABC):
         output_dict['model_params'] = self.trained_model_params
         output_dict['large_graph'] = self.dealing_with_large_graphs
         output_dict['calibration_parameters'] = self.calibration_parameters
+
+    def restore_model_params(self, in_dict):
+        """Load the model parameters from the input dictionary.
+
+        :param in_dict: Saved parameters dictionary. The model loads the parameters.
+        :type in_dict: dict
+        :return:
+        :rtype:
+        """
+
+        self.trained_model_params = in_dict['model_params']
+
+        # Try catch is for backward compatibility
+        try:
+            self.calibration_parameters = in_dict['calibration_parameters']
+        except KeyError:
+            # For backward compatibility
+            self.calibration_parameters = []
+
+        # Try catch is for backward compatibility
+        try:
+            self.dealing_with_large_graphs = in_dict['large_graph']
+        except KeyError:
+            # For backward compatibility
+            self.dealing_with_large_graphs = False
