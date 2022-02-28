@@ -454,3 +454,27 @@ class EmbeddingModel(abc.ABC):
 
         idxs = np.vectorize(lookup_dict.get)(entities)
         return emb_list[idxs]
+
+    def _lookup_embeddings(self, x, get_weight=False):
+        """Get the embeddings for subjects, predicates, and objects of a list of statements used to train the model.
+
+        :param x: A tensor of k-dimensional embeddings
+        :type x: tensor, shape [n, k]
+        :param get_weight: Flag indicates whether to return the weights
+        :type get_weight: bool
+        :return: e_s : A Tensor that includes the embeddings of the subjects.
+        e_p : A Tensor that includes the embeddings of the predicates.
+        e_o : A Tensor that includes the embeddings of the objects.
+        :rtype: Tensor, Tensor, Tensor
+        """
+
+        e_s = self._entity_lookup(x[:, 0])
+        e_p = tf.nn.embedding_lookup(self.rel_emb, x[:, 1])
+        e_o = self._entity_lookup(x[:, 2])
+
+        if get_weight:
+            wt = self.weight_triple[
+                 self.batch_number * self.batch_size:(self.batch_number + 1) * self.batch_size]
+
+            return e_s, e_p, e_o, wt
+        return e_s, e_p, e_o
