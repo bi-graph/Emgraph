@@ -478,3 +478,21 @@ class EmbeddingModel(abc.ABC):
 
             return e_s, e_p, e_o, wt
         return e_s, e_p, e_o
+
+    def _entity_lookup(self, entity):
+        """Get the embeddings for entities.
+           Remaps the entity indices to corresponding variables in the GPU memory when dealing with large graphs.
+
+        :param entity: Entity indices
+        :type entity: nd-tensor, shape [n, 1]
+        :return: A Tensor that includes the embeddings of the entities.
+        :rtype: Tensor
+        """
+
+        if self.dealing_with_large_graphs:
+            remapping = self.sparse_mappings.lookup(entity)
+        else:
+            remapping = entity
+
+        emb = tf.nn.embedding_lookup(self.ent_emb, remapping)
+        return emb
