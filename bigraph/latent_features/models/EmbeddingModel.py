@@ -299,11 +299,11 @@ class EmbeddingModel(abc.ABC):
         This function must be overridden by every model to return corresponding score.
 
         :param e_s: The embeddings of a list of subjects.
-        :type e_s: Tensor, shape [n]
+        :type e_s: tf.Tensor, shape [n]
         :param e_p: The embeddings of a list of predicates.
-        :type e_p: Tensor, shape [n]
+        :type e_p: tf.Tensor, shape [n]
         :param e_o: The embeddings of a list of objects.
-        :type e_o: Tensor, shape [n]
+        :type e_o: tf.Tensor, shape [n]
         :return: The operation corresponding to the scoring function.
         :rtype: tf.Op
         """
@@ -459,13 +459,13 @@ class EmbeddingModel(abc.ABC):
         """Get the embeddings for subjects, predicates, and objects of a list of statements used to train the model.
 
         :param x: A tensor of k-dimensional embeddings
-        :type x: tensor, shape [n, k]
+        :type x: tf.Tensor, shape [n, k]
         :param get_weight: Flag indicates whether to return the weights
         :type get_weight: bool
         :return: e_s : A Tensor that includes the embeddings of the subjects.
         e_p : A Tensor that includes the embeddings of the predicates.
         e_o : A Tensor that includes the embeddings of the objects.
-        :rtype: Tensor, Tensor, Tensor
+        :rtype: tf.Tensor, tf.Tensor, tf.Tensor
         """
 
         e_s = self._entity_lookup(x[:, 0])
@@ -484,9 +484,9 @@ class EmbeddingModel(abc.ABC):
            Remaps the entity indices to corresponding variables in the GPU memory when dealing with large graphs.
 
         :param entity: Entity indices
-        :type entity: nd-tensor, shape [n, 1]
+        :type entity: tf.Tensor, shape [n, 1]
         :return: A Tensor that includes the embeddings of the entities.
-        :rtype: Tensor
+        :rtype: tf.Tensor
         """
 
         if self.dealing_with_large_graphs:
@@ -529,3 +529,163 @@ class EmbeddingModel(abc.ABC):
                                            initializer=self.initializer.get_relation_initializer(
                                                len(self.rel_to_idx), self.internal_k),
                                            dtype=tf.float32)
+
+    def _get_model_loss(self, dataset_iterator):
+        """Get the current loss including loss due to regularization.
+        This function must be overridden if the model uses combination of different losses(eg: VAE).
+
+        :param dataset_iterator: Dataset iterator.
+        :type dataset_iterator: tf.data.Iterator
+        :return: The loss value that must be minimized.
+        :rtype: tf.Tensor
+        """
+
+        self.epoch = tf.placeholder(tf.float32)
+        self.batch_number = tf.placeholder(tf.int32)
+
+        if self.use_focusE:
+            x_pos_tf, self.unique_entities, ent_emb_batch, weights = dataset_iterator.get_next()
+
+        else:
+            # get the train triples of the batch, unique entities and the corresponding embeddings
+            # the latter 2 variables are passed only for large graphs.
+            x_pos_tf, self.unique_entities, ent_emb_batch = dataset_iterator.get_next()
+
+        # list of dependent ops that need to be evaluated before computing the loss
+        dependencies = []
+
+        # if the graph is large
+        if self.dealing_with_large_graphs:
+            # Create a dependency to load the embeddings of the batch entities dynamically
+            init_ent_emb_batch = self.ent_emb.assign(ent_emb_batch, use_locking=True)
+            dependencies.append(init_ent_emb_batch)
+
+            # create a lookup dependency(to remap the entity indices to the corresponding indices of variables in memory
+            self.sparse_mappings = tf.contrib.lookup.MutableDenseHashTable(key_dtype=tf.int32, value_dtype=tf.int32,
+                                                                           default_value=-1, empty_key=-2,
+                                                                           deleted_key=-1)
+
+            insert_lookup_op = self.sparse_mappings.insert(self.unique_entities,
+                                                           tf.reshape(tf.range(tf.shape(self.unique_entities)[0],
+                                                                               dtype=tf.int32), (-1, 1)))
+
+            dependencies.append(insert_lookup_op)
+
+        # run the dependencies
+        with tf.control_dependencies(dependencies):
+            entities_size = 0
+            entities_list = None
+
+            x_pos = x_pos_tf
+
+            e_s_pos, e_p_pos, e_o_pos = self._lookup_embeddings(x_pos)
+
+            scores_pos = self._fn(e_s_pos, e_p_pos, e_o_pos)
+
+            non_linearity = self.embedding_model_params.get('non_linearity', 'linear')
+            if non_linearity == 'linear':
+                scores_pos = scores_pos
+            elif non_linearity == 'tanh':
+                scores_pos = tf.tanh(scores_pos)
+            elif non_linearity == 'sigmoid':
+                scores_pos = tf.sigmoid(scores_pos)
+            elif non_linearity == 'softplus':
+                scores_pos = custom_softplus(scores_pos)
+            else:
+                raise ValueError('Invalid non-linearity')
+
+            if self.use_focusE:
+
+                epoch_before_stopping_weight = self.embedding_model_params.get('stop_epoch', 251)
+                assert epoch_before_stopping_weight >= 0, "Invalid value for stop_epoch"
+
+                if epoch_before_stopping_weight == 0:
+                    # use fixed structural weight
+                    structure_weight = self.embedding_model_params.get('structural_wt', 0.001)
+                    assert structure_weight <= 1 and structure_weight >= 0, \
+                        "Invalid structure_weight passed to model params!"
+
+                else:
+                    # decay of numeric values
+                    # start with all triples having same numeric values and linearly decay till original value
+                    structure_weight = tf.maximum(1 - self.epoch / epoch_before_stopping_weight, 0.001)
+
+                weights = tf.reduce_mean(weights, 1)
+                weights_pos = structure_weight + (1 - structure_weight) * (1 - weights)
+                weights_neg = structure_weight + (1 - structure_weight) * (
+                    tf.reshape(tf.tile(weights, [self.eta]), [tf.shape(weights)[0] * self.eta]))
+
+                scores_pos = scores_pos * weights_pos
+
+            if self.loss.get_state('require_same_size_pos_neg'):
+                logger.debug('Requires the same size of postive and negative')
+                scores_pos = tf.reshape(tf.tile(scores_pos, [self.eta]), [tf.shape(scores_pos)[0] * self.eta])
+
+            # look up embeddings from input training triples
+            negative_corruption_entities = self.embedding_model_params.get('negative_corruption_entities',
+                                                                           constants.DEFAULT_CORRUPTION_ENTITIES)
+
+            if negative_corruption_entities == 'all':
+                '''
+                if number of entities are large then in this case('all'),
+                the corruptions would be generated from batch entities and and additional random entities that
+                are selected from all entities (since a total of batch_size*2 entity embeddings are loaded in memory)
+                '''
+                logger.debug('Using all entities for generation of corruptions during training')
+                if self.dealing_with_large_graphs:
+                    entities_list = tf.squeeze(self.unique_entities)
+                else:
+                    entities_size = tf.shape(self.ent_emb)[0]
+            elif negative_corruption_entities == 'batch':
+                # default is batch (entities_size=0 and entities_list=None)
+                logger.debug('Using batch entities for generation of corruptions during training')
+            elif isinstance(negative_corruption_entities, list):
+                logger.debug('Using the supplied entities for generation of corruptions during training')
+                entities_list = tf.squeeze(tf.constant(np.asarray([idx for uri, idx in self.ent_to_idx.items()
+                                                                   if uri in negative_corruption_entities]),
+                                                       dtype=tf.int32))
+            elif isinstance(negative_corruption_entities, int):
+                logger.debug('Using first {} entities for generation of corruptions during \
+                             training'.format(negative_corruption_entities))
+                entities_size = negative_corruption_entities
+
+            loss = 0
+            corruption_sides = self.embedding_model_params.get('corrupt_side', constants.DEFAULT_CORRUPT_SIDE_TRAIN)
+            if not isinstance(corruption_sides, list):
+                corruption_sides = [corruption_sides]
+
+            for side in corruption_sides:
+                # Generate the corruptions
+                x_neg_tf = generate_corruptions_for_fit(x_pos_tf,
+                                                        entities_list=entities_list,
+                                                        eta=self.eta,
+                                                        corrupt_side=side,
+                                                        entities_size=entities_size,
+                                                        rnd=self.seed)
+
+                # compute corruption scores
+                e_s_neg, e_p_neg, e_o_neg = self._lookup_embeddings(x_neg_tf)
+                scores_neg = self._fn(e_s_neg, e_p_neg, e_o_neg)
+
+                if non_linearity == 'linear':
+                    scores_neg = scores_neg
+                elif non_linearity == 'tanh':
+                    scores_neg = tf.tanh(scores_neg)
+                elif non_linearity == 'sigmoid':
+                    scores_neg = tf.sigmoid(scores_neg)
+                elif non_linearity == 'softplus':
+                    scores_neg = custom_softplus(scores_neg)
+                else:
+                    raise ValueError('Invalid non-linearity')
+
+                if self.use_focusE:
+                    scores_neg = scores_neg * weights_neg
+
+                # Apply the loss function
+                loss += self.loss.apply(scores_pos, scores_neg)
+
+            if self.regularizer is not None:
+                # Apply the regularizer
+                loss += self.regularizer.apply([self.ent_emb, self.rel_emb])
+
+            return loss
