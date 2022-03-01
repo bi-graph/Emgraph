@@ -496,3 +496,36 @@ class EmbeddingModel(abc.ABC):
 
         emb = tf.nn.embedding_lookup(self.ent_emb, remapping)
         return emb
+
+
+    def _initialize_parameters(self):
+        """Initialize parameters of the model.
+
+            This function creates and initializes entity and relation embeddings (with size k).
+            If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
+            and all relation embeddings.
+            Override this function if the parameters needs to be initialized differently.
+        """
+        timestamp = int(time.time() * 1e6)
+        if not self.dealing_with_large_graphs:
+            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+                                           shape=[len(self.ent_to_idx), self.internal_k],
+                                           initializer=self.initializer.get_entity_initializer(
+                                               len(self.ent_to_idx), self.internal_k),
+                                           dtype=tf.float32)
+            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+                                           shape=[len(self.rel_to_idx), self.internal_k],
+                                           initializer=self.initializer.get_relation_initializer(
+                                               len(self.rel_to_idx), self.internal_k),
+                                           dtype=tf.float32)
+        else:
+            # initialize entity embeddings to zero (these are reinitialized every batch by batch embeddings)
+            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+                                           shape=[self.batch_size * 2, self.internal_k],
+                                           initializer=tf.zeros_initializer(),
+                                           dtype=tf.float32)
+            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+                                           shape=[len(self.rel_to_idx), self.internal_k],
+                                           initializer=self.initializer.get_relation_initializer(
+                                               len(self.rel_to_idx), self.internal_k),
+                                           dtype=tf.float32)
