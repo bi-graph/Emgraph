@@ -767,3 +767,81 @@ class EmbeddingModel(abc.ABC):
 
         # initialize evaluation graph in validation mode i.e. to use validation set
         self._initialize_eval_graph("valid")
+
+
+    def _perform_early_stopping_test(self, epoch):
+        """Performs regular validation checks and stop early if the criteria is achieved.
+
+        :param epoch: current training epoch.
+        :type epoch: int
+        :return: Flag to indicate if the early stopping criteria is achieved.
+        :rtype: bool
+        """
+
+        if epoch >= self.early_stopping_params.get('burn_in',
+                                                   constants.DEFAULT_BURN_IN_EARLY_STOPPING) \
+                and epoch % self.early_stopping_params.get('check_interval',
+                                                           constants.DEFAULT_CHECK_INTERVAL_EARLY_STOPPING) == 0:
+            # compute and store test_loss
+            ranks = []
+
+            # Get each triple and compute the rank for that triple
+            for x_test_triple in range(self.eval_dataset_handle.get_size("valid")):
+                rank_triple = self.sess_train.run(self.rank)
+                if self.eval_config.get('corrupt_side', constants.DEFAULT_CORRUPT_SIDE_EVAL) == 's,o':
+                    ranks.append(list(rank_triple))
+                else:
+                    ranks.append(rank_triple)
+
+            if self.early_stopping_criteria == 'hits10':
+                current_test_value = hits_at_n_score(ranks, 10)
+            elif self.early_stopping_criteria == 'hits3':
+                current_test_value = hits_at_n_score(ranks, 3)
+            elif self.early_stopping_criteria == 'hits1':
+                current_test_value = hits_at_n_score(ranks, 1)
+            elif self.early_stopping_criteria == 'mrr':
+                current_test_value = mrr_score(ranks)
+
+            if self.tensorboard_logs_path is not None:
+                tag = "Early stopping {} current value".format(self.early_stopping_criteria)
+                summary = tf.Summary(value=[tf.Summary.Value(tag=tag,
+                                                             simple_value=current_test_value)])
+                self.writer.add_summary(summary, epoch)
+
+            if self.early_stopping_best_value is None:  # First validation iteration
+                self.early_stopping_best_value = current_test_value
+                self.early_stopping_first_value = current_test_value
+            elif self.early_stopping_best_value >= current_test_value:
+                self.early_stopping_stop_counter += 1
+                if self.early_stopping_stop_counter == self.early_stopping_params.get(
+                        'stop_interval', constants.DEFAULT_STOP_INTERVAL_EARLY_STOPPING):
+
+                    # If the best value for the criteria has not changed from
+                    #  initial value then
+                    # save the model before early stopping
+                    if self.early_stopping_best_value == self.early_stopping_first_value:
+                        self._save_trained_params()
+
+                    if self.verbose:
+                        msg = 'Early stopping at epoch:{}'.format(epoch)
+                        logger.info(msg)
+                        msg = 'Best {}: {:10f}'.format(
+                            self.early_stopping_criteria,
+                            self.early_stopping_best_value)
+                        logger.info(msg)
+
+                    self.early_stopping_epoch = epoch
+
+                    return True
+            else:
+                self.early_stopping_best_value = current_test_value
+                self.early_stopping_stop_counter = 0
+                self._save_trained_params()
+
+            if self.verbose:
+                msg = 'Current best:{}'.format(self.early_stopping_best_value)
+                logger.debug(msg)
+                msg = 'Current:{}'.format(current_test_value)
+                logger.debug(msg)
+
+        return False
