@@ -689,3 +689,81 @@ class EmbeddingModel(abc.ABC):
                 loss += self.regularizer.apply([self.ent_emb, self.rel_emb])
 
             return loss
+
+    def _initialize_early_stopping(self):
+        """Initializes and creates evaluation graph for early stopping.
+        """
+        try:
+            self.x_valid = self.early_stopping_params['x_valid']
+
+            if isinstance(self.x_valid, np.ndarray):
+                if self.x_valid.ndim <= 1 or (np.shape(self.x_valid)[1]) != 3:
+                    msg = 'Invalid size for input x_valid. Expected (n,3):  got {}'.format(np.shape(self.x_valid))
+                    logger.error(msg)
+                    raise ValueError(msg)
+
+                # store the validation data in the data handler
+                self.x_valid = to_idx(self.x_valid, ent_to_idx=self.ent_to_idx, rel_to_idx=self.rel_to_idx)
+                self.train_dataset_handle.set_data(self.x_valid, "valid", mapped_status=True)
+                self.eval_dataset_handle = self.train_dataset_handle
+
+            elif isinstance(self.x_valid, AmpligraphDatasetAdapter):
+                # this assumes that the validation data has already been set in the adapter
+                self.eval_dataset_handle = self.x_valid
+            else:
+                msg = 'Invalid type for input X. Expected ndarray/AmpligraphDataset object, \
+                       got {}'.format(type(self.x_valid))
+                logger.error(msg)
+                raise ValueError(msg)
+        except KeyError:
+            msg = 'x_valid must be passed for early fitting.'
+            logger.error(msg)
+            raise KeyError(msg)
+
+        self.early_stopping_criteria = self.early_stopping_params.get(
+            'criteria', constants.DEFAULT_CRITERIA_EARLY_STOPPING)
+        if self.early_stopping_criteria not in ['hits10', 'hits1', 'hits3',
+                                                'mrr']:
+            msg = 'Unsupported early stopping criteria.'
+            logger.error(msg)
+            raise ValueError(msg)
+
+        self.eval_config['corruption_entities'] = self.early_stopping_params.get('corruption_entities',
+                                                                                 constants.DEFAULT_CORRUPTION_ENTITIES)
+
+        if isinstance(self.eval_config['corruption_entities'], list):
+            # convert from list of raw triples to entity indices
+            logger.debug('Using the supplied entities for generation of corruptions for early stopping')
+            self.eval_config['corruption_entities'] = np.asarray([idx for uri, idx in self.ent_to_idx.items()
+                                                                  if uri in self.eval_config['corruption_entities']])
+        elif self.eval_config['corruption_entities'] == 'all':
+            logger.debug('Using all entities for generation of corruptions for early stopping')
+        elif self.eval_config['corruption_entities'] == 'batch':
+            logger.debug('Using batch entities for generation of corruptions for early stopping')
+
+        self.eval_config['corrupt_side'] = self.early_stopping_params.get('corrupt_side',
+                                                                          constants.DEFAULT_CORRUPT_SIDE_EVAL)
+
+        self.early_stopping_best_value = None
+        self.early_stopping_stop_counter = 0
+        self.early_stopping_epoch = None
+
+        try:
+            # If the filter has already been set in the dataset adapter then just pass x_filter = True
+            x_filter = self.early_stopping_params['x_filter']
+            if isinstance(x_filter, np.ndarray):
+                if x_filter.ndim <= 1 or (np.shape(x_filter)[1]) != 3:
+                    msg = 'Invalid size for input x_valid. Expected (n,3):  got {}'.format(np.shape(x_filter))
+                    logger.error(msg)
+                    raise ValueError(msg)
+                # set the filter triples in the data handler
+                x_filter = to_idx(x_filter, ent_to_idx=self.ent_to_idx, rel_to_idx=self.rel_to_idx)
+                self.eval_dataset_handle.set_filter(x_filter, mapped_status=True)
+            # set the flag to perform filtering
+            self.set_filter_for_eval()
+        except KeyError:
+            logger.debug('x_filter not found in early_stopping_params.')
+            pass
+
+        # initialize evaluation graph in validation mode i.e. to use validation set
+        self._initialize_eval_graph("valid")
