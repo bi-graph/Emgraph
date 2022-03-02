@@ -868,3 +868,57 @@ class EmbeddingModel(abc.ABC):
 
         # set is_fitted to true to indicate that the model fitting is completed
         self.is_fitted = True
+
+    def _training_data_generator(self):
+        """Generates the training data.
+           If we are dealing with large graphs, then along with the training triples (of the batch),
+           this method returns the idx of the entities present in the batch (along with filler entities
+           sampled randomly from the rest(not in batch) to load batch_size*2 entities on the GPU) and their embeddings.
+        """
+
+        all_ent = np.int32(np.arange(len(self.ent_to_idx)))
+        unique_entities = all_ent.reshape(-1, 1)
+        # generate empty embeddings for smaller graphs - as all the entity embeddings will be loaded on GPU
+        entity_embeddings = np.empty(shape=(0, self.internal_k), dtype=np.float32)
+        # create iterator to iterate over the train batches
+        batch_iterator = iter(self.train_dataset_handle.get_next_batch(self.batches_count, "train"))
+        for i in range(self.batches_count):
+            out = next(batch_iterator)
+
+            out_triples = out[0]
+            if self.use_focusE:
+                out_weights = out[1]
+
+            # If large graph, load batch_size*2 entities on GPU memory
+            if self.dealing_with_large_graphs:
+                # find the unique entities - these HAVE to be loaded
+                unique_entities = np.int32(np.unique(np.concatenate([out_triples[:, 0],
+                                                                     out_triples[:, 2]],
+                                                                    axis=0)))
+                # Load the remaining entities by randomly selecting from the rest of the entities
+                self.leftover_entities = self.rnd.permutation(np.setdiff1d(all_ent, unique_entities))
+                needed = (self.batch_size * 2 - unique_entities.shape[0])
+                '''
+                #this is for debugging
+                large_number = np.zeros((self.batch_size-unique_entities.shape[0],
+                                             self.ent_emb_cpu.shape[1]), dtype=np.float32) + np.nan
+
+                entity_embeddings = np.concatenate((self.ent_emb_cpu[unique_entities,:],
+                                                    large_number), axis=0)
+                '''
+                unique_entities = np.int32(np.concatenate([unique_entities, self.leftover_entities[:needed]], axis=0))
+                entity_embeddings = self.ent_emb_cpu[unique_entities, :]
+
+                unique_entities = unique_entities.reshape(-1, 1)
+
+            if self.use_focusE:
+                for col_idx in range(out_weights.shape[1]):
+                    # random weights are used where weights are unknown
+                    nan_indices = np.isnan(out_weights[:, col_idx])
+                    out_weights[nan_indices, col_idx] = np.random.uniform(size=(np.sum(nan_indices)))
+
+                out_weights = np.mean(out_weights, 1)
+                out_weights = out_weights[:, np.newaxis]
+                yield out_triples, unique_entities, entity_embeddings, out_weights
+            else:
+                yield np.squeeze(out_triples), unique_entities, entity_embeddings
