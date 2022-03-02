@@ -845,3 +845,26 @@ class EmbeddingModel(abc.ABC):
                 logger.debug(msg)
 
         return False
+
+    def _end_training(self):
+        """Performs clean up tasks after training.
+        """
+        # Reset this variable as it is reused during evaluation phase
+        if self.is_filtered and self.eval_dataset_handle is not None:
+            # cleanup the evaluation data (deletion of tables
+            self.eval_dataset_handle.cleanup()
+            self.eval_dataset_handle = None
+
+        if self.train_dataset_handle is not None:
+            self.train_dataset_handle.cleanup()
+            self.train_dataset_handle = None
+
+        self.is_filtered = False
+        self.eval_config = {}
+
+        # close the tf session
+        if self.sess_train is not None:
+            self.sess_train.close()
+
+        # set is_fitted to true to indicate that the model fitting is completed
+        self.is_fitted = True
