@@ -1248,3 +1248,31 @@ class EmbeddingModel(abc.ABC):
                 unique_ent = unique_ent.reshape(-1, 1)
 
             yield out, indices_obj, indices_sub, entity_embeddings, unique_ent
+
+    def _generate_corruptions_for_large_graphs(self):
+        """Corruption generator for large graph mode only.
+           It generates corruptions in batches and also yields the corresponding entity embeddings.
+        """
+
+        corruption_entities = self.eval_config.get('corruption_entities', constants.DEFAULT_CORRUPTION_ENTITIES)
+
+        if corruption_entities == 'all':
+            all_entities_np = np.arange(len(self.ent_to_idx))
+            corruption_entities = all_entities_np
+        elif isinstance(corruption_entities, np.ndarray):
+            corruption_entities = corruption_entities
+        else:
+            msg = 'Invalid type for corruption entities.'
+            logger.error(msg)
+            raise ValueError(msg)
+
+        entity_embeddings = np.empty(shape=(0, self.internal_k), dtype=np.float32)
+
+        for i in range(self.corr_batches_count):
+            all_ent = corruption_entities[i * self.corr_batch_size:(i + 1) * self.corr_batch_size]
+            needed = (self.corr_batch_size - all_ent.shape[0])
+            large_number = np.zeros((needed, self.ent_emb_cpu.shape[1]), dtype=np.float32) + np.nan
+            entity_embeddings = np.concatenate((self.ent_emb_cpu[all_ent, :], large_number), axis=0)
+
+            all_ent = all_ent.reshape(-1, 1)
+            yield all_ent, entity_embeddings
