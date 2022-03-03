@@ -1208,3 +1208,43 @@ class EmbeddingModel(abc.ABC):
             config = {'corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
                       'corrupt_side': constants.DEFAULT_CORRUPT_SIDE_EVAL}
         self.eval_config = config
+
+    def _test_generator(self, mode):
+        """Generates the test/validation data. If filter_triples are passed, then it returns the False Negatives
+           that could be present in the generated corruptions.
+
+           If we are dealing with large graphs, then along with the above, this method returns the idx of the
+           entities present in the batch and their embeddings.
+
+        :param mode: Dataset type
+        :type mode: str
+        :return:
+        :rtype:
+        """
+
+        test_generator = partial(self.eval_dataset_handle.get_next_batch,
+                                 dataset_type=mode,
+                                 use_filter=self.is_filtered)
+
+        batch_iterator = iter(test_generator())
+        indices_obj = np.empty(shape=(0, 1), dtype=np.int32)
+        indices_sub = np.empty(shape=(0, 1), dtype=np.int32)
+        unique_ent = np.empty(shape=(0, 1), dtype=np.int32)
+        entity_embeddings = np.empty(shape=(0, self.internal_k), dtype=np.float32)
+        for i in range(self.eval_dataset_handle.get_size(mode)):
+            if self.is_filtered:
+                out, indices_obj, indices_sub = next(batch_iterator)
+            else:
+                out = next(batch_iterator)
+                # since focuse layer is not used in evaluation mode
+                out = out[0]
+
+            if self.dealing_with_large_graphs:
+                # since we are dealing with only one triple (2 entities)
+                unique_ent = np.unique(np.array([out[0, 0], out[0, 2]]))
+                needed = (self.corr_batch_size - unique_ent.shape[0])
+                large_number = np.zeros((needed, self.ent_emb_cpu.shape[1]), dtype=np.float32) + np.nan
+                entity_embeddings = np.concatenate((self.ent_emb_cpu[unique_ent, :], large_number), axis=0)
+                unique_ent = unique_ent.reshape(-1, 1)
+
+            yield out, indices_obj, indices_sub, entity_embeddings, unique_ent
