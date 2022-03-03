@@ -707,7 +707,7 @@ class EmbeddingModel(abc.ABC):
                 self.train_dataset_handle.set_data(self.x_valid, "valid", mapped_status=True)
                 self.eval_dataset_handle = self.train_dataset_handle
 
-            elif isinstance(self.x_valid, AmpligraphDatasetAdapter):
+            elif isinstance(self.x_valid, BigraphDatasetAdapter):
                 # this assumes that the validation data has already been set in the adapter
                 self.eval_dataset_handle = self.x_valid
             else:
@@ -922,3 +922,264 @@ class EmbeddingModel(abc.ABC):
                 yield out_triples, unique_entities, entity_embeddings, out_weights
             else:
                 yield np.squeeze(out_triples), unique_entities, entity_embeddings
+
+    def fit(self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
+            tensorboard_logs_path=None):
+        """Train an EmbeddingModel (with optional early stopping).
+
+        The model is trained on a training set X using the training protocol
+        described in :cite:`trouillon2016complex`.
+
+        :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
+        :type X: ndarray (shape [n, 3]) or object of BigraphDatasetAdapter
+        :param early_stopping: Flag to enable early stopping (default:``False``)
+        :type early_stopping: bool
+        :param early_stopping_params: Dictionary of hyperparameters for the early stopping heuristics.
+
+            The following string keys are supported:
+
+                - **'x_valid'**: ndarray (shape [n, 3]) or object of AmpligraphDatasetAdapter :
+                                 Numpy array of validation triples OR handle of Dataset adapter which
+                                 would help retrieve data.
+                - **'criteria'**: string : criteria for early stopping 'hits10', 'hits3', 'hits1' or 'mrr'(default).
+                - **'x_filter'**: ndarray, shape [n, 3] : Positive triples to use as filter if a 'filtered' early
+                                  stopping criteria is desired (i.e. filtered-MRR if 'criteria':'mrr').
+                                  Note this will affect training time (no filter by default).
+                                  If the filter has already been set in the adapter, pass True
+                - **'burn_in'**: int : Number of epochs to pass before kicking in early stopping (default: 100).
+                - **check_interval'**: int : Early stopping interval after burn-in (default:10).
+                - **'stop_interval'**: int : Stop if criteria is performing worse over n consecutive checks (default: 3)
+                - **'corruption_entities'**: List of entities to be used for corruptions. If 'all',
+                  it uses all entities (default: 'all')
+                - **'corrupt_side'**: Specifies which side to corrupt. 's', 'o', 's+o', 's,o' (default)
+
+                Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
+        :type early_stopping_params: dict
+        :param focusE_numeric_edge_values: Numeric values associated with links.
+            Semantically, the numeric value can signify importance, uncertainity, significance, confidence, etc.
+            If the numeric value is unknown pass a NaN weight. The model will uniformly randomly assign a numeric value.
+            One can also think about assigning numeric values by looking at the distribution of it per predicate.
+        :type focusE_numeric_edge_values: nd array (n, 1)
+        :param tensorboard_logs_path: Path to store tensorboard logs, e.g. average training loss tracking per epoch (default: ``None`` indicating
+            no logs will be collected). When provided it will create a folder under provided path and save tensorboard
+            files there. To then view the loss in the terminal run: ``tensorboard --logdir <tensorboard_logs_path>``.
+        :type tensorboard_logs_path: str or None
+        :return:
+        :rtype:
+        """
+
+        self.train_dataset_handle = None
+        self.tensorboard_logs_path = tensorboard_logs_path
+        # try-except block is mainly to handle clean up in case of exception or manual stop in jupyter notebook
+        try:
+            if isinstance(X, np.ndarray):
+                if focusE_numeric_edge_values is not None:
+                    logger.debug("Using FocusE")
+                    self.use_focusE = True
+                    assert focusE_numeric_edge_values.shape[0] == X.shape[0], \
+                        "Each triple must have a numeric value (the size of the training set does not match the size" \
+                        "of the focusE_numeric_edge_values argument."
+
+                    if focusE_numeric_edge_values.ndim == 1:
+                        focusE_numeric_edge_values = focusE_numeric_edge_values.reshape(-1, 1)
+
+                    logger.debug("normalizing numeric values")
+                    unique_relations = np.unique(X[:, 1])
+                    for reln in unique_relations:
+                        for col_idx in range(focusE_numeric_edge_values.shape[1]):
+                            # here nans signify unknown numeric values
+                            if np.sum(np.isnan(
+                                    focusE_numeric_edge_values[X[:, 1] == reln,
+                                                               col_idx])) != focusE_numeric_edge_values[
+                                X[:, 1] == reln, col_idx].shape[0]:
+                                min_val = np.nanmin(focusE_numeric_edge_values[X[:, 1] == reln,
+                                                                               col_idx])
+                                max_val = np.nanmax(focusE_numeric_edge_values[X[:, 1] == reln,
+                                                                               col_idx])
+                                if min_val == max_val:
+                                    focusE_numeric_edge_values[X[:, 1] == reln, col_idx] = 1.0
+                                    continue
+
+                                if self.embedding_model_params.get('normalize_numeric_values', True) \
+                                        or min_val < 0 or max_val > 1:
+                                    focusE_numeric_edge_values[X[:, 1] == reln, col_idx] = (
+                                                                                                   focusE_numeric_edge_values[
+                                                                                                       X[:, 1] == reln,
+                                                                                                       col_idx] - min_val) / (
+                                                                                                   max_val - min_val)
+                            else:
+                                pass  # all the weights are nans
+
+                # Adapt the numpy data in the internal format - to generalize
+                self.train_dataset_handle = NumpyDatasetAdapter()
+                self.train_dataset_handle.set_data(X, "train", focusE_numeric_edge_values=focusE_numeric_edge_values)
+            elif isinstance(X, BigraphDatasetAdapter):
+                self.train_dataset_handle = X
+            else:
+                msg = 'Invalid type for input X. Expected ndarray/AmpligraphDataset object, got {}'.format(type(X))
+                logger.error(msg)
+                raise ValueError(msg)
+
+            # create internal IDs mappings
+            self.rel_to_idx, self.ent_to_idx = self.train_dataset_handle.generate_mappings()
+            prefetch_batches = 1
+
+            if len(self.ent_to_idx) > ENTITY_THRESHOLD:
+                self.dealing_with_large_graphs = True
+
+                logger.warning('Your graph has a large number of distinct entities. '
+                               'Found {} distinct entities'.format(len(self.ent_to_idx)))
+
+                logger.warning('Changing the variable initialization strategy.')
+                logger.warning('Changing the strategy to use lazy loading of variables...')
+
+                if early_stopping:
+                    raise Exception('Early stopping not supported for large graphs')
+
+                if not isinstance(self.optimizer, SGDOptimizer):
+                    raise Exception("This mode works well only with SGD optimizer with decay.\
+    Kindly change the optimizer and restart the experiment. For details refer the following link: \n \
+    https://docs.ampligraph.org/en/latest/dev_notes.html#dealing-with-large-graphs")
+
+            if self.dealing_with_large_graphs:
+                prefetch_batches = 0
+                # CPU matrix of embeddings
+                self.ent_emb_cpu = self.initializer.get_entity_initializer(len(self.ent_to_idx),
+                                                                           self.internal_k,
+                                                                           'np')
+
+            self.train_dataset_handle.map_data()
+
+            # This is useful when we re-fit the same model (e.g. retraining in model selection)
+            if self.is_fitted:
+                tf.reset_default_graph()
+                self.rnd = check_random_state(self.seed)
+                tf.random.set_random_seed(self.seed)
+
+            self.sess_train = tf.Session(config=self.tf_config)
+            if self.tensorboard_logs_path is not None:
+                self.writer = tf.summary.FileWriter(self.tensorboard_logs_path, self.sess_train.graph)
+            batch_size = int(np.ceil(self.train_dataset_handle.get_size("train") / self.batches_count))
+            # dataset = tf.data.Dataset.from_tensor_slices(X).repeat().batch(batch_size).prefetch(2)
+
+            if len(self.ent_to_idx) > ENTITY_THRESHOLD:
+                logger.warning('Only {} embeddings would be loaded in memory per batch...'.format(batch_size * 2))
+
+            self.batch_size = batch_size
+            self._initialize_parameters()
+
+            if self.use_focusE:
+                output_types = (tf.int32, tf.int32, tf.float32, tf.float32)
+                output_shapes = ((None, 3), (None, 1), (None, self.internal_k), (None, 1))
+            else:
+                output_types = (tf.int32, tf.int32, tf.float32)
+                output_shapes = ((None, 3), (None, 1), (None, self.internal_k))
+
+            dataset = tf.data.Dataset.from_generator(self._training_data_generator,
+                                                     output_types=output_types,
+                                                     output_shapes=output_shapes)
+
+            dataset = dataset.repeat().prefetch(prefetch_batches)
+
+            dataset_iterator = tf.data.make_one_shot_iterator(dataset)
+            # init tf graph/dataflow for training
+            # init variables (model parameters to be learned - i.e. the embeddings)
+
+            if self.loss.get_state('require_same_size_pos_neg'):
+                batch_size = batch_size * self.eta
+
+            loss = self._get_model_loss(dataset_iterator)
+
+            train = self.optimizer.minimize(loss)
+
+            # Entity embeddings normalization
+            normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
+
+            self.early_stopping_params = early_stopping_params
+
+            # early stopping
+            if early_stopping:
+                self._initialize_early_stopping()
+
+            self.sess_train.run(tf.tables_initializer())
+            self.sess_train.run(tf.global_variables_initializer())
+            try:
+                self.sess_train.run(self.set_training_true)
+            except AttributeError:
+                pass
+
+            normalize_rel_emb_op = self.rel_emb.assign(tf.clip_by_norm(self.rel_emb, clip_norm=1, axes=1))
+
+            if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
+                self.sess_train.run(normalize_rel_emb_op)
+                self.sess_train.run(normalize_ent_emb_op)
+
+            epoch_iterator_with_progress = tqdm(range(1, self.epochs + 1), disable=(not self.verbose), unit='epoch')
+
+            for epoch in epoch_iterator_with_progress:
+                losses = []
+                for batch in range(1, self.batches_count + 1):
+                    feed_dict = {self.epoch: epoch, self.batch_number: batch - 1}
+                    self.optimizer.update_feed_dict(feed_dict, batch, epoch)
+                    if self.dealing_with_large_graphs:
+                        loss_batch, unique_entities, _ = self.sess_train.run([loss, self.unique_entities, train],
+                                                                             feed_dict=feed_dict)
+                        self.ent_emb_cpu[np.squeeze(unique_entities), :] = \
+                            self.sess_train.run(self.ent_emb)[:unique_entities.shape[0], :]
+                    else:
+                        loss_batch, _ = self.sess_train.run([loss, train], feed_dict=feed_dict)
+
+                    if np.isnan(loss_batch) or np.isinf(loss_batch):
+                        msg = 'Loss is {}. Please change the hyperparameters.'.format(loss_batch)
+                        logger.error(msg)
+                        raise ValueError(msg)
+
+                    losses.append(loss_batch)
+                    if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
+                        self.sess_train.run(normalize_ent_emb_op)
+                if self.tensorboard_logs_path is not None:
+                    avg_loss = sum(losses) / (batch_size * self.batches_count)
+                    summary = tf.Summary(value=[tf.Summary.Value(tag="Average Loss",
+                                                                 simple_value=avg_loss)])
+                    self.writer.add_summary(summary, epoch)
+                if self.verbose:
+                    focusE = ''
+                    if self.use_focusE:
+                        focusE = '-FocusE'
+                    msg = 'Average {}{} Loss: {:10f}'.format(self.name,
+                                                             focusE,
+                                                             sum(losses) / (batch_size * self.batches_count))
+                    if early_stopping and self.early_stopping_best_value is not None:
+                        msg += ' — Best validation ({}): {:5f}'.format(self.early_stopping_criteria,
+                                                                       self.early_stopping_best_value)
+
+                    logger.debug(msg)
+                    epoch_iterator_with_progress.set_description(msg)
+
+                if early_stopping:
+
+                    try:
+                        self.sess_train.run(self.set_training_false)
+                    except AttributeError:
+                        pass
+
+                    if self._perform_early_stopping_test(epoch):
+                        if self.tensorboard_logs_path is not None:
+                            self.writer.flush()
+                            self.writer.close()
+                        self._end_training()
+                        return
+
+                    try:
+                        self.sess_train.run(self.set_training_true)
+                    except AttributeError:
+                        pass
+            if self.tensorboard_logs_path is not None:
+                self.writer.flush()
+                self.writer.close()
+
+            self._save_trained_params()
+            self._end_training()
+        except BaseException as e:
+            self._end_training()
+            raise e
