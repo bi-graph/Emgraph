@@ -1188,3 +1188,23 @@ class EmbeddingModel(abc.ABC):
         """Configures to use filter
         """
         self.is_filtered = True
+
+    def configure_evaluation_protocol(self, config=None):
+        """Set the configuration for evaluation
+
+        :param config: Dictionary of parameters for evaluation configuration. Can contain following keys:
+
+            - **corruption_entities**: List of entities to be used for corruptions.
+              If ``all``, it uses all entities (default: ``all``)
+            - **corrupt_side**: Specifies which side to corrupt. ``s``, ``o``, ``s+o``, ``s,o`` (default)
+              In 's,o' mode subject and object corruptions are generated at once but ranked separately
+              for speed up (default: False).
+        :type config: dict
+        :return:
+        :rtype:
+        """
+
+        if config is None:
+            config = {'corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
+                      'corrupt_side': constants.DEFAULT_CORRUPT_SIDE_EVAL}
+        self.eval_config = config
