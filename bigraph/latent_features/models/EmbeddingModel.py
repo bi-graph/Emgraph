@@ -1183,3 +1183,8 @@ class EmbeddingModel(abc.ABC):
         except BaseException as e:
             self._end_training()
             raise e
+
+    def set_filter_for_eval(self):
+        """Configures to use filter
+        """
+        self.is_filtered = True
