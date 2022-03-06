@@ -1567,3 +1567,41 @@ class EmbeddingModel(abc.ABC):
                                                  self.score_positive) + 1 - \
                         positives_among_sub_corruptions_ranked_higher - \
                         positives_among_obj_corruptions_ranked_higher
+
+    #todo: change the comparision to comparison
+    def perform_comparision(self, score_corr, score_pos):
+        """Compare the scores of corruptions and positives using the specified strategy.
+
+        :param score_corr: Scores of corruptions
+        :type score_corr: tf.Tensor
+        :param score_pos: Score of positive triple
+        :type score_pos: tf.Tensor
+        :return: comparison output based on specified strategy
+        :rtype: int
+        """
+
+        comparision_type = self.eval_config.get('ranking_strategy',
+                                                constants.DEFAULT_RANK_COMPARE_STRATEGY)
+
+        assert comparision_type in ['worst', 'best', 'middle'], 'Invalid score comparision type!'
+
+        score_corr = tf.cast(score_corr * constants.SCORE_COMPARISION_PRECISION, tf.int32)
+
+        score_pos = tf.cast(score_pos * constants.SCORE_COMPARISION_PRECISION, tf.int32)
+
+        # if pos score: 0.5, corr_score: 0.5, 0.5, 0.3, 0.6, 0.5, 0.5
+        if comparision_type == 'best':
+            # returns: 1 i.e. only. 1 corruption is having score greater than positive (optimistic)
+            return tf.reduce_sum(tf.cast(score_corr > score_pos, tf.int32))
+        elif comparision_type == 'middle':
+
+            # returns: 3 i.e. 1 + (4/2) i.e. only 1  corruption is having score greater than positive
+            # and 4 corruptions are having same (middle rank is 4/2 = 1), so 1+2=3
+            return tf.reduce_sum(tf.cast(score_corr > score_pos, tf.int32)) + \
+                tf.cast(tf.math.ceil(tf.reduce_sum(tf.cast(score_corr == score_pos, tf.int32)) / 2),
+                        tf.int32)
+        else:
+            # returns: 5 i.e. 5 corruptions are having score >= positive
+            # as you can see this strategy returns the worst rank (pessimistic)
+            return tf.reduce_sum(tf.cast(score_corr >= score_pos, tf.int32))
+
