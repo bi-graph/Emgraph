@@ -1605,3 +1605,15 @@ class EmbeddingModel(abc.ABC):
             # as you can see this strategy returns the worst rank (pessimistic)
             return tf.reduce_sum(tf.cast(score_corr >= score_pos, tf.int32))
 
+
+    def end_evaluation(self):
+        """End the evaluation and close the Tensorflow session.
+        """
+
+        if self.is_filtered and self.eval_dataset_handle is not None:
+            self.eval_dataset_handle.cleanup()
+            self.eval_dataset_handle = None
+
+        self.is_filtered = False
+
+        self.eval_config = {}
