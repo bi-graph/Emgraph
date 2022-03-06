@@ -1617,3 +1617,49 @@ class EmbeddingModel(abc.ABC):
         self.is_filtered = False
 
         self.eval_config = {}
+
+
+    def get_ranks(self, dataset_handle):
+        """Used by evaluate_predictions to get the ranks for evaluation.
+
+        :param dataset_handle: This contains handles of the generators that would be used to get test triples and filters
+        :type dataset_handle: Object of BigraphDatasetAdapter
+        :return: An array of ranks of test triples
+        :rtype: ndarray, shape [n] or [n,2] depending on the value of corrupt_side
+        """
+
+        if not self.is_fitted:
+            msg = 'Model has not been fitted.'
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        self.eval_dataset_handle = dataset_handle
+
+        # build tf graph for predictions
+        tf.reset_default_graph()
+        self.rnd = check_random_state(self.seed)
+        tf.random.set_random_seed(self.seed)
+        # load the parameters
+        self._load_model_from_trained_params()
+        # build the eval graph
+        self._initialize_eval_graph()
+
+        with tf.Session(config=self.tf_config) as sess:
+            sess.run(tf.tables_initializer())
+            sess.run(tf.global_variables_initializer())
+
+            try:
+                sess.run(self.set_training_false)
+            except AttributeError:
+                pass
+
+            ranks = []
+
+            for _ in tqdm(range(self.eval_dataset_handle.get_size('test')), disable=(not self.verbose)):
+                rank = sess.run(self.rank)
+                if self.eval_config.get('corrupt_side', constants.DEFAULT_CORRUPT_SIDE_EVAL) == 's,o':
+                    ranks.append(list(rank))
+                else:
+                    ranks.append(rank)
+
+            return ranks
