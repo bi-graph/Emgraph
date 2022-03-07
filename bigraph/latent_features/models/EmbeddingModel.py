@@ -1811,3 +1811,30 @@ class EmbeddingModel(abc.ABC):
         scores_neg = self._fn(e_s_neg, e_p_neg, e_o_neg)
 
         return scores_pos, scores_neg, dataset_handle
+
+    def _calibrate_with_negatives(self, X_pos, X_neg):
+        """Calibrates model with two datasets, one with positive triples and another with negative triples.
+
+        :param X_pos: Numpy array of positive triples.
+        :type X_pos: ndarray (shape [n, 3])
+        :param X_neg: Numpy array of negative triples.
+        :type X_neg: ndarray (shape [n, 3])
+        :return: scores_pos: Tensor with positive scores.
+
+        scores_neg: Tensor with negative scores.
+        :rtype: tf.Tensor, tf.Tensor
+        """
+
+        x_neg = to_idx(X_neg, ent_to_idx=self.ent_to_idx, rel_to_idx=self.rel_to_idx)
+        x_neg_tf = tf.Variable(x_neg, dtype=tf.int32, trainable=False)
+
+        x_pos = to_idx(X_pos, ent_to_idx=self.ent_to_idx, rel_to_idx=self.rel_to_idx)
+        x_pos_tf = tf.Variable(x_pos, dtype=tf.int32, trainable=False)
+
+        e_s, e_p, e_o = self._lookup_embeddings(x_neg_tf)
+        scores_neg = self._fn(e_s, e_p, e_o)
+
+        e_s, e_p, e_o = self._lookup_embeddings(x_pos_tf)
+        scores_pos = self._fn(e_s, e_p, e_o)
+
+        return scores_pos, scores_neg
