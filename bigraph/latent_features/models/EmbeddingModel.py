@@ -1744,3 +1744,27 @@ class EmbeddingModel(abc.ABC):
                     scores.append(score)
 
                 return scores
+
+    def is_fitted_on(self, X):
+        """Determine heuristically if a model was fitted on the given triples.
+
+        :param X: The triples to score.
+        :type X: ndarray, shape [n, 3]
+        :return: True if the number of unique entities and relations in X
+        :rtype: bool
+        """
+
+        if not self.is_fitted:
+            msg = 'Model has not been fitted.'
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        unique_ent = np.unique(np.concatenate((X[:, 0], X[:, 2])))
+        unique_rel = np.unique(X[:, 1])
+
+        if not len(unique_ent) == len(self.ent_to_idx.keys()):
+            return False
+        elif not len(unique_rel) == len(self.rel_to_idx.keys()):
+            return False
+
+        return True
