@@ -187,3 +187,120 @@ class DistMult(EmbeddingModel):
 
 
         return tf.reduce_sum(e_s * e_p * e_o, axis=1)
+
+    def fit(self, X, early_stopping=False, early_stopping_params={},
+            focusE_numeric_edge_values=None, tensorboard_logs_path=None):
+        """Train an EmbeddingModel (with optional early stopping).
+
+        The model is trained on a training set X using the training protocol
+        described in :cite:`trouillon2016complex`.
+
+        :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
+        :type X: ndarray (shape [n, 3]) or object of BigraphDatasetAdapter
+        :param early_stopping: Flag to enable early stopping (default:``False``)
+            If set to ``True``, the training loop adopts the following early stopping heuristic:
+
+        - The model will be trained regardless of early stopping for ``burn_in`` epochs.
+        - Every ``check_interval`` epochs the method will compute the metric specified in ``criteria``.
+
+        If such metric decreases for ``stop_interval`` checks, we stop training early.
+
+        Note the metric is computed on ``x_valid``. This is usually a validation set that you held out.
+
+        Also, because ``criteria`` is a ranking metric, it requires generating negatives.
+        Entities used to generate corruptions can be specified, as long as the side(s) of a triple to corrupt.
+        The method supports filtered metrics, by passing an array of positives to ``x_filter``. This will be used to
+        filter the negatives generated on the fly (i.e. the corruptions).
+
+        .. note::
+
+            Keep in mind the early stopping criteria may introduce a certain overhead
+            (caused by the metric computation).
+            The goal is to strike a good trade-off between such overhead and saving training epochs.
+
+            A common approach is to use MRR unfiltered: ::
+
+                early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}
+
+            Note the size of validation set also contributes to such overhead.
+            In most cases a smaller validation set would be enough.
+
+        :type early_stopping: bool
+        :param early_stopping_params: Dictionary of hyperparameters for the early stopping heuristics.
+
+        The following string keys are supported:
+
+            - **'x_valid'**: ndarray (shape [n, 3]) or object of AmpligraphDatasetAdapter :
+                             Numpy array of validation triples OR handle of Dataset adapter which
+                             would help retrieve data.
+            - **'criteria'**: string : criteria for early stopping 'hits10', 'hits3', 'hits1' or 'mrr'(default).
+            - **'x_filter'**: ndarray, shape [n, 3] : Positive triples to use as filter if a 'filtered' early
+                              stopping criteria is desired (i.e. filtered-MRR if 'criteria':'mrr').
+                              Note this will affect training time (no filter by default).
+                              If the filter has already been set in the adapter, pass True
+            - **'burn_in'**: int : Number of epochs to pass before kicking in early stopping (default: 100).
+            - **check_interval'**: int : Early stopping interval after burn-in (default:10).
+            - **'stop_interval'**: int : Stop if criteria is performing worse over n consecutive checks (default: 3)
+            - **'corruption_entities'**: List of entities to be used for corruptions. If 'all',
+              it uses all entities (default: 'all')
+            - **'corrupt_side'**: Specifies which side to corrupt. 's', 'o', 's+o', 's,o' (default)
+
+            Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
+        :type early_stopping_params: dict
+        :param focusE_numeric_edge_values: Numeric values associated with links.
+            Semantically, the numeric value can signify importance, uncertainity, significance, confidence, etc.
+            If the numeric value is unknown pass a NaN weight. The model will uniformly randomly assign a numeric value.
+            One can also think about assigning numeric values by looking at the distribution of it per predicate.
+
+            .. _focuse_distmult:
+
+        If processing a knowledge graph with numeric values associated with links, this is the vector of such
+        numbers. Passing this argument will activate the :ref:`FocusE layer <edge-literals>`
+        :cite:`pai2021learning`.
+        Semantically, numeric values can signify importance, uncertainity, significance, confidence, etc.
+        Values can be any number, and will be automatically normalised to the [0, 1] range, on a
+        predicate-specific basis.
+        If the numeric value is unknown pass a ``np.NaN`` value.
+        The model will uniformly randomly assign a numeric value.
+
+        .. note::
+
+            The following toy example shows how to enable the FocusE layer
+            to process edges with numeric literals: ::
+
+                import numpy as np
+                from ampligraph.latent_features import DistMult
+                model = DistMult(batches_count=1, seed=555, epochs=20,
+                                 k=10, loss='pairwise',
+                                 loss_params={'margin':5})
+                X = np.array([['a', 'y', 'b'],
+                              ['b', 'y', 'a'],
+                              ['a', 'y', 'c'],
+                              ['c', 'y', 'a'],
+                              ['a', 'y', 'd'],
+                              ['c', 'y', 'd'],
+                              ['b', 'y', 'c'],
+                              ['f', 'y', 'e']])
+
+                # Numeric values below are associate to each triple in X.
+                # They can be any number and will be automatically
+                # normalised to the [0, 1] range, on a
+                # predicate-specific basis.
+                X_edge_values = np.array([5.34, -1.75, 0.33, 5.12,
+                                          np.nan, 3.17, 2.76, 0.41])
+
+                model.fit(X, focusE_numeric_edge_values=X_edge_values)
+        :type focusE_numeric_edge_values: nd array (n, 1)
+        :param tensorboard_logs_path: Path to store tensorboard logs, e.g. average training loss tracking per epoch (default: ``None`` indicating
+        no logs will be collected). When provided it will create a folder under provided path and save tensorboard
+        files there. To then view the loss in the terminal run: ``tensorboard --logdir <tensorboard_logs_path>``.
+        :type tensorboard_logs_path: str or None
+        Path to store tensorboard logs, e.g. average training loss tracking per epoch (default: ``None`` indicating
+        no logs will be collected). When provided it will create a folder under provided path and save tensorboard
+        files there. To then view the loss in the terminal run: ``tensorboard --logdir <tensorboard_logs_path>``.
+        :return:
+        :rtype:
+        """
+
+        super().fit(X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
+                    tensorboard_logs_path=tensorboard_logs_path)
