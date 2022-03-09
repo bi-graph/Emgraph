@@ -435,3 +435,17 @@ class DistMult(EmbeddingModel):
         """
         __doc__ = super().calibrate.__doc__ # NOQA
         super().calibrate(X_pos, X_neg, positive_base_rate, batches_count, epochs)
+
+
+    def predict_proba(self, X):
+        """Predicts probabilities using the Platt scaling model (after calibration).
+
+        Model must be calibrated beforehand with the ``calibrate`` method.
+
+        :param X: Numpy array of triples to be evaluated.
+        :type X: ndarray, shape [n, 3]
+        :return: Probability of each triple to be true according to the Platt scaling calibration.
+        :rtype: ndarray, shape [n, 3]
+        """
+        __doc__ = super().predict_proba.__doc__ # NOQA
+        return super().predict_proba(X)
