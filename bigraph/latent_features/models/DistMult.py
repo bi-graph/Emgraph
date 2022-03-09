@@ -165,3 +165,25 @@ class DistMult(EmbeddingModel):
                          initializer=initializer, initializer_params=initializer_params,
                          verbose=verbose)
 
+    def _fn(self, e_s, e_p, e_o):
+        r"""The scoring function of the DistMult.
+
+            Assigns a score to a list of triples, with a model-specific strategy.
+            Triples are passed as lists of subject, predicate, object embeddings.
+
+                .. math::
+
+                f_{DistMult}=\langle \mathbf{r}_p, \mathbf{e}_s, \mathbf{e}_o \rangle
+
+            :param e_s: The embeddings of a list of subjects.
+            :type e_s: tf.Tensor, shape [n]
+            :param e_p: The embeddings of a list of predicates.
+            :type e_p: tf.Tensor, shape [n]
+            :param e_o: The embeddings of a list of objects.
+            :type e_o: tf.Tensor, shape [n]
+            :return: DistMult scoring function operation
+            :rtype: tf.Op
+            """
+
+
+        return tf.reduce_sum(e_s * e_p * e_o, axis=1)
