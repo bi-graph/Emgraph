@@ -50,3 +50,24 @@ class RandomBaseline(EmbeddingModel):
                 'seed': seed,
                 'verbose': verbose
             }
+
+    def _fn(self, e_s, e_p, e_o):
+        """Random baseline scoring function: random number between 0 and 1.
+
+        :param e_s: The embeddings of a list of subjects.
+        :type e_s: tf.Tensor, shape [n]
+        :param e_p: The embeddings of a list of predicates.
+        :type e_p: tf.Tensor, shape [n]
+        :param e_o: The embeddings of a list of objects.
+        :type e_o: tf.Tensor, shape [n]
+        :return: Random number between 0 and 1.
+        :rtype: tf.Op
+        """
+
+        # During training TensorFlow requires that gradients with respect to the trainable variables exist
+        if self.train_dataset_handle is not None:
+            # Sigmoid reaches 1 quite quickly, so the `useless` variable below is 0 for all practical purposes
+            useless = tf.sigmoid(tf.reduce_mean(tf.clip_by_value(e_s, 1e10, 1e11))) - 1.0
+            return tf.random_uniform((tf.size(e_s),), minval=0, maxval=1) + useless
+        else:
+            return tf.random_uniform((tf.size(e_s),), minval=0, maxval=1)
