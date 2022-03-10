@@ -449,3 +449,4 @@ class DistMult(EmbeddingModel):
         """
         __doc__ = super().predict_proba.__doc__ # NOQA
         return super().predict_proba(X)
+
