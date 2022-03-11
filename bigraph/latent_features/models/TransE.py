@@ -170,3 +170,25 @@ class TransE(EmbeddingModel):
                          regularizer=regularizer, regularizer_params=regularizer_params,
                          initializer=initializer, initializer_params=initializer_params,
                          verbose=verbose)
+
+
+    def _fn(self, e_s, e_p, e_o):
+        r"""The TransE scoring function.
+
+        .. math::
+
+            f_{TransE}=-||(\mathbf{e}_s + \mathbf{r}_p) - \mathbf{e}_o||_n
+
+        :param e_s: The embeddings of a list of subjects.
+        :type e_s: tf.Tensor, shape [n]
+        :param e_p: The embeddings of a list of predicates.
+        :type e_p: tf.Tensor, shape [n]
+        :param e_o: The embeddings of a list of objects.
+        :type e_o: tf.Tensor, shape [n]
+        :return: TransE scoring function operation
+        :rtype: tf.Op
+        """
+
+        return tf.negative(
+            tf.norm(e_s + e_p - e_o, ord=self.embedding_model_params.get('norm', constants.DEFAULT_NORM_TRANSE),
+                    axis=1))
