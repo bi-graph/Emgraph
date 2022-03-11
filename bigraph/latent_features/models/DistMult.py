@@ -392,8 +392,7 @@ class DistMult(EmbeddingModel):
         :return:
         :rtype:
 
-        Examples
-        -------
+        Examples:
 
         >>> import numpy as np
         >>> from sklearn.metrics import brier_score_loss, log_loss
