@@ -289,3 +289,4 @@ class RandomBaseline(EmbeddingModel):
         """
         __doc__ = super().calibrate.__doc__  # NOQA
         return super().predict_proba(X)
+
