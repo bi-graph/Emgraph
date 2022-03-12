@@ -501,10 +501,10 @@ class EmbeddingModel(abc.ABC):
     def _initialize_parameters(self):
         """Initialize parameters of the model.
 
-            This function creates and initializes entity and relation embeddings (with size k).
-            If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
-            and all relation embeddings.
-            Override this function if the parameters needs to be initialized differently.
+        This function creates and initializes entity and relation embeddings (with size k).
+        If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
+        and all relation embeddings.
+        Override this function if the parameters needs to be initialized differently.
         """
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
