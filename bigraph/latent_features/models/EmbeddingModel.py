@@ -1907,8 +1907,7 @@ class EmbeddingModel(abc.ABC):
         :return:
         :rtype:
 
-        Examples
-        -------
+        Examples:
 
         >>> import numpy as np
         >>> from sklearn.metrics import brier_score_loss, log_loss
@@ -2064,3 +2063,4 @@ class EmbeddingModel(abc.ABC):
         with tf.Session(config=self.tf_config) as sess:
             sess.run(tf.global_variables_initializer())
             return sess.run(probas)
+

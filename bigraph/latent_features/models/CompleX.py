@@ -218,3 +218,34 @@ class ComplEx(EmbeddingModel):
                                            initializer=self.initializer.get_relation_initializer(
                                            len(self.rel_to_idx), self.internal_k),
                                            dtype=tf.float32)
+
+    def _fn(self, e_s, e_p, e_o):
+        r"""ComplEx scoring function.
+
+        .. math::
+
+            f_{ComplEx}=Re(\langle \mathbf{r}_p, \mathbf{e}_s, \overline{\mathbf{e}_o}  \rangle)
+
+        Additional details available in :cite:`trouillon2016complex` (Equation 9).
+
+        :param e_s: The embeddings of a list of subjects.
+        :type e_s: tf.Tensor, shape [n]
+        :param e_p: The embeddings of a list of predicates.
+        :type e_p: tf.Tensor, shape [n]
+        :param e_o: The embeddings of a list of objects.
+        :type e_o: tf.Tensor, shape [n]
+        :return: ComplEx scoring function operation
+        :rtype: tf.Op
+        """
+
+        # Assume each embedding is made of an img and real component.
+        # (These components are actually real numbers, see [trouillon2016complex].
+        e_s_real, e_s_img = tf.split(e_s, 2, axis=1)
+        e_p_real, e_p_img = tf.split(e_p, 2, axis=1)
+        e_o_real, e_o_img = tf.split(e_o, 2, axis=1)
+
+        # See Eq. 9 [trouillon2016complex):
+        return tf.reduce_sum(e_p_real * e_s_real * e_o_real, axis=1) + \
+            tf.reduce_sum(e_p_real * e_s_img * e_o_img, axis=1) + \
+            tf.reduce_sum(e_p_img * e_s_real * e_o_img, axis=1) - \
+            tf.reduce_sum(e_p_img * e_s_img * e_o_real, axis=1)
