@@ -217,3 +217,75 @@ class ConvE(EmbeddingModel):
                          regularizer=regularizer, regularizer_params=regularizer_params,
                          initializer=initializer, initializer_params=initializer_params,
                          verbose=verbose)
+
+    def _initialize_parameters(self):
+        """Initialize parameters of the model.
+
+            This function creates and initializes entity and relation embeddings (with size k).
+            If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
+            and all relation embeddings.
+            Override this function if the parameters needs to be initialized differently.
+        """
+        timestamp = int(time.time() * 1e6)
+        if not self.dealing_with_large_graphs:
+
+            with tf.variable_scope('meta'):
+                self.tf_is_training = tf.Variable(False, trainable=False)
+                self.set_training_true = tf.assign(self.tf_is_training, True)
+                self.set_training_false = tf.assign(self.tf_is_training, False)
+
+            nfilters = self.embedding_model_params['conv_filters']
+            ninput = self.embedding_model_params['embed_image_depth']
+            ksize = self.embedding_model_params['conv_kernel_size']
+            dense_dim = self.embedding_model_params['dense_dim']
+
+            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+                                           shape=[len(self.ent_to_idx), self.k],
+                                           initializer=self.initializer.get_entity_initializer(
+                                               len(self.ent_to_idx), self.k),
+                                           dtype=tf.float32)
+            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+                                           shape=[len(self.rel_to_idx), self.k],
+                                           initializer=self.initializer.get_relation_initializer(
+                                               len(self.rel_to_idx), self.k),
+                                           dtype=tf.float32)
+
+            self.conv2d_W = tf.get_variable('conv2d_weights_{}'.format(timestamp),
+                                            shape=[ksize, ksize, ninput, nfilters],
+                                            initializer=tf.initializers.he_normal(seed=self.seed),
+                                            dtype=tf.float32)
+            self.conv2d_B = tf.get_variable('conv2d_bias_{}'.format(timestamp),
+                                            shape=[nfilters],
+                                            initializer=tf.zeros_initializer(), dtype=tf.float32)
+
+            self.dense_W = tf.get_variable('dense_weights_{}'.format(timestamp),
+                                           shape=[dense_dim, self.k],
+                                           initializer=tf.initializers.he_normal(seed=self.seed),
+                                           dtype=tf.float32)
+            self.dense_B = tf.get_variable('dense_bias_{}'.format(timestamp),
+                                           shape=[self.k],
+                                           initializer=tf.zeros_initializer(), dtype=tf.float32)
+
+            if self.embedding_model_params['use_batchnorm']:
+                emb_img_dim = self.embedding_model_params['embed_image_depth']
+
+                self.bn_vars = {'batchnorm_input': {'beta': np.zeros(shape=[emb_img_dim]),
+                                                    'gamma': np.ones(shape=[emb_img_dim]),
+                                                    'moving_mean': np.zeros(shape=[emb_img_dim]),
+                                                    'moving_variance': np.ones(shape=[emb_img_dim])},
+                                'batchnorm_conv': {'beta': np.zeros(shape=[nfilters]),
+                                                   'gamma': np.ones(shape=[nfilters]),
+                                                   'moving_mean': np.zeros(shape=[nfilters]),
+                                                   'moving_variance': np.ones(shape=[nfilters])},
+                                'batchnorm_dense': {'beta': np.zeros(shape=[1]),  # shape = [1] for batch norm
+                                                    'gamma': np.ones(shape=[1]),
+                                                    'moving_mean': np.zeros(shape=[1]),
+                                                    'moving_variance': np.ones(shape=[1])}}
+
+            if self.embedding_model_params['use_bias']:
+                self.bias = tf.get_variable('activation_bias_{}'.format(timestamp),
+                                            shape=[1, len(self.ent_to_idx)],
+                                            initializer=tf.zeros_initializer(), dtype=tf.float32)
+
+        else:
+            raise NotImplementedError('ConvE not implemented when dealing with large graphs.')
