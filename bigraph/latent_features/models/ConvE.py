@@ -289,3 +289,36 @@ class ConvE(EmbeddingModel):
 
         else:
             raise NotImplementedError('ConvE not implemented when dealing with large graphs.')
+
+    def _get_model_loss(self, dataset_iterator):
+        """Get the current loss including loss due to regularization.
+        This function must be overridden if the model uses combination of different losses(eg: VAE).
+
+        :param dataset_iterator: Dataset iterator.
+        :type dataset_iterator: tf.data.Iterator
+        :return: The loss value that must be minimized.
+        :rtype: tf.Tensor
+        """
+
+        # training input placeholder
+        self.x_pos_tf, self.y_true = dataset_iterator.get_next()
+
+        # list of dependent ops that need to be evaluated before computing the loss
+        dependencies = []
+
+        # run the dependencies
+        with tf.control_dependencies(dependencies):
+
+            # look up embeddings from input training triples
+            e_s_pos, e_p_pos, e_o_pos = self._lookup_embeddings(self.x_pos_tf)
+
+            # Get positive predictions
+            self.y_pred = self._fn(e_s_pos, e_p_pos, e_o_pos)
+
+            # Label smoothing and/or weighting is applied within Loss class
+            loss = self.loss.apply(self.y_true, self.y_pred)
+
+            if self.regularizer is not None:
+                loss += self.regularizer.apply([self.ent_emb, self.rel_emb])
+
+            return loss
