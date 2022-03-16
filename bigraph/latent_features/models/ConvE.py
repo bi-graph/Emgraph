@@ -360,3 +360,36 @@ class ConvE(EmbeddingModel):
         params_dict['output_mapping'] = self.output_mapping
 
         self.trained_model_params = params_dict
+
+    def _load_model_from_trained_params(self):
+        """Load the model from trained params.
+            While restoring make sure that the order of loaded parameters match the saved order.
+            It's the duty of the embedding model to load the variables correctly.
+            This method must be overridden if the model has any other parameters (apart from entity-relation embeddings)
+            This function also set's the evaluation mode to do lazy loading of variables based on the number of
+            distinct entities present in the graph.
+        """
+
+        # Generate the batch size based on entity length and batch_count
+        self.batch_size = int(np.ceil(len(self.ent_to_idx) / self.batches_count))
+
+        with tf.variable_scope('meta'):
+            self.tf_is_training = tf.Variable(False, trainable=False)
+            self.set_training_true = tf.assign(self.tf_is_training, True)
+            self.set_training_false = tf.assign(self.tf_is_training, False)
+
+        self.ent_emb = tf.Variable(self.trained_model_params['ent_emb'], dtype=tf.float32)
+        self.rel_emb = tf.Variable(self.trained_model_params['rel_emb'], dtype=tf.float32)
+
+        self.conv2d_W = tf.Variable(self.trained_model_params['conv2d_W'], dtype=tf.float32)
+        self.conv2d_B = tf.Variable(self.trained_model_params['conv2d_B'], dtype=tf.float32)
+        self.dense_W = tf.Variable(self.trained_model_params['dense_W'], dtype=tf.float32)
+        self.dense_B = tf.Variable(self.trained_model_params['dense_B'], dtype=tf.float32)
+
+        if self.embedding_model_params['use_batchnorm']:
+            self.bn_vars = self.trained_model_params['bn_vars']
+
+        if self.embedding_model_params['use_bias']:
+            self.bias = tf.Variable(self.trained_model_params['bias'], dtype=tf.float32)
+
+        self.output_mapping = self.trained_model_params['output_mapping']
