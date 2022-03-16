@@ -322,3 +322,41 @@ class ConvE(EmbeddingModel):
                 loss += self.regularizer.apply([self.ent_emb, self.rel_emb])
 
             return loss
+
+    def _save_trained_params(self):
+        """After model fitting, save all the trained parameters in trained_model_params in some order.
+        The order would be useful for loading the model.
+        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings).
+        """
+
+        params_dict = {}
+        params_dict['ent_emb'] = self.sess_train.run(self.ent_emb)
+        params_dict['rel_emb'] = self.sess_train.run(self.rel_emb)
+        params_dict['conv2d_W'] = self.sess_train.run(self.conv2d_W)
+        params_dict['conv2d_B'] = self.sess_train.run(self.conv2d_B)
+        params_dict['dense_W'] = self.sess_train.run(self.dense_W)
+        params_dict['dense_B'] = self.sess_train.run(self.dense_B)
+
+        if self.embedding_model_params['use_batchnorm']:
+
+            bn_dict = {}
+
+            for scope in ['batchnorm_input', 'batchnorm_conv', 'batchnorm_dense']:
+
+                variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
+                variables = [x for x in variables if 'Adam' not in x.name]  # Filter out any Adam variables
+
+                var_dict = {x.name.split('/')[-1].split(':')[0]: x for x in variables}
+                bn_dict[scope] = {'beta': self.sess_train.run(var_dict['beta']),
+                                  'gamma': self.sess_train.run(var_dict['gamma']),
+                                  'moving_mean': self.sess_train.run(var_dict['moving_mean']),
+                                  'moving_variance': self.sess_train.run(var_dict['moving_variance'])}
+
+            params_dict['bn_vars'] = bn_dict
+
+        if self.embedding_model_params['use_bias']:
+            params_dict['bias'] = self.sess_train.run(self.bias)
+
+        params_dict['output_mapping'] = self.output_mapping
+
+        self.trained_model_params = params_dict
