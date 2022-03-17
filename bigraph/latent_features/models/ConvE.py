@@ -527,3 +527,183 @@ class ConvE(EmbeddingModel):
 
         idxs = np.vectorize(lookup_dict.get)(entities)
         return emb_list[idxs]
+
+    def fit(self, X, early_stopping=False, early_stopping_params={}):
+        """Train a ConvE (with optional early stopping).
+
+        The model is trained on a training set X using the training protocol
+        described in :cite:`DettmersMS018`.
+
+        :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
+        :type X: ndarray (shape [n, 3]) or object of BigraphDatasetAdapter
+        :param early_stopping: Flag to enable early stopping (default:``False``)
+        :type early_stopping: bool
+        :param early_stopping_params: Dictionary of hyperparameters for the early stopping heuristics.
+
+        The following string keys are supported:
+
+            - **'x_valid'**: ndarray (shape [n, 3]) or object of AmpligraphDatasetAdapter :
+                             Numpy array of validation triples OR handle of Dataset adapter which
+                             would help retrieve data.
+            - **'criteria'**: string : criteria for early stopping 'hits10', 'hits3', 'hits1' or 'mrr'(default).
+            - **'x_filter'**: ndarray, shape [n, 3] : Positive triples to use as filter if a 'filtered' early
+                              stopping criteria is desired (i.e. filtered-MRR if 'criteria':'mrr').
+                              Note this will affect training time (no filter by default).
+                              If the filter has already been set in the adapter, pass True
+            - **'burn_in'**: int : Number of epochs to pass before kicking in early stopping (default: 100).
+            - **check_interval'**: int : Early stopping interval after burn-in (default:10).
+            - **'stop_interval'**: int : Stop if criteria is performing worse over n consecutive checks (default: 3)
+            - **'corruption_entities'**: List of entities to be used for corruptions. If 'all',
+              it uses all entities (default: 'all')
+            - **'corrupt_side'**: Specifies which side to corrupt. 's', 'o', 's+o', 's,o' (default)
+
+            Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
+        :return:
+        :rtype:
+        """
+
+        self.train_dataset_handle = None
+        # try-except block is mainly to handle clean up in case of exception or manual stop in jupyter notebook
+        try:
+            if isinstance(X, np.ndarray):
+                self.train_dataset_handle = OneToNDatasetAdapter(low_memory=self.low_memory)
+                self.train_dataset_handle.set_data(X, 'train')
+            elif isinstance(X, OneToNDatasetAdapter):
+                self.train_dataset_handle = X
+            else:
+                msg = 'Invalid type for input X. Expected numpy.array or OneToNDatasetAdapter object, got {}'\
+                    .format(type(X))
+                logger.error(msg)
+                raise ValueError(msg)
+
+            # create internal IDs mappings
+            self.rel_to_idx, self.ent_to_idx = self.train_dataset_handle.generate_mappings()
+
+            if len(self.ent_to_idx) > ENTITY_THRESHOLD:
+                self.dealing_with_large_graphs = True
+                prefetch_batches = 0
+
+                logger.warning('Your graph has a large number of distinct entities. '
+                               'Found {} distinct entities'.format(len(self.ent_to_idx)))
+
+                logger.warning('Changing the variable initialization strategy.')
+                logger.warning('Changing the strategy to use lazy loading of variables...')
+
+                if early_stopping:
+                    raise Exception('Early stopping not supported for large graphs')
+
+                if not isinstance(self.optimizer, SGDOptimizer):
+                    raise Exception("This mode works well only with SGD optimizer with decay (read docs for details). "
+                                    "Kindly change the optimizer and restart the experiment")
+
+                raise NotImplementedError('ConvE not implemented when dealing with large graphs.')
+
+            self.train_dataset_handle.map_data()
+
+            # This is useful when we re-fit the same model (e.g. retraining in model selection)
+            if self.is_fitted:
+                tf.reset_default_graph()
+                self.rnd = check_random_state(self.seed)
+                tf.random.set_random_seed(self.seed)
+
+            self.sess_train = tf.Session(config=self.tf_config)
+
+            batch_size = int(np.ceil(self.train_dataset_handle.get_size("train") / self.batches_count))
+            self.batch_size = batch_size
+
+            if len(self.ent_to_idx) > ENTITY_THRESHOLD:
+                logger.warning('Only {} embeddings would be loaded in memory per batch...'.format(batch_size * 2))
+
+            self._initialize_parameters()
+
+            # Output mapping is dict of (s, p) to list of existing object triple indices
+            self.output_mapping = self.train_dataset_handle.generate_output_mapping(dataset_type='train')
+            self.train_dataset_handle.set_output_mapping(self.output_mapping)
+            self.train_dataset_handle.generate_outputs(dataset_type='train', unique_pairs=True)
+            train_iter = partial(self.train_dataset_handle.get_next_batch,
+                                 batches_count=self.batches_count,
+                                 dataset_type='train',
+                                 use_filter=False,
+                                 unique_pairs=True)
+
+            dataset = tf.data.Dataset.from_generator(train_iter,
+                                                     output_types=(tf.int32, tf.float32),
+                                                     output_shapes=((None, 3), (None, len(self.ent_to_idx))))
+            prefetch_batches = 5
+            dataset = dataset.repeat().prefetch(prefetch_batches)
+            dataset_iterator = dataset.make_one_shot_iterator()
+
+            # init tf graph/dataflow for training
+            # init variables (model parameters to be learned - i.e. the embeddings)
+            if self.loss.get_state('require_same_size_pos_neg'):
+                batch_size = batch_size * self.eta
+
+            # Required for label smoothing
+            self.loss._set_hyperparams('num_entities', len(self.ent_to_idx))
+
+            loss = self._get_model_loss(dataset_iterator)
+
+            # Add update_ops for batch normalization
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+                train = self.optimizer.minimize(loss)
+
+            self.early_stopping_params = early_stopping_params
+
+            # early stopping
+            if early_stopping:
+                self._initialize_early_stopping()
+
+            self.sess_train.run(tf.tables_initializer())
+            self.sess_train.run(tf.global_variables_initializer())
+            self.sess_train.run(self.set_training_true)
+
+            # Entity embeddings normalization
+            normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
+            normalize_rel_emb_op = self.rel_emb.assign(tf.clip_by_norm(self.rel_emb, clip_norm=1, axes=1))
+
+            if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
+                self.sess_train.run(normalize_rel_emb_op)
+                self.sess_train.run(normalize_ent_emb_op)
+
+            epoch_iterator_with_progress = tqdm(range(1, self.epochs + 1), disable=(not self.verbose), unit='epoch')
+
+            for epoch in epoch_iterator_with_progress:
+                losses = []
+                for batch in range(1, self.batches_count + 1):
+                    feed_dict = {}
+                    self.optimizer.update_feed_dict(feed_dict, batch, epoch)
+
+                    loss_batch, _ = self.sess_train.run([loss, train], feed_dict=feed_dict)
+
+                    if np.isnan(loss_batch) or np.isinf(loss_batch):
+                        msg = 'Loss is {}. Please change the hyperparameters.'.format(loss_batch)
+                        logger.error(msg)
+                        raise ValueError(msg)
+
+                    losses.append(loss_batch)
+                    if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
+                        self.sess_train.run(normalize_ent_emb_op)
+
+                if self.verbose:
+                    msg = 'Average Loss: {:10f}'.format(sum(losses) / (batch_size * self.batches_count))
+                    if early_stopping and self.early_stopping_best_value is not None:
+                        msg += ' — Best validation ({}): {:5f}'.format(self.early_stopping_criteria,
+                                                                       self.early_stopping_best_value)
+
+                    logger.debug(msg)
+                    epoch_iterator_with_progress.set_description(msg)
+
+                if early_stopping:
+
+                    self.sess_train.run(self.set_training_false)
+                    if self._perform_early_stopping_test(epoch):
+                        self._end_training()
+                        return
+                    self.sess_train.run(self.set_training_true)
+
+            self._save_trained_params()
+            self._end_training()
+        except BaseException as e:
+            self._end_training()
+            raise e

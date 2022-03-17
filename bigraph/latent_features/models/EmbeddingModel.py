@@ -936,24 +936,24 @@ class EmbeddingModel(abc.ABC):
         :type early_stopping: bool
         :param early_stopping_params: Dictionary of hyperparameters for the early stopping heuristics.
 
-            The following string keys are supported:
+        The following string keys are supported:
 
-                - **'x_valid'**: ndarray (shape [n, 3]) or object of AmpligraphDatasetAdapter :
-                                 Numpy array of validation triples OR handle of Dataset adapter which
-                                 would help retrieve data.
-                - **'criteria'**: string : criteria for early stopping 'hits10', 'hits3', 'hits1' or 'mrr'(default).
-                - **'x_filter'**: ndarray, shape [n, 3] : Positive triples to use as filter if a 'filtered' early
-                                  stopping criteria is desired (i.e. filtered-MRR if 'criteria':'mrr').
-                                  Note this will affect training time (no filter by default).
-                                  If the filter has already been set in the adapter, pass True
-                - **'burn_in'**: int : Number of epochs to pass before kicking in early stopping (default: 100).
-                - **check_interval'**: int : Early stopping interval after burn-in (default:10).
-                - **'stop_interval'**: int : Stop if criteria is performing worse over n consecutive checks (default: 3)
-                - **'corruption_entities'**: List of entities to be used for corruptions. If 'all',
-                  it uses all entities (default: 'all')
-                - **'corrupt_side'**: Specifies which side to corrupt. 's', 'o', 's+o', 's,o' (default)
+            - **'x_valid'**: ndarray (shape [n, 3]) or object of AmpligraphDatasetAdapter :
+                             Numpy array of validation triples OR handle of Dataset adapter which
+                             would help retrieve data.
+            - **'criteria'**: string : criteria for early stopping 'hits10', 'hits3', 'hits1' or 'mrr'(default).
+            - **'x_filter'**: ndarray, shape [n, 3] : Positive triples to use as filter if a 'filtered' early
+                              stopping criteria is desired (i.e. filtered-MRR if 'criteria':'mrr').
+                              Note this will affect training time (no filter by default).
+                              If the filter has already been set in the adapter, pass True
+            - **'burn_in'**: int : Number of epochs to pass before kicking in early stopping (default: 100).
+            - **check_interval'**: int : Early stopping interval after burn-in (default:10).
+            - **'stop_interval'**: int : Stop if criteria is performing worse over n consecutive checks (default: 3)
+            - **'corruption_entities'**: List of entities to be used for corruptions. If 'all',
+              it uses all entities (default: 'all')
+            - **'corrupt_side'**: Specifies which side to corrupt. 's', 'o', 's+o', 's,o' (default)
 
-                Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
+            Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
         :type early_stopping_params: dict
         :param focusE_numeric_edge_values: Numeric values associated with links.
             Semantically, the numeric value can signify importance, uncertainity, significance, confidence, etc.
