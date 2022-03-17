@@ -558,6 +558,7 @@ class ConvE(EmbeddingModel):
             - **'corrupt_side'**: Specifies which side to corrupt. 's', 'o', 's+o', 's,o' (default)
 
             Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
+        :type early_stopping_params: dict
         :return:
         :rtype:
         """
@@ -707,3 +708,53 @@ class ConvE(EmbeddingModel):
         except BaseException as e:
             self._end_training()
             raise e
+
+    def _initialize_eval_graph(self, mode='test'):
+        """Initialize the evaluation graph with the set protocol.
+
+        :param mode: Indicates which data generator to use.
+        :type mode: str
+        :return:
+        :rtype:
+        """
+
+        logger.debug('Initializing eval graph [mode: {}]'.format(mode))
+
+        test_generator = partial(self.eval_dataset_handle.get_next_batch,
+                                 batches_count=-1,
+                                 dataset_type=mode,
+                                 use_filter=self.is_filtered,
+                                 unique_pairs=False)
+
+        dataset = tf.data.Dataset.from_generator(test_generator,
+                                                 output_types=(tf.int32, tf.float32),
+                                                 output_shapes=((None, 3), (None, len(self.ent_to_idx))))
+
+        dataset = dataset.repeat()
+        dataset = dataset.prefetch(5)
+        dataset_iter = dataset.make_one_shot_iterator()
+
+        self.X_test_tf, self.X_test_filter_tf = dataset_iter.get_next()
+
+        e_s, e_p, e_o = self._lookup_embeddings(self.X_test_tf)
+
+        # Scores for all triples
+        scores = tf.sigmoid(tf.squeeze(self._fn(e_s, e_p, e_o)))
+
+        # Score of positive triple
+        self.score_positive = tf.gather(scores, indices=self.X_test_tf[:, 2])
+
+        # Scores for positive triples
+        self.scores_filtered = tf.boolean_mask(scores, tf.cast(self.X_test_filter_tf, tf.bool))
+
+        # Triple rank over all triples
+        self.total_rank = self.perform_comparision(scores, self.score_positive)
+
+        # Triple rank over positive triples
+        self.filter_rank = self.perform_comparision(self.scores_filtered, self.score_positive)
+
+        # Rank of triple, with other positives filtered out.
+        self.rank = tf.subtract(self.total_rank, self.filter_rank) + 1
+
+        # NOTE: if having trouble with the above rank calculation, consider when test triple
+        # has the highest score (total_rank=1, filter_rank=1)

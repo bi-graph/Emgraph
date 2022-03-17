@@ -1280,10 +1280,10 @@ class EmbeddingModel(abc.ABC):
     def _initialize_eval_graph(self, mode="test"):
         """Initialize the evaluation graph.
 
-        Parameters
-        ----------
-        mode: string
-            Indicates which data generator to use.
+        :param mode: Indicates which data generator to use.
+        :type mode: str
+        :return:
+        :rtype:
         """
 
         # Use a data generator which returns a test triple along with the subjects and objects indices for filtering
