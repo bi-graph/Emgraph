@@ -393,3 +393,102 @@ class ConvE(EmbeddingModel):
             self.bias = tf.Variable(self.trained_model_params['bias'], dtype=tf.float32)
 
         self.output_mapping = self.trained_model_params['output_mapping']
+
+    def _fn(self, e_s, e_p, e_o):
+        r"""The ConvE scoring function.
+
+        The function implements the scoring function as defined by
+        .. math::
+
+            f(vec(f([\overline{e_s};\overline{r_r}] * \Omega)) W ) e_o
+
+        Additional details for equivalence of the models available in :cite:`Dettmers2016`.
+
+        :param e_s: The embeddings of a list of subjects.
+        :type e_s: tf.Tensor, shape [n]
+        :param e_p: The embeddings of a list of predicates.
+        :type e_p: tf.Tensor, shape [n]
+        :param e_o: The embeddings of a list of objects.
+        :type e_o: tf.Tensor, shape [n]
+        :return: The operation corresponding to the scoring function.
+        :rtype: tf.Op
+        """
+
+        def _dropout(X, rate):
+            dropout_rate = tf.cond(self.tf_is_training, true_fn=lambda: tf.constant(rate),
+                                   false_fn=lambda: tf.constant(0, dtype=tf.float32))
+            out = tf.nn.dropout(X, rate=dropout_rate)
+            return out
+
+        def _batchnorm(X, key, axis):
+
+            with tf.variable_scope(key, reuse=tf.AUTO_REUSE):
+                x = tf.compat.v1.layers.batch_normalization(X, training=self.tf_is_training, axis=axis,
+                                                            beta_initializer=tf.constant_initializer(
+                                                                self.bn_vars[key]['beta']),
+                                                            gamma_initializer=tf.constant_initializer(
+                                                                self.bn_vars[key]['gamma']),
+                                                            moving_mean_initializer=tf.constant_initializer(
+                                                                self.bn_vars[key]['moving_mean']),
+                                                            moving_variance_initializer=tf.constant_initializer(
+                                                                self.bn_vars[key]['moving_variance']))
+            return x
+
+        # Inputs
+        stacked_emb = tf.stack([e_s, e_p], axis=2)
+        self.inputs = tf.reshape(stacked_emb,
+                                 shape=[tf.shape(stacked_emb)[0], self.embedding_model_params['embed_image_height'],
+                                        self.embedding_model_params['embed_image_width'], 1])
+
+        x = self.inputs
+
+        if self.embedding_model_params['use_batchnorm']:
+            x = _batchnorm(x, key='batchnorm_input', axis=3)
+
+        if not self.embedding_model_params['dropout_embed'] is None:
+            x = _dropout(x, rate=self.embedding_model_params['dropout_embed'])
+
+        # Convolution layer
+        x = tf.nn.conv2d(x, self.conv2d_W, [1, 1, 1, 1], padding='VALID')
+
+        if self.embedding_model_params['use_batchnorm']:
+            x = _batchnorm(x, key='batchnorm_conv', axis=3)
+        else:
+            # Batch normalization will cancel out bias, so only add bias term if not using batchnorm
+            x = tf.nn.bias_add(x, self.conv2d_B)
+
+        x = tf.nn.relu(x)
+
+        if not self.embedding_model_params['dropout_conv'] is None:
+            x = _dropout(x, rate=self.embedding_model_params['dropout_conv'])
+
+        # Dense layer
+        x = tf.reshape(x, shape=[tf.shape(x)[0], self.embedding_model_params['dense_dim']])
+        x = tf.matmul(x, self.dense_W)
+
+        if self.embedding_model_params['use_batchnorm']:
+            # Initializing batchnorm vars for dense layer with shape=[1] will still broadcast over the shape of
+            # the specified axis, e.g. dense shape = [?, k], batchnorm on axis 1 will create k batchnorm vars.
+            # This is layer normalization rather than batch normalization, so adding a dimension to keep batchnorm,
+            # thus dense shape = [?, k, 1], batchnorm on axis 2.
+            x = tf.expand_dims(x, -1)
+            x = _batchnorm(x, key='batchnorm_dense', axis=2)
+            x = tf.squeeze(x, -1)
+        else:
+            x = tf.nn.bias_add(x, self.dense_B)
+
+        # Note: Reference ConvE implementation had dropout on dense layer before applying batch normalization.
+        # This can cause variance shift and reduce model performance, so have moved it after as recommended in:
+        # https://arxiv.org/abs/1801.05134
+        if not self.embedding_model_params['dropout_dense'] is None:
+            x = _dropout(x, rate=self.embedding_model_params['dropout_dense'])
+
+        x = tf.nn.relu(x)
+        x = tf.matmul(x, tf.transpose(self.ent_emb))
+
+        if self.embedding_model_params['use_bias']:
+            x = tf.add(x, self.bias)
+
+        self.scores = x
+
+        return self.scores
