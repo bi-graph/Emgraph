@@ -894,3 +894,34 @@ class ConvE(EmbeddingModel):
                 scores.append(score[0])
 
             return scores
+
+    def get_ranks(self, dataset_handle):
+        """Used by evaluate_predictions to get the ranks for evaluation.
+
+        :param dataset_handle: This contains handles of the generators that would be used to get test triples and filters
+        :type dataset_handle: Object of BigraphDatasetAdapter
+        :return: An array of ranks of test triples
+        :rtype: ndarray, shape [n] or [n,2] depending on the value of use_default_protocol
+        """
+
+        if not self.is_fitted:
+            msg = 'Model has not been fitted.'
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        eval_protocol = self.eval_config.get('corrupt_side', constants.DEFAULT_CORRUPT_SIDE_EVAL)
+
+        if 'o' in eval_protocol:
+            object_ranks = self._get_object_ranks(dataset_handle)
+
+        if 's' in eval_protocol:
+            subject_ranks = self._get_subject_ranks(dataset_handle)
+
+        if eval_protocol == 's,o':
+            ranks = [[s, o] for s, o in zip(subject_ranks, object_ranks)]
+        elif eval_protocol == 's':
+            ranks = subject_ranks
+        elif eval_protocol == 'o':
+            ranks = object_ranks
+
+        return ranks
