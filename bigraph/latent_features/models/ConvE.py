@@ -960,3 +960,35 @@ class ConvE(EmbeddingModel):
                 ranks.append(rank)
 
             return np.array(ranks)
+
+    def _initialize_eval_graph_subject(self, mode='test'):
+        """Initialize the graph for evaluating subject corruptions.
+
+        :param mode: Indicates which data generator to use.
+        :type mode: str
+        :return:
+        :rtype:
+        """
+
+        logger.debug('Initializing eval graph for subject corruptions [mode: {}]'.format(mode))
+
+        corruption_batch_size = constants.DEFAULT_SUBJECT_CORRUPTION_BATCH_SIZE
+
+        test_generator = partial(self.eval_dataset_handle.get_next_batch_subject_corruptions,
+                                 batch_size=corruption_batch_size,
+                                 dataset_type=mode)
+
+        dataset = tf.data.Dataset.from_generator(test_generator,
+                                                 output_types=(tf.int32, tf.int32, tf.float32),
+                                                 output_shapes=((None, 3), (None, 3), (None, len(self.ent_to_idx))))
+
+        dataset = dataset.repeat()
+        dataset = dataset.prefetch(5)
+        dataset_iter = dataset.make_one_shot_iterator()
+
+        self.X_test_tf, self.subject_corr, self.X_filter_tf = dataset_iter.get_next()
+
+        e_s, e_p, e_o = self._lookup_embeddings(self.subject_corr)
+
+        # Scores for all triples
+        self.sigmoid_scores = tf.sigmoid(tf.squeeze(self._fn(e_s, e_p, e_o)))
