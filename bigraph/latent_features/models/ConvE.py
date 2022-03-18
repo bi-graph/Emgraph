@@ -992,3 +992,93 @@ class ConvE(EmbeddingModel):
 
         # Scores for all triples
         self.sigmoid_scores = tf.sigmoid(tf.squeeze(self._fn(e_s, e_p, e_o)))
+
+
+    def _get_subject_ranks(self, dataset_handle, corruption_batch_size=None):
+        """Internal function for obtaining subject ranks.
+
+        This function performs subject corruptions. Output layer scores are accumulated in order to rank
+        subject corruptions. This can cause high memory consumption, so a default subject corruption batch size
+        is set in constants.py.
+
+        :param dataset_handle: This contains handles of the generators that would be used to get test triples and filters
+        :type dataset_handle: Bigraph object
+        :param corruption_batch_size: Batch size for accumulating output layer scores for each input. The accumulated
+        batch size will be np.array shape=(corruption_batch_size, num_entities), and dtype=np.float32). Default: 10000
+        has been set in constants.DEFAULT_SUBJECT_CORRUPTION_BATCH_SIZE.
+        :type corruptio n_batch_size: int / None
+        :return: An array of ranks of test triples.
+        :rtype: ndarray, shape [n]
+        """
+
+        self.eval_dataset_handle = dataset_handle
+
+        # Load model parameters, build tf evaluation graph for predictions
+        tf.reset_default_graph()
+        self.rnd = check_random_state(self.seed)
+        tf.random.set_random_seed(self.seed)
+        self._load_model_from_trained_params()
+
+        # Set the output mapping of the dataset handle - this is superceded if a filter has been set.
+        dataset_handle.set_output_mapping(self.output_mapping)
+
+        self._initialize_eval_graph_subject()
+
+        if not corruption_batch_size:
+            corruption_batch_size = constants.DEFAULT_SUBJECT_CORRUPTION_BATCH_SIZE
+
+        num_entities = len(self.ent_to_idx)
+        num_batch_per_relation = np.ceil(len(self.eval_dataset_handle.ent_to_idx) / corruption_batch_size)
+        num_batches = int(num_batch_per_relation * len(self.eval_dataset_handle.rel_to_idx))
+
+        with tf.Session(config=self.tf_config) as sess:
+
+            sess.run(tf.tables_initializer())
+            sess.run(tf.global_variables_initializer())
+            sess.run(self.set_training_false)
+
+            ranks = []
+            # Accumulate scores from each index of the object in the output scores while corrupting subject
+            scores_matrix_accum = []
+            # Accumulate true/false statements from one-hot outputs while corrupting subject
+            scores_filter_accum = []
+
+            for _ in tqdm(range(num_batches), disable=(not self.verbose), unit='batch'):
+
+                try:
+
+                    X_test, scores_matrix, scores_filter = sess.run([self.X_test_tf, self.sigmoid_scores,
+                                                                     self.X_filter_tf])
+
+                    # Accumulate scores from X_test columns
+                    scores_matrix_accum.append(scores_matrix[:, X_test[:, 2]])
+                    scores_filter_accum.append(scores_filter[:, X_test[:, 2]])
+
+                    num_rows_accum = np.sum([x.shape[0] for x in scores_matrix_accum])
+
+                    if num_rows_accum == num_entities:
+                        # When num rows accumulated equals num_entities, batch has finished a single subject corruption
+                        # loop on a single relation
+
+                        if len(X_test) == 0:
+                            # If X_test is empty, reset accumulated scores and continue
+                            scores_matrix_accum, scores_filter_accum = [], []
+                            continue
+
+                        scores_matrix = np.concatenate(scores_matrix_accum)
+                        scores_filter = np.concatenate(scores_filter_accum)
+
+                        for i, x in enumerate(X_test):
+                            score_positive = scores_matrix[x[0], i]
+                            idx_negatives = np.where(scores_filter[:, i] != 1)
+                            score_negatives = scores_matrix[idx_negatives[0], i]
+                            rank = np.sum(score_negatives >= score_positive) + 1
+                            ranks.append(rank)
+
+                        # Reset accumulators
+                        scores_matrix_accum, scores_filter_accum = [], []
+
+                except StopIteration:
+                    break
+
+            return np.array(ranks)
