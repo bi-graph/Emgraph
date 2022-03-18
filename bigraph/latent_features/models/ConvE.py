@@ -925,3 +925,38 @@ class ConvE(EmbeddingModel):
             ranks = object_ranks
 
         return ranks
+
+    def _get_object_ranks(self, dataset_handle):
+        """Internal function for obtaining object ranks.
+
+        :param dataset_handle: This contains handles of the generators that would be used to get test triples and filters
+        :type dataset_handle: Bigraph object
+        :return: An array of ranks of test triples.
+        :rtype: ndarray, shape [n]
+        """
+
+        self.eval_dataset_handle = dataset_handle
+
+        # Load model parameters, build tf evaluation graph for predictions
+        tf.reset_default_graph()
+        self.rnd = check_random_state(self.seed)
+        tf.random.set_random_seed(self.seed)
+        self._load_model_from_trained_params()
+
+        # Set the output mapping of the dataset handle - this is superceded if a filter has been set.
+        dataset_handle.set_output_mapping(self.output_mapping)
+
+        self._initialize_eval_graph()
+
+        with tf.Session(config=self.tf_config) as sess:
+
+            sess.run(tf.tables_initializer())
+            sess.run(tf.global_variables_initializer())
+            sess.run(self.set_training_false)
+
+            ranks = []
+            for _ in tqdm(range(self.eval_dataset_handle.get_size('test')), disable=(not self.verbose)):
+                rank = sess.run(self.rank)
+                ranks.append(rank)
+
+            return np.array(ranks)
