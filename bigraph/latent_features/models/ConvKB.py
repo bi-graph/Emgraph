@@ -291,3 +291,48 @@ class ConvKB(EmbeddingModel):
         params_dict['dense_W'] = self.sess_train.run(self.dense_W)
         params_dict['dense_B'] = self.sess_train.run(self.dense_B)
         self.trained_model_params = params_dict
+
+
+    def _load_model_from_trained_params(self):
+        """Load the model from trained params.
+        While restoring make sure that the order of loaded parameters match the saved order.
+        It's the duty of the embedding model to load the variables correctly.
+        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings)
+        This function also set's the evaluation mode to do lazy loading of variables based on the number of
+        distinct entities present in the graph.
+        """
+
+        # Generate the batch size based on entity length and batch_count
+        self.batch_size = int(np.ceil(len(self.ent_to_idx) / self.batches_count))
+
+        if len(self.ent_to_idx) > ENTITY_THRESHOLD:
+            self.dealing_with_large_graphs = True
+
+            logger.warning('Your graph has a large number of distinct entities. '
+                           'Found {} distinct entities'.format(len(self.ent_to_idx)))
+
+            logger.warning('Changing the variable loading strategy to use lazy loading of variables...')
+            logger.warning('Evaluation would take longer than usual.')
+
+        if not self.dealing_with_large_graphs:
+            self.ent_emb = tf.Variable(self.trained_model_params['ent_emb'], dtype=tf.float32)
+        else:
+            self.ent_emb_cpu = self.trained_model_params['ent_emb']
+            self.ent_emb = tf.Variable(np.zeros((self.batch_size, self.internal_k)), dtype=tf.float32)
+
+        self.rel_emb = tf.Variable(self.trained_model_params['rel_emb'], dtype=tf.float32)
+
+        with tf.variable_scope('meta'):
+            self.tf_is_training = tf.Variable(False, trainable=False)
+            self.set_training_true = tf.assign(self.tf_is_training, True)
+            self.set_training_false = tf.assign(self.tf_is_training, False)
+
+        self.conv_weights = {}
+        for name in self.trained_model_params['conv_weights'].keys():
+            W = self.trained_model_params['conv_weights'][name]['weights']
+            B = self.trained_model_params['conv_weights'][name]['biases']
+            self.conv_weights[name] = {'weights': tf.Variable(W, dtype=tf.float32),
+                                       'biases': tf.Variable(B, dtype=tf.float32)}
+
+        self.dense_W = tf.Variable(self.trained_model_params['dense_W'], dtype=tf.float32)
+        self.dense_B = tf.Variable(self.trained_model_params['dense_B'], dtype=tf.float32)
