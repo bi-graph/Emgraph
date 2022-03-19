@@ -232,3 +232,38 @@ class ConvKB(EmbeddingModel):
         self.dense_B = tf.get_variable('dense_bias_{}'.format(timestamp),
                                        shape=[num_outputs], trainable=False,
                                        initializer=tf.zeros_initializer(), dtype=tf.float32)
+
+    def get_embeddings(self, entities, embedding_type='entity'):
+        """Get the embeddings of entities or relations.
+
+        .. Note ::
+            Use :meth:`ampligraph.utils.create_tensorboard_visualizations` to visualize the embeddings with TensorBoard.
+
+        :param entities: The entities (or relations) of interest. Element of the vector must be the original string
+        literals, and not internal IDs.
+        :type entities: ndarray, shape=[n]
+        :param embedding_type: If 'entity', ``entities`` argument will be considered as a list of knowledge graph entities (i.e. nodes).
+            If set to 'relation', they will be treated as relation types instead (i.e. predicates).
+        :type embedding_type: str
+        :return: An array of k-dimensional embeddings.
+        :rtype: ndarray, shape [n, k]
+        """
+
+        if not self.is_fitted:
+            msg = 'Model has not been fitted.'
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        if embedding_type == 'entity':
+            emb_list = self.trained_model_params['ent_emb']
+            lookup_dict = self.ent_to_idx
+        elif embedding_type == 'relation':
+            emb_list = self.trained_model_params['rel_emb']
+            lookup_dict = self.rel_to_idx
+        else:
+            msg = 'Invalid entity type: {}'.format(embedding_type)
+            logger.error(msg)
+            raise ValueError(msg)
+
+        idxs = np.vectorize(lookup_dict.get)(entities)
+        return emb_list[idxs]
