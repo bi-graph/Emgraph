@@ -336,3 +336,51 @@ class ConvKB(EmbeddingModel):
 
         self.dense_W = tf.Variable(self.trained_model_params['dense_W'], dtype=tf.float32)
         self.dense_B = tf.Variable(self.trained_model_params['dense_B'], dtype=tf.float32)
+
+
+    def _fn(self, e_s, e_p, e_o):
+        r"""The ConvKB scoring function.
+
+        The function implements the scoring function as defined by:
+        .. math::
+
+            \concat(g([\mathbf{e}_s, \mathbf{r}_p, \mathbf{e}_o]) * \Omega)) \cdot W
+
+        Additional details for equivalence of the models available in :cite:`Nguyen2018`.
+
+        :param e_s: The embeddings of a list of subjects.
+        :type e_s: tf.Tensor, shape [n]
+        :param e_p: The embeddings of a list of predicates.
+        :type e_p: tf.Tensor, shape [n]
+        :param e_o: The embeddings of a list of objects.
+        :type e_o: tf.Tensor, shape [n]
+        :return: The operation corresponding to the ConvKB scoring function.
+        :rtype: tf.Op
+        """
+
+        # Inputs
+        e_s = tf.expand_dims(e_s, 1)
+        e_p = tf.expand_dims(e_p, 1)
+        e_o = tf.expand_dims(e_o, 1)
+
+        self.inputs = tf.expand_dims(tf.concat([e_s, e_p, e_o], axis=1), -1)
+
+        pooled_outputs = []
+        for name in self.conv_weights.keys():
+            x = tf.nn.conv2d(self.inputs, self.conv_weights[name]['weights'], [1, 1, 1, 1], padding='VALID')
+            x = tf.nn.bias_add(x, self.conv_weights[name]['biases'])
+            x = tf.nn.relu(x)
+            pooled_outputs.append(x)
+
+        # Combine all the pooled features
+        x = tf.concat(pooled_outputs, 2)
+        x = tf.reshape(x, [-1, self.embedding_model_params['dense_dim']])
+
+        dropout_rate = tf.cond(self.tf_is_training,
+                               true_fn=lambda: tf.constant(self.embedding_model_params['dropout']),
+                               false_fn=lambda: tf.constant(0, dtype=tf.float32))
+        x = tf.nn.dropout(x, rate=dropout_rate)
+
+        self.scores = tf.nn.xw_plus_b(x, self.dense_W, self.dense_B)
+
+        return tf.squeeze(self.scores)

@@ -410,7 +410,7 @@ class ConvE(EmbeddingModel):
         :type e_p: tf.Tensor, shape [n]
         :param e_o: The embeddings of a list of objects.
         :type e_o: tf.Tensor, shape [n]
-        :return: The operation corresponding to the scoring function.
+        :return: The operation corresponding to the ConvE scoring function.
         :rtype: tf.Op
         """
 
