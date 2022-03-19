@@ -168,3 +168,67 @@ class ConvKB(EmbeddingModel):
                          regularizer=regularizer, regularizer_params=regularizer_params,
                          initializer=initializer, initializer_params=initializer_params,
                          large_graphs=large_graphs, verbose=verbose)
+
+    def _initialize_parameters(self):
+        """Initialize parameters of the model.
+
+        This function creates and initializes entity and relation embeddings (with size k).
+        If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
+        and all relation embeddings.
+        Overload this function if the parameters needs to be initialized differently.
+        """
+
+        with tf.variable_scope('meta'):
+            self.tf_is_training = tf.Variable(False, trainable=False)
+            self.set_training_true = tf.assign(self.tf_is_training, True)
+            self.set_training_false = tf.assign(self.tf_is_training, False)
+
+        timestamp = int(time.time() * 1e6)
+        if not self.dealing_with_large_graphs:
+
+            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+                                           shape=[len(self.ent_to_idx), self.k],
+                                           initializer=self.initializer.get_entity_initializer(
+                                           len(self.ent_to_idx), self.k), dtype=tf.float32)
+            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+                                           shape=[len(self.rel_to_idx), self.k],
+                                           initializer=self.initializer.get_relation_initializer(
+                                           len(self.rel_to_idx), self.k), dtype=tf.float32)
+
+        else:
+
+            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+                                           shape=[self.batch_size * 2, self.internal_k],
+                                           initializer=tf.zeros_initializer(), dtype=tf.float32)
+
+            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+                                           shape=[len(self.rel_to_idx), self.internal_k],
+                                           initializer=self.initializer.get_relation_initializer(
+                                           len(self.rel_to_idx), self.internal_k), dtype=tf.float32)
+
+        num_filters = self.embedding_model_params['num_filters']
+        filter_sizes = self.embedding_model_params['filter_sizes']
+        dense_dim = self.embedding_model_params['dense_dim']
+        num_outputs = 1  # i.e. a single score
+
+        self.conv_weights = {}
+        for i, filter_size in enumerate(filter_sizes):
+            conv_shape = [3, filter_size, 1, num_filters]
+            conv_name = 'conv-maxpool-{}'.format(filter_size)
+            weights_init = tf.initializers.truncated_normal(seed=self.seed)
+            self.conv_weights[conv_name] = {'weights': tf.get_variable('{}_W_{}'.format(conv_name, timestamp),
+                                                                       shape=conv_shape,
+                                                                       trainable=True, dtype=tf.float32,
+                                                                       initializer=weights_init),
+                                            'biases': tf.get_variable('{}_B_{}'.format(conv_name, timestamp),
+                                                                      shape=[num_filters],
+                                                                      trainable=True, dtype=tf.float32,
+                                                                      initializer=tf.zeros_initializer())}
+
+        self.dense_W = tf.get_variable('dense_weights_{}'.format(timestamp),
+                                       shape=[dense_dim, num_outputs], trainable=True,
+                                       initializer=tf.keras.initializers.he_normal(seed=self.seed),
+                                       dtype=tf.float32)
+        self.dense_B = tf.get_variable('dense_bias_{}'.format(timestamp),
+                                       shape=[num_outputs], trainable=False,
+                                       initializer=tf.zeros_initializer(), dtype=tf.float32)
