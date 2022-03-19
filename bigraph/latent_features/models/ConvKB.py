@@ -267,3 +267,27 @@ class ConvKB(EmbeddingModel):
 
         idxs = np.vectorize(lookup_dict.get)(entities)
         return emb_list[idxs]
+
+    def _save_trained_params(self):
+        """After model fitting, save all the trained parameters in trained_model_params in some order.
+        The order would be useful for loading the model.
+        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings).
+        """
+
+        params_dict = {}
+
+        if not self.dealing_with_large_graphs:
+            params_dict['ent_emb'] = self.sess_train.run(self.ent_emb)
+        else:
+            params_dict['ent_emb'] = self.ent_emb_cpu
+
+        params_dict['rel_emb'] = self.sess_train.run(self.rel_emb)
+
+        params_dict['conv_weights'] = {}
+        for name in self.conv_weights.keys():
+            params_dict['conv_weights'][name] = {'weights': self.sess_train.run(self.conv_weights[name]['weights']),
+                                                 'biases': self.sess_train.run(self.conv_weights[name]['biases'])}
+
+        params_dict['dense_W'] = self.sess_train.run(self.dense_W)
+        params_dict['dense_B'] = self.sess_train.run(self.dense_B)
+        self.trained_model_params = params_dict
