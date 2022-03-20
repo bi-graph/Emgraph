@@ -463,3 +463,4 @@ class ConvKB(EmbeddingModel):
 
         super().fit(X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
                     tensorboard_logs_path=tensorboard_logs_path)
+
