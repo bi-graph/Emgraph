@@ -150,3 +150,26 @@ class HolE(ComplEx):
                          initializer=initializer, initializer_params=initializer_params,
                          verbose=verbose)
         self.internal_k = self.k * 2
+
+    def _fn(self, e_s, e_p, e_o):
+        """The Hole scoring function.
+
+        The function implements the scoring function as defined by
+        .. math::
+
+            f_{HolE}= 2 / n * f_{ComplEx}
+
+        Additional details for equivalence of the models available in :cite:`HayashiS17`.
+
+        :param e_s: The embeddings of a list of subjects.
+        :type e_s: tf.Tensor, shape [n]
+        :param e_p: The embeddings of a list of predicates.
+        :type e_p: tf.Tensor, shape [n]
+        :param e_o: The embeddings of a list of objects.
+        :type e_o: tf.Tensor, shape [n]
+        :return: The operation corresponding to the HolE scoring function.
+        :rtype: tf.Op
+
+        """
+        return (2 / self.k) * (super()._fn(e_s, e_p, e_o))
+
