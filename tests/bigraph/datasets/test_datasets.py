@@ -214,7 +214,7 @@ def test_cn15k():
 
 def test_load_from_ntriples(request):
     rootdir = request.config.rootdir
-    path = os.path.join(rootdir, 'tests', 'ampligraph', 'datasets')
+    path = os.path.join(rootdir, 'tests', 'bigraph', 'datasets')
     X = load_from_ntriples('', 'test_triples.nt', data_home=path)
     assert X.shape == (3, 3)
     assert len(np.unique(X.flatten())) == 6
@@ -222,7 +222,7 @@ def test_load_from_ntriples(request):
 
 def test_oneton_adapter():
 
-    from ampligraph.evaluation.protocol import create_mappings, to_idx
+    from bigraph.evaluation.protocol import create_mappings, to_idx
 
     # Train set
     X = np.array([['a', 'p', 'b'],
