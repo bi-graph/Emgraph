@@ -24,8 +24,9 @@ DEFAULT_NORMAL_STD = 0.05
 # Default value indicating whether to use xavier uniform or normal
 DEFAULT_XAVIER_IS_UNIFORM = False
 
-#TODO: Add more initializers from Tensorflow
-#TODO: Rename this to bigraph_export
+
+# TODO: Add more initializers from Tensorflow
+# TODO: Rename this to bigraph_export
 def register_initializer(name, external_params=[], class_params={}):
     """
     Wrapper for Saving the initializer class info in the INITIALIZER_REGISTRY dictionary.
@@ -376,7 +377,6 @@ class Xavier(Initializer):
         if self.verbose:
             self._display_params()
 
-
     def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
         """
         Generate an initialized Tensorflow node for the initializer.
@@ -460,7 +460,6 @@ class Constant(Initializer):
         if self.verbose:
             self._display_params()
 
-
     def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
         """
         Generate an initialized Tensorflow node for the initializer.
@@ -477,17 +476,16 @@ class Constant(Initializer):
 
         if concept == 'e':
             assert self._initializer_params['entity'].shape[0] == in_shape and \
-                self._initializer_params['entity'].shape[1] == out_shape, \
+                   self._initializer_params['entity'].shape[1] == out_shape, \
                 "Invalid shape for entity initializer!"
 
             return tf.compat.v1.constant_initializer(self._initializer_params['entity'], dtype=tf.float32)
         else:
             assert self._initializer_params['relation'].shape[0] == in_shape and \
-                self._initializer_params['relation'].shape[1] == out_shape, \
+                   self._initializer_params['relation'].shape[1] == out_shape, \
                 "Invalid shape for relation initializer!"
 
             return tf.compat.v1.constant_initializer(self._initializer_params['relation'], dtype=tf.float32)
-
 
     def _get_np_initializer(self, in_shape, out_shape, concept='e'):
         """
@@ -505,14 +503,13 @@ class Constant(Initializer):
 
         if concept == 'e':
             assert self._initializer_params['entity'].shape[0] == in_shape and \
-                self._initializer_params['entity'].shape[1] == out_shape, \
+                   self._initializer_params['entity'].shape[1] == out_shape, \
                 "Invalid shape for entity initializer!"
 
             return self._initializer_params['entity']
         else:
             assert self._initializer_params['relation'].shape[0] == in_shape and \
-                self._initializer_params['relation'].shape[1] == out_shape, \
+                   self._initializer_params['relation'].shape[1] == out_shape, \
                 "Invalid shape for relation initializer!"
 
             return self._initializer_params['relation']
-

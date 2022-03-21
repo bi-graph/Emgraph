@@ -1,4 +1,3 @@
-
 import tensorflow as tf
 import abc
 import logging
@@ -28,6 +27,7 @@ DEFAULT_LABEL_SMOOTHING = None
 
 # Default label weighting for ConvE
 DEFAULT_LABEL_WEIGHTING = False
+
 
 def register_loss(name, external_params=[], class_params={}):
     """
@@ -60,6 +60,7 @@ def register_loss(name, external_params=[], class_params={}):
 
     return insert_in_registry
 
+
 def clip_before_exp(value):
     """
     Clip the value for the stability of exponential.
@@ -68,6 +69,7 @@ def clip_before_exp(value):
     return tf.clip_by_value(value,
                             clip_value_min=DEFAULT_CLIP_EXP_LOWER,
                             clip_value_max=DEFAULT_CLIP_EXP_UPPER)
+
 
 class Loss(abc.ABC):
     """
@@ -236,7 +238,7 @@ class PairwiseLoss(Loss):
 
         self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN)
 
-    #TODO: rename this to call or something else
+    # TODO: rename this to call or something else
     def _apply(self, scores_pos, scores_neg):
         """
         Apply the loss function.
@@ -307,6 +309,7 @@ class NLLLoss(Loss):
         scores = tf.concat([-scores_pos, scores_neg], 0)
         return tf.reduce_sum(tf.log(1 + tf.exp(scores)))
 
+
 @register_loss("absolute_margin", ['margin'])
 class AbsoluteMarginLoss(Loss):
     r"""
@@ -339,7 +342,6 @@ class AbsoluteMarginLoss(Loss):
         if hyperparam_dict is None:
             hyperparam_dict = {'margin': DEFAULT_MARGIN}
         super().__init__(eta, hyperparam_dict, verbose)
-
 
     def _init_hyperparams(self, hyperparam_dict):
         """
@@ -429,7 +431,6 @@ class SelfAdversarialLoss(Loss):
         self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN_ADVERSARIAL)
         self._loss_parameters['alpha'] = hyperparam_dict.get('alpha', DEFAULT_ALPHA_ADVERSARIAL)
 
-
     def _apply(self, scores_pos, scores_neg):
         """
         Apply the loss function.
@@ -454,6 +455,7 @@ class SelfAdversarialLoss(Loss):
             tf.multiply(p_neg, tf.log_sigmoid(tf.negative(scores_neg_reshaped) - margin)))
 
         return loss
+
 
 @register_loss("multiclass_nll", [], {'require_same_size_pos_neg': False})
 class NLLMulticlass(Loss):
@@ -492,7 +494,6 @@ class NLLMulticlass(Loss):
         if hyperparam_dict is None:
             hyperparam_dict = {}
         super().__init__(eta, hyperparam_dict, verbose)
-
 
     def _init_hyperparams(self, hyperparam_dict):
         """
@@ -546,7 +547,6 @@ class BCELoss(Loss):
     >>> model = ConvE(batches_count=1, seed=555, epochs=20, k=10, loss='bce', hyperparam_dict={})
     """
 
-
     def __init__(self, eta, hyperparam_dict={}, verbose=False):
         """
         Initialize the BCE loss class.
@@ -561,7 +561,6 @@ class BCELoss(Loss):
 
         super().__init__(eta, hyperparam_dict, verbose)
 
-
     def _inputs_check(self, y_true, y_pred):
         """
         Check and create dependencies needed by loss computations.
@@ -573,7 +572,6 @@ class BCELoss(Loss):
         :return: -
         :rtype: -
         """
-
 
         logger.debug('Creating dependencies before loss computations.')
 
@@ -606,7 +604,6 @@ class BCELoss(Loss):
 
         self._loss_parameters['label_smoothing'] = hyperparam_dict.get('label_smoothing', DEFAULT_LABEL_SMOOTHING)
         self._loss_parameters['label_weighting'] = hyperparam_dict.get('label_weighting', DEFAULT_LABEL_WEIGHTING)
-
 
     def _set_hyperparams(self, key, value):
         """

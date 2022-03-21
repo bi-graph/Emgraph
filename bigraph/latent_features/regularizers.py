@@ -1,4 +1,3 @@
-
 import tensorflow as tf
 import numpy as np
 import abc
@@ -80,7 +79,6 @@ class Regularizer(abc.ABC):
             logger.error(msg)
             raise Exception(msg)
 
-
     def get_state(self, param_name):
         """
         Get the state.
@@ -138,7 +136,6 @@ class Regularizer(abc.ABC):
         return loss
 
 
-
 @register_regularizer("LP", ['p', 'lambda'])
 class LPRegularizer(Regularizer):
     r"""
@@ -177,7 +174,6 @@ class LPRegularizer(Regularizer):
         if regularizer_params is None:
             regularizer_params = {'lambda': DEFAULT_LAMBDA, 'p': DEFAULT_NORM}
         super().__init__(regularizer_params, verbose)
-
 
     def _init_hyperparams(self, hyperparam_dict):
         """
@@ -231,4 +227,3 @@ class LPRegularizer(Regularizer):
                 tf.pow(tf.abs(trainable_params[i]), self._regularizer_parameters['p'])))
 
         return loss_reg
-

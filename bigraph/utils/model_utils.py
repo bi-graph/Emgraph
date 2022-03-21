@@ -1,5 +1,3 @@
-
-
 import os
 import pickle
 import importlib
@@ -87,16 +85,16 @@ def save_model(model, model_name_path=None, protocol=pickle.HIGHEST_PROTOCOL):
 def restore_model(model_name_path=None):
     """Restore a saved model from disk.
 
-        See also :meth:`save_model`.
+    See also :meth:`save_model`.
 
-    :param model_name_path: The name of saved model to be restored. If not specified,
-    the library will try to find the default model in the working directory.
+    :param model_name_path: The name of saved model to be restored. If not specified, the library will try to find the
+            default model in the working directory.
     :type model_name_path: str
     :return: The neural knowledge graph embedding model restored from disk.
     :rtype: EmbeddingModel
 
-    Examples:
-
+    Examples
+    --------
         >>> from bigraph.utils import restore_model
         >>> import numpy as np
         >>> example_name = 'bigraph_model.pkl'
@@ -151,6 +149,7 @@ def restore_model(model_name_path=None):
 
     return model
 
+
 def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=True, export_tsv_embeddings=True):
     """Export embeddings to Tensorboard.
 
@@ -159,13 +158,13 @@ def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=Tr
     `TensorBoard Embedding Projector <https://projector.tensorflow.org>`_.
     The function exports:
 
-    * A number of checkpoint and graph embedding files in the provided location that will allow
-      you to visualize embeddings using Tensorboard. This is generally for use with a
-      `local Tensorboard instance <https://www.tensorflow.org/tensorboard/r1/overview>`_.
-    * a tab-separated file of embeddings ``embeddings_projector.tsv``. This is generally used to
-      visualize embeddings by uploading to `TensorBoard Embedding Projector <https://projector.tensorflow.org>`_.
-    * embeddings metadata (i.e. the embeddings labels from the original knowledge graph), saved to ``metadata.tsv``.
-      Such file can be used in TensorBoard or uploaded to TensorBoard Embedding Projector.
+        * A number of checkpoint and graph embedding files in the provided location that will allow
+          you to visualize embeddings using Tensorboard. This is generally for use with a
+          `local Tensorboard instance <https://www.tensorflow.org/tensorboard/r1/overview>`_.
+        * a tab-separated file of embeddings ``embeddings_projector.tsv``. This is generally used to
+          visualize embeddings by uploading to `TensorBoard Embedding Projector <https://projector.tensorflow.org>`_.
+        * embeddings metadata (i.e. the embeddings labels from the original knowledge graph), saved to ``metadata.tsv``.
+          Such file can be used in TensorBoard or uploaded to TensorBoard Embedding Projector.
 
     The content of ``loc`` will look like: ::
 
@@ -189,24 +188,24 @@ def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=Tr
         .. image:: ../img/embeddings_projector.png
 
     :param model: A trained neural knowledge graph embedding model, the model must be an instance of TransE,
-    DistMult, ComplEx, or HolE.
+            DistMult, ComplEx, or HolE.
     :type model: EmbeddingModel
     :param loc: Directory where the files are written
     :type loc: str
     :param labels: Label(s) for each embedding point in the Tensorboard visualization.
-    Default behaviour is to use the embeddings labels included in the model.
+            Default behaviour is to use the embeddings labels included in the model.
     :type labels: pd.DataFrame
     :param write_metadata: If True will write a file named 'metadata.tsv' in the same directory as path (default: True).
     :type write_metadata: bool
     :param export_tsv_embeddings: If True, will generate a tab-separated file of embeddings at the given path. This is
-    generally used to visualize embeddings by uploading to `TensorBoard Embedding Projector
-    <https://projector.tensorflow.org>`_. (default: True)
+            generally used to visualize embeddings by uploading to `TensorBoard Embedding Projector
+            <https://projector.tensorflow.org>`_. (default: True)
     :type export_tsv_embeddings: bool
     :return:
     :rtype:
 
-    Examples:
-
+    Examples
+    --------
     >>> import numpy as np
     >>> from bigraph.latent_features import TransE
     >>> from bigraph.utils import create_tensorboard_visualizations
@@ -277,6 +276,7 @@ def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=Tr
         # Saves a config file that TensorBoard will read during startup.
         projector.visualize_embeddings(tf.summary.FileWriter(loc), config)
 
+
 def write_metadata_tsv(loc, data):
     """Write Tensorboard metadata.tsv file.
 
@@ -308,13 +308,13 @@ def dataframe_to_triples(X, schema):
     :param X: Data being converted to triple
     :type X: pd.DataFrame
     :param schema: List of (subject, relation_name, object) tuples where subject and object are in the headers of the
-    data frame
+        data frame
     :type schema: list
     :return: Converted dataframe
     :rtype: np.array
 
-    Examples:
-
+    Examples
+    --------
     >>> import pandas as pd
     >>> import numpy as np
     >>> from bigraph.utils.model_utils import dataframe_to_triples
@@ -335,4 +335,3 @@ def dataframe_to_triples(X, schema):
     for s, p, o in schema:
         triples.extend([[si, p, oi] for si, oi in zip(X[s], X[o])])
     return np.array(triples)
-

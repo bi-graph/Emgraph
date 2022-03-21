@@ -22,17 +22,21 @@ NEO4J_FEATURES_PROPERTY = "features"
 DEFAULT_WEIGHT = np.float32(1)
 
 
-
 def separated(values, *, limit, stringify, sep):
-    """
-    Print ``limit`` values with a specified seperator.
+    """Print ``limit`` values with the specified seperator.
 
-    Args:
-        values (list): the values to print
-        limit (optional, int): the maximum number of values to print (None for no limit)
-        stringify (callable): a function to use to convert values to strings
-        sep (str): the separator to use between elements (and the "... (NNN more)" continuation)
+    :param values: List of values to print
+    :type values: list
+    :param limit: Maximum number of values to print (None for no limit)
+    :type limit: int, optional
+    :param stringify: Values to string converter function
+    :type stringify: callable
+    :param sep: Seperator to be used
+    :type sep: str
+    :return: Seperated values
+    :rtype: str
     """
+
     count = len(values)
     if limit is not None and count > limit:
         values = values[:limit]
@@ -43,32 +47,40 @@ def separated(values, *, limit, stringify, sep):
     rendered = sep.join(stringify(x) for x in values)
     return rendered + continuation
 
-def comma_sep(values, limit=20, stringify=repr):
-    """
-    Print up to ``limit`` values, comma separated.
 
-    Args:
-        values (list): the values to print
-        limit (optional, int): the maximum number of values to print (None for no limit)
-        stringify (callable): a function to use to convert values to strings
+def comma_sep(values, limit=20, stringify=repr):
+    """Print ``limit`` values with the specified seperator.
+
+    :param values: List of values to print
+    :type values: list
+    :param limit: Maximum number of values to print (None for no limit)
+    :type limit: int, optional
+    :param stringify: Values to string converter function
+    :type stringify: callable
+    :return: Seperated values
+    :rtype: str
     """
+
     return separated(values, limit=limit, stringify=stringify, sep=", ")
 
+
 def zero_sized_array(shape, dtype):
-    """
-    Create an empty array.
+    """Generate an empty array.
 
-    Args:
-        shape (tuple): a shape tuple that contains at least one 0
-
-    Returns:
-        A NumPy array that contains no elements, and has a small allocation.
+    :param shape: A tuple that contains at least one 0
+    :type shape: tuple
+    :param dtype: Data type object
+    :type dtype: object
+    :return: The converted array to the new shape
+    :rtype: np.array
     """
+
     if 0 not in shape:
         raise ValueError("shape: expected at least one zero, found {shape}")
 
     dtype = np.dtype(dtype)
     return np.broadcast_to(dtype.type(), shape)
+
 
 def _features_from_attributes(node_type, ids, values, dtype):
     # the size is the first element that has a length, or None if there's only None elements.
@@ -109,6 +121,7 @@ def _features_from_attributes(node_type, ids, values, dtype):
         )
 
     return matrix
+
 
 def _features_from_node_data(nodes, node_type_default, data, dtype):
     if isinstance(data, dict):
@@ -176,8 +189,6 @@ def _features_from_node_data(nodes, node_type_default, data, dtype):
         }
 
 
-
-
 SingleTypeNodeIdsAndFeatures = namedtuple(
     "SingleTypeNodeIdsAndFeatures", ["ids", "features"]
 )
@@ -186,22 +197,24 @@ SingleTypeNodeIdsAndFeatures = namedtuple(
 def _empty_node_info() -> SingleTypeNodeIdsAndFeatures:
     return SingleTypeNodeIdsAndFeatures([], [])
 
+
 def _fill_or_assign(df, column, default):
     if column in df.columns:
         df.fillna({column: default}, inplace=True)
     else:
         df[column] = default
 
+
 def from_networkx(
-    graph,
-    *,
-    node_type_attr,
-    edge_type_attr,
-    node_type_default,
-    edge_type_default,
-    edge_weight_attr,
-    node_features,
-    dtype,
+        graph,
+        *,
+        node_type_attr,
+        edge_type_attr,
+        node_type_default,
+        edge_type_default,
+        edge_weight_attr,
+        node_features,
+        dtype,
 ):
     import networkx as nx
 

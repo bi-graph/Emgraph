@@ -1,4 +1,3 @@
-
 from .EmbeddingModel import EmbeddingModel, register_model
 from bigraph.latent_features import constants as constants
 from bigraph.latent_features.initializers import DEFAULT_XAVIER_IS_UNIFORM
@@ -185,7 +184,6 @@ class DistMult(EmbeddingModel):
             :rtype: tf.Op
             """
 
-
         return tf.reduce_sum(e_s * e_p * e_o, axis=1)
 
     def fit(self, X, early_stopping=False, early_stopping_params={},
@@ -323,7 +321,6 @@ class DistMult(EmbeddingModel):
         __doc__ = super().predict.__doc__  # NOQA
         return super().predict(X, from_idx=from_idx)
 
-
     def calibrate(self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50):
         """Calibrate predictions
 
@@ -432,9 +429,8 @@ class DistMult(EmbeddingModel):
         Positive and negative calibration: 0.20434617882733366
         Positive only calibration: 0.22597599585144656
         """
-        __doc__ = super().calibrate.__doc__ # NOQA
+        __doc__ = super().calibrate.__doc__  # NOQA
         super().calibrate(X_pos, X_neg, positive_base_rate, batches_count, epochs)
-
 
     def predict_proba(self, X):
         """Predicts probabilities using the Platt scaling model (after calibration).
@@ -446,6 +442,5 @@ class DistMult(EmbeddingModel):
         :return: Probability of each triple to be true according to the Platt scaling calibration.
         :rtype: ndarray, shape [n, 3]
         """
-        __doc__ = super().predict_proba.__doc__ # NOQA
+        __doc__ = super().predict_proba.__doc__  # NOQA
         return super().predict_proba(X)
-

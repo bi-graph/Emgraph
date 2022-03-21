@@ -1,4 +1,3 @@
-
 import numpy as np
 import tensorflow as tf
 import logging
@@ -189,11 +188,11 @@ class ConvKB(EmbeddingModel):
             self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
                                            shape=[len(self.ent_to_idx), self.k],
                                            initializer=self.initializer.get_entity_initializer(
-                                           len(self.ent_to_idx), self.k), dtype=tf.float32)
+                                               len(self.ent_to_idx), self.k), dtype=tf.float32)
             self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
                                            shape=[len(self.rel_to_idx), self.k],
                                            initializer=self.initializer.get_relation_initializer(
-                                           len(self.rel_to_idx), self.k), dtype=tf.float32)
+                                               len(self.rel_to_idx), self.k), dtype=tf.float32)
 
         else:
 
@@ -204,7 +203,7 @@ class ConvKB(EmbeddingModel):
             self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
                                            shape=[len(self.rel_to_idx), self.internal_k],
                                            initializer=self.initializer.get_relation_initializer(
-                                           len(self.rel_to_idx), self.internal_k), dtype=tf.float32)
+                                               len(self.rel_to_idx), self.internal_k), dtype=tf.float32)
 
         num_filters = self.embedding_model_params['num_filters']
         filter_sizes = self.embedding_model_params['filter_sizes']
@@ -292,7 +291,6 @@ class ConvKB(EmbeddingModel):
         params_dict['dense_B'] = self.sess_train.run(self.dense_B)
         self.trained_model_params = params_dict
 
-
     def _load_model_from_trained_params(self):
         """Load the model from trained params.
         While restoring make sure that the order of loaded parameters match the saved order.
@@ -336,7 +334,6 @@ class ConvKB(EmbeddingModel):
 
         self.dense_W = tf.Variable(self.trained_model_params['dense_W'], dtype=tf.float32)
         self.dense_B = tf.Variable(self.trained_model_params['dense_B'], dtype=tf.float32)
-
 
     def _fn(self, e_s, e_p, e_o):
         r"""The ConvKB scoring function.
@@ -463,4 +460,3 @@ class ConvKB(EmbeddingModel):
 
         super().fit(X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
                     tensorboard_logs_path=tensorboard_logs_path)
-

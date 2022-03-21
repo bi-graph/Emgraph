@@ -1,7 +1,7 @@
-
 from .ComplEx import ComplEx, register_model
 from bigraph.latent_features import constants as constants
 from bigraph.latent_features.initializers import DEFAULT_XAVIER_IS_UNIFORM
+
 
 @register_model("HolE", ["negative_corruption_entities"])
 class HolE(ComplEx):
@@ -33,6 +33,7 @@ class HolE(ComplEx):
     >>> model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
     [[0.009254738], [0.00023370088]]
    """
+
     def __init__(self,
                  k=constants.DEFAULT_EMBEDDING_SIZE,
                  eta=constants.DEFAULT_ETA,

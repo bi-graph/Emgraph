@@ -11,7 +11,7 @@ from bigraph.latent_features.optimizers import OPTIMIZER_REGISTRY, SGDOptimizer
 from bigraph.latent_features.initializers import INITIALIZER_REGISTRY, DEFAULT_XAVIER_IS_UNIFORM
 from bigraph.evaluation import generate_corruptions_for_fit, to_idx, generate_corruptions_for_eval, \
     hits_at_n_score, mrr_score
-from bigraph.datasets import BigraphDatasetAdapter, NumpyDatasetAdapter
+from bigraph.datasets import BigraphBaseDatasetAdaptor, NumpyDatasetAdapter
 from functools import partial
 from bigraph.latent_features import constants as constants
 import time
@@ -35,7 +35,6 @@ def set_entity_threshold(threshold):
 
     global ENTITY_THRESHOLD
     ENTITY_THRESHOLD = threshold
-
 
 
 def reset_entity_threshold():
@@ -70,6 +69,7 @@ def register_model(name, external_params=None, class_params=None):
         return class_handle
 
     return insert_in_registry
+
 
 # todo: rename this
 @tf.custom_gradient
@@ -311,7 +311,6 @@ class EmbeddingModel(abc.ABC):
         logger.error('_fn is a placeholder function in an abstract class')
         NotImplementedError("This function is a placeholder in an abstract class")
 
-
     def get_hyperparameter_dict(self):
         """Return the hyperparameters of the model.
 
@@ -419,7 +418,6 @@ class EmbeddingModel(abc.ABC):
         # (We use tf.variable for future - to load and continue training)
         self.rel_emb = tf.Variable(self.trained_model_params[1], dtype=tf.float32)
 
-
     def get_embeddings(self, entities, embedding_type='entity'):
         """Get the embeddings of entities or relations.
 
@@ -496,7 +494,6 @@ class EmbeddingModel(abc.ABC):
 
         emb = tf.nn.embedding_lookup(self.ent_emb, remapping)
         return emb
-
 
     def _initialize_parameters(self):
         """Initialize parameters of the model.
@@ -707,7 +704,7 @@ class EmbeddingModel(abc.ABC):
                 self.train_dataset_handle.set_data(self.x_valid, "valid", mapped_status=True)
                 self.eval_dataset_handle = self.train_dataset_handle
 
-            elif isinstance(self.x_valid, BigraphDatasetAdapter):
+            elif isinstance(self.x_valid, BigraphBaseDatasetAdaptor):
                 # this assumes that the validation data has already been set in the adapter
                 self.eval_dataset_handle = self.x_valid
             else:
@@ -767,7 +764,6 @@ class EmbeddingModel(abc.ABC):
 
         # initialize evaluation graph in validation mode i.e. to use validation set
         self._initialize_eval_graph("valid")
-
 
     def _perform_early_stopping_test(self, epoch):
         """Performs regular validation checks and stop early if the criteria is achieved.
@@ -1013,7 +1009,7 @@ class EmbeddingModel(abc.ABC):
                 # Adapt the numpy data in the internal format - to generalize
                 self.train_dataset_handle = NumpyDatasetAdapter()
                 self.train_dataset_handle.set_data(X, "train", focusE_numeric_edge_values=focusE_numeric_edge_values)
-            elif isinstance(X, BigraphDatasetAdapter):
+            elif isinstance(X, BigraphBaseDatasetAdaptor):
                 self.train_dataset_handle = X
             else:
                 msg = 'Invalid type for input X. Expected ndarray/AmpligraphDataset object, got {}'.format(type(X))
@@ -1568,7 +1564,7 @@ class EmbeddingModel(abc.ABC):
                         positives_among_sub_corruptions_ranked_higher - \
                         positives_among_obj_corruptions_ranked_higher
 
-    #todo: change the comparision to comparison
+    # todo: change the comparision to comparison
     def perform_comparision(self, score_corr, score_pos):
         """Compare the scores of corruptions and positives using the specified strategy.
 
@@ -1598,13 +1594,12 @@ class EmbeddingModel(abc.ABC):
             # returns: 3 i.e. 1 + (4/2) i.e. only 1  corruption is having score greater than positive
             # and 4 corruptions are having same (middle rank is 4/2 = 1), so 1+2=3
             return tf.reduce_sum(tf.cast(score_corr > score_pos, tf.int32)) + \
-                tf.cast(tf.math.ceil(tf.reduce_sum(tf.cast(score_corr == score_pos, tf.int32)) / 2),
-                        tf.int32)
+                   tf.cast(tf.math.ceil(tf.reduce_sum(tf.cast(score_corr == score_pos, tf.int32)) / 2),
+                           tf.int32)
         else:
             # returns: 5 i.e. 5 corruptions are having score >= positive
             # as you can see this strategy returns the worst rank (pessimistic)
             return tf.reduce_sum(tf.cast(score_corr >= score_pos, tf.int32))
-
 
     def end_evaluation(self):
         """End the evaluation and close the Tensorflow session.
@@ -1617,7 +1612,6 @@ class EmbeddingModel(abc.ABC):
         self.is_filtered = False
 
         self.eval_config = {}
-
 
     def get_ranks(self, dataset_handle):
         """Used by evaluate_predictions to get the ranks for evaluation.
@@ -2063,4 +2057,3 @@ class EmbeddingModel(abc.ABC):
         with tf.Session(config=self.tf_config) as sess:
             sess.run(tf.global_variables_initializer())
             return sess.run(probas)
-

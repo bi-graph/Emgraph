@@ -5,16 +5,18 @@ import sys
 from setuptools import setup, find_packages, Command
 from shutil import rmtree
 
+from bigraph import get_version
+
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-NAME = "bigraph"
-DESCRIPTION = "Python package for link prediction in bipartite graphs and networks"
+NAME = "Bigraph"
+DESCRIPTION = "Bigraph is a Python toolkit for graph embedding and link prediction."
 
 PLATFORMS = ["Linux", "Mac OSX", "Windows", "Unix"]
-VERSION = "0.1rc7"
+VERSION = get_version()
 AUTHORS = {
     "Soran": ("Soran Ghadri", "soran.gdr.cs@gmail.com"),
     "Taleb": ("Taleb Zarhesh", "taleb.zarhesh@gmail.com"),
@@ -24,16 +26,12 @@ MAINTAINER = "BiGraph Developers"
 MAINTAINER_EMAIL = "soran.gdr.cs@gmail.com"
 
 KEYWORDS = [
-    "Networks",
-    "Graph Theory",
-    "Mathematics",
+    "Graph Embedding",
     "network",
     "graph",
     "bipartite graph",
     "bigraph",
     "link prediction",
-    "discrete mathematics",
-    "math",
 ]
 
 CLASSIFIERS = [
@@ -46,6 +44,7 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Scientific/Engineering :: Information Analysis",
@@ -60,7 +59,6 @@ try:
         long_description = '\n' + f.read()
 except FileNotFoundError:
     long_description = readme
-
 
 # Load the package's __version__.py module as a dictionary.
 about = {}

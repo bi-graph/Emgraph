@@ -7,7 +7,6 @@ from bigraph.preprocessing import get_adjacents
 from bigraph.algorithms import _jaccard, _adamic_adar, _common_neighbors, _preferential_attachment, _katz_similarity
 
 
-
 def jc_predict(G: object) -> dict:
     """
     Compute the Jaccard-Needham dissimilarity between two 1-D arrays.

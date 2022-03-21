@@ -1,5 +1,3 @@
-
-
 import tensorflow as tf
 import logging
 
@@ -19,6 +17,7 @@ def sum_pooling(embeddings):
 
     return tf.reduce_sum(embeddings, axis=1)
 
+
 def avg_pooling(embeddings):
     """
     Avg pooling of all embeddings along neighbor axis.
@@ -29,6 +28,7 @@ def avg_pooling(embeddings):
     :rtype: tf.Operation
     """
     return tf.reduce_mean(embeddings, axis=1)
+
 
 def max_pooling(embeddings):
     """

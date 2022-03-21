@@ -16,11 +16,11 @@ BIGRAPH_ENV_NAME = 'BIGRAPH_DATA_HOME'
 DatasetMetadata = namedtuple('DatasetMetadata', ['dataset_name', 'filename', 'url', 'train_name', 'valid_name',
                                                  'test_name', 'train_checksum', 'valid_checksum', 'test_checksum'])
 
-#todo: try this as well for the datasets: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/datasets.py
-#todo: add generators: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/generator.py
-#todo: use this structure for the core graph class: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/kgcontroller.py
-def _clean_data(X, return_idx=False):
 
+# todo: try this as well for the datasets: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/datasets.py
+# todo: add generators: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/generator.py
+# todo: use this structure for the core graph class: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/kgcontroller.py
+def _clean_data(X, return_idx=False):
     if X["train"].shape[1] == 3:
         columns = ['s', 'p', 'o']
     else:
@@ -46,6 +46,7 @@ def _clean_data(X, return_idx=False):
     else:
         return filtered_X
 
+
 def _get_data_home(data_home=None):
     if data_home is None:
         data_home = os.environ.get(BIGRAPH_ENV_NAME, os.path.join(os.getcwd(), 'bigraph_datasets'))
@@ -56,6 +57,7 @@ def _get_data_home(data_home=None):
     logger.debug('data_home is set to {}'.format(data_home))
     return data_home
 
+
 def _md5(file_path):
     md5hash = hashlib.md5()
     chunk_size = 4096
@@ -65,6 +67,7 @@ def _md5(file_path):
             md5hash.update(content_buffer)
             content_buffer = f.read(chunk_size)
     return md5hash.hexdigest()
+
 
 def _unzip_dataset(remote, source, destination, check_md5hash=False):
     # TODO - add error checking
@@ -85,13 +88,14 @@ def _unzip_dataset(remote, source, destination, check_md5hash=False):
                 raise IOError(msg)
     os.remove(source)
 
-def _fetch_remote_data(remote, download_dir, data_home, check_md5hash=False):
 
+def _fetch_remote_data(remote, download_dir, data_home, check_md5hash=False):
     file_path = '{}.zip'.format(download_dir)
     if not Path(file_path).exists():
         urllib.request.urlretrieve(remote.url, file_path)
         # TODO - add error checking
     _unzip_dataset(remote, file_path, data_home, check_md5hash)
+
 
 def _fetch_dataset(remote, data_home=None, check_md5hash=False):
     data_home = _get_data_home(data_home)
@@ -104,6 +108,7 @@ def _fetch_dataset(remote, data_home=None, check_md5hash=False):
 
         _fetch_remote_data(remote, dataset_dir, data_home, check_md5hash)
     return dataset_dir
+
 
 def _add_reciprocal_relations(tri_df):
     """
@@ -165,13 +170,13 @@ def load_from_csv(directory_path, file_name, sep='\t', header=None, add_reciproc
 
     return df.values
 
-def _load_dataset(dataset_metadata, data_home=None, check_md5hash=False, add_reciprocal_rels=False):
 
+def _load_dataset(dataset_metadata, data_home=None, check_md5hash=False, add_reciprocal_rels=False):
     if dataset_metadata.dataset_name is None:
         if dataset_metadata.url is None:
             raise ValueError('The dataset name or url must be provided to load a dataset.')
         dataset_metadata.dataset_name = dataset_metadata.url[dataset_metadata.url.rfind('/') + 1:dataset_metadata
-                                                             .url.rfind('.')]
+            .url.rfind('.')]
     dataset_path = _fetch_dataset(dataset_metadata, data_home, check_md5hash)
 
     train = load_from_csv(dataset_path,
@@ -188,8 +193,6 @@ def _load_dataset(dataset_metadata, data_home=None, check_md5hash=False, add_rec
 
 
 def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
-
-
     wn18 = DatasetMetadata(
         dataset_name='wn18',
         filename='wn18.zip',
@@ -209,8 +212,6 @@ def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
 
 
 def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
-
-
     wn18rr = DatasetMetadata(
         dataset_name='wn18RR',
         filename='wn18RR.zip',
@@ -236,7 +237,6 @@ def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fals
 
 
 def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
-
     FB15K = DatasetMetadata(
         dataset_name='fb15k',
         filename='fb15k.zip',
@@ -256,7 +256,6 @@ def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
 
 
 def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
-
     fb15k_237 = DatasetMetadata(
         dataset_name='fb15k-237',
         filename='fb15k-237.zip',
@@ -280,8 +279,8 @@ def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=F
                              check_md5hash=check_md5hash,
                              add_reciprocal_rels=add_reciprocal_rels)
 
-def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
 
+def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
     yago3_10 = DatasetMetadata(
         dataset_name='YAGO3-10',
         filename='YAGO3-10.zip',
@@ -307,7 +306,6 @@ def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fa
 
 
 def load_wn11(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
-
     wn11 = DatasetMetadata(
         dataset_name='wordnet11',
         filename='wordnet11.zip',
@@ -343,7 +341,6 @@ def load_wn11(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
 
 
 def load_fb13(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
-
     fb13 = DatasetMetadata(
         dataset_name='freebase13',
         filename='freebase13.zip',
@@ -378,6 +375,7 @@ def load_fb13(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
     else:
         return dataset
 
+
 def load_all_datasets(check_md5hash=False):
     load_wn18(check_md5hash)
     load_wn18rr(check_md5hash)
@@ -389,7 +387,6 @@ def load_all_datasets(check_md5hash=False):
 
 
 def load_from_rdf(folder_name, file_name, rdf_format='nt', data_home=None, add_reciprocal_rels=False):
-
     logger.debug('Loading rdf data from {}.'.format(file_name))
     data_home = _get_data_home(data_home)
     from rdflib import Graph
@@ -402,8 +399,8 @@ def load_from_rdf(folder_name, file_name, rdf_format='nt', data_home=None, add_r
 
     return triples.values
 
-def load_from_ntriples(folder_name, file_name, data_home=None, add_reciprocal_rels=False):
 
+def load_from_ntriples(folder_name, file_name, data_home=None, add_reciprocal_rels=False):
     logger.debug('Loading rdf ntriples from {}.'.format(file_name))
     data_home = _get_data_home(data_home)
     df = pd.read_csv(os.path.join(data_home, folder_name, file_name),
@@ -423,7 +420,6 @@ def load_from_ntriples(folder_name, file_name, data_home=None, add_reciprocal_re
 
 
 def generate_focusE_dataset_splits(dataset, split_test_into_top_bottom=True, split_threshold=0.1):
-
     dataset['train_numeric_values'] = dataset['train'][:, 3].astype(np.float32)
     dataset['valid_numeric_values'] = dataset['valid'][:, 3].astype(np.float32)
     dataset['test_numeric_values'] = dataset['test'][:, 3].astype(np.float32)
@@ -449,7 +445,6 @@ def generate_focusE_dataset_splits(dataset, split_test_into_top_bottom=True, spl
 
 
 def load_onet20k(check_md5hash=False, clean_unseen=True, split_test_into_top_bottom=True, split_threshold=0.1):
-
     onet20k = DatasetMetadata(
         dataset_name='onet20k',
         filename='onet20k.zip',
@@ -472,7 +467,6 @@ def load_onet20k(check_md5hash=False, clean_unseen=True, split_test_into_top_bot
 
 
 def load_ppi5k(check_md5hash=False, clean_unseen=True, split_test_into_top_bottom=True, split_threshold=0.1):
-
     ppi5k = DatasetMetadata(
         dataset_name='ppi5k',
         filename='ppi5k.zip',
@@ -495,7 +489,6 @@ def load_ppi5k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
 
 
 def load_nl27k(check_md5hash=False, clean_unseen=True, split_test_into_top_bottom=True, split_threshold=0.1):
-
     nl27k = DatasetMetadata(
         dataset_name='nl27k',
         filename='nl27k.zip',
@@ -518,7 +511,6 @@ def load_nl27k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
 
 
 def load_cn15k(check_md5hash=False, clean_unseen=True, split_test_into_top_bottom=True, split_threshold=0.1):
-
     cn15k = DatasetMetadata(
         dataset_name='cn15k',
         filename='cn15k.zip',

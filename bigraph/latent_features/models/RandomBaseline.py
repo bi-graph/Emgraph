@@ -1,8 +1,8 @@
-
 import tensorflow as tf
 
 from .EmbeddingModel import EmbeddingModel, register_model
 from bigraph.latent_features import constants as constants
+
 
 @register_model("RandomBaseline")
 class RandomBaseline(EmbeddingModel):
@@ -289,4 +289,3 @@ class RandomBaseline(EmbeddingModel):
         """
         __doc__ = super().calibrate.__doc__  # NOQA
         return super().predict_proba(X)
-

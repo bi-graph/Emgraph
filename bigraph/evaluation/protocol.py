@@ -8,9 +8,8 @@ import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
 
-
 from ..evaluation import mrr_score, hits_at_n_score, mr_score
-from ..datasets import BigraphDatasetAdapter, NumpyDatasetAdapter, OneToNDatasetAdapter
+from ..datasets import BigraphBaseDatasetAdaptor, NumpyDatasetAdapter, OneToNDatasetAdapter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -44,8 +43,8 @@ def _train_test_split_no_unseen_fast(X, test_size=100, seed=0, allow_duplication
     :return: Training set, test set
     :rtype: ndarray, size[n, 3], ndarray, size[n, 3]
 
-    Examples:
-
+    Examples
+    --------
     >>> import numpy as np
     >>> from bigraph.evaluation import train_test_split_no_unseen
     >>> # load your dataset to X
@@ -193,8 +192,8 @@ def _train_test_split_no_unseen_old(X, test_size=100, seed=0, allow_duplication=
     :return: Training set, test set
     :rtype: ndarray, size[n, 3], ndarray, size[n, 3]
 
-    Examples:
-
+    Examples
+    --------
     >>> import numpy as np
     >>> from bigraph.evaluation import train_test_split_no_unseen
     >>> # load your dataset to X
@@ -329,8 +328,8 @@ def train_test_split_no_unseen(X, test_size=100, seed=0, allow_duplication=False
     :return: Training set, test set
     :rtype: ndarray, size[n, 3], ndarray, size[n, 3]
 
-    Examples:
-
+    Examples
+    --------
     >>> import numpy as np
     >>> from bigraph.evaluation import train_test_split_no_unseen
     >>> # load your dataset to X
@@ -768,7 +767,8 @@ def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_un
         In other cases, it returns [n] i.e. rank against the specified corruptions.
     :rtype: ndarray, shape [n] or [n,2] depending on the value of corrupt_side.
 
-    Examples:
+    Examples
+    --------
     >>> import numpy as np
     >>> from bigraph.datasets import load_wn18
     >>> from bigraph.latent_features import ComplEx
@@ -821,7 +821,7 @@ def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_un
             dataset_handle.use_mappings(model.rel_to_idx, model.ent_to_idx)
             dataset_handle.set_data(X, 'test')
 
-        elif isinstance(X, BigraphDatasetAdapter):
+        elif isinstance(X, BigraphBaseDatasetAdaptor):
             dataset_handle = X
         else:
             msg = "X must be either a numpy array or an AmpligraphDatasetAdapter."
@@ -836,7 +836,7 @@ def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_un
                     filter_triples = filter_unseen_entities(filter_triples, model, verbose=verbose)
                 dataset_handle.set_filter(filter_triples)
                 model.set_filter_for_eval()
-            elif isinstance(X, BigraphDatasetAdapter):
+            elif isinstance(X, BigraphBaseDatasetAdaptor):
                 if not isinstance(filter_triples, bool):
                     raise Exception('Expected a boolean type')
                 if filter_triples is True:
@@ -909,6 +909,7 @@ def check_filter_size(model, corruption_entities):
     if ent_for_corruption_size >= TOO_MANY_ENTITIES_TH:
         warnings.warn(warn_msg % ent_for_corruption_size)
         logger.warning(warn_msg, ent_for_corruption_size)
+
 
 def filter_unseen_entities(X, model, verbose=False):
     """Filter unseen entities in the test set.
@@ -1045,6 +1046,7 @@ class ParamHistory(object):
     Used to evaluates whether a particular parameter configuration has already been previously seen or not.
     To achieve that, we hash each parameter configuration, removing unused parameters first.
     """
+
     def __init__(self):
         """The param history is a set of hashes."""
         self.param_hash_history = set()
@@ -1499,4 +1501,3 @@ def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid,
         }
 
     return best_model, best_params, best_mrr_train, ranks_test, test_evaluation, experimental_history
-

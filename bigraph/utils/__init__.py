@@ -1,4 +1,3 @@
-
 """This module contains utility functions for neural knowledge graph embedding models.
 
 """

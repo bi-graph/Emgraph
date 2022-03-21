@@ -1,4 +1,3 @@
-
 import tensorflow as tf
 import abc
 import logging
@@ -26,6 +25,7 @@ DEFAULT_END_LR = 1e-8
 
 DEFAULT_SINE = False
 
+
 def register_optimizer(name, external_params=[], class_params={}):
     """
     A wrapper for saving the wrapped optimizer in a dictionary.
@@ -39,6 +39,7 @@ def register_optimizer(name, external_params=[], class_params={}):
     :return: Class object
     :rtype: object
     """
+
     def insert_in_registry(class_handle):
         OPTIMIZER_REGISTRY[name] = class_handle
         class_handle.name = name
@@ -48,7 +49,8 @@ def register_optimizer(name, external_params=[], class_params={}):
 
     return insert_in_registry
 
-#todo: add more from https://github.com/tensorflow/tensorflow/tree/master/tensorflow/python/keras/optimizer_v2
+
+# todo: add more from https://github.com/tensorflow/tensorflow/tree/master/tensorflow/python/keras/optimizer_v2
 class Optimizer(abc.ABC):
     """
     Abstract class for the optimizers.
@@ -75,7 +77,6 @@ class Optimizer(abc.ABC):
         self._optimizer_params = {}
         self._init_hyperparams(optimizer_params)
         self.batches_count = batches_count
-
 
     def _display_params(self):
         """
@@ -236,6 +237,7 @@ class AdamOptimizer(Optimizer):
         """
         return
 
+
 @register_optimizer("momentum", ['lr', 'momentum'])
 class MomentumOptimizer(Optimizer):
     """
@@ -277,7 +279,6 @@ class MomentumOptimizer(Optimizer):
         if self.verbose:
             self._display_params()
 
-
     def minimize(self, loss):
         """
         Create an optimizer to minimize the model loss.
@@ -307,6 +308,7 @@ class MomentumOptimizer(Optimizer):
         :rtype: -
         """
         return
+
 
 @register_optimizer("sgd", ['lr', 'decay_cycle', 'end_lr', 'sine_decay', 'expand_factor', 'decay_lr_rate'])
 class SGDOptimizer(Optimizer):
@@ -358,7 +360,6 @@ class SGDOptimizer(Optimizer):
 
         if self.verbose:
             self._display_params()
-
 
     def minimize(self, loss):
         """
@@ -439,7 +440,7 @@ class SGDOptimizer(Optimizer):
             if epoch_num % (self.next_cycle_epoch) == 0 and batch_num == 1:
                 if self.current_lr > self.end_lr:
                     self.next_cycle_epoch = self.decay_cycle_rate + \
-                        ((self.next_cycle_epoch - 1) * self.decay_cycle_expand_factor) + 1
+                                            ((self.next_cycle_epoch - 1) * self.decay_cycle_expand_factor) + 1
                     self.current_lr = self.current_lr / self.decay_lr_rate
 
                     if self.current_lr < self.end_lr:

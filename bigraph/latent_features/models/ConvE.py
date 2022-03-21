@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import tensorflow as tf
 import logging
@@ -25,7 +23,7 @@ logger.setLevel(logging.DEBUG)
 class ConvE(EmbeddingModel):
     r""" Convolutional 2D KG Embeddings
 
-    The ConvE model :cite:`DettmersMS018`.
+    The ConvE model :title:`DettmersMS018`.
 
     ConvE uses convolutional layers.
     :math:`g` is a non-linear activation function, :math:`\ast` is the linear convolution operator,
@@ -308,7 +306,6 @@ class ConvE(EmbeddingModel):
 
         # run the dependencies
         with tf.control_dependencies(dependencies):
-
             # look up embeddings from input training triples
             e_s_pos, e_p_pos, e_o_pos = self._lookup_embeddings(self.x_pos_tf)
 
@@ -342,7 +339,6 @@ class ConvE(EmbeddingModel):
             bn_dict = {}
 
             for scope in ['batchnorm_input', 'batchnorm_conv', 'batchnorm_dense']:
-
                 variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
                 variables = [x for x in variables if 'Adam' not in x.name]  # Filter out any Adam variables
 
@@ -572,7 +568,7 @@ class ConvE(EmbeddingModel):
             elif isinstance(X, OneToNDatasetAdapter):
                 self.train_dataset_handle = X
             else:
-                msg = 'Invalid type for input X. Expected numpy.array or OneToNDatasetAdapter object, got {}'\
+                msg = 'Invalid type for input X. Expected numpy.array or OneToNDatasetAdapter object, got {}' \
                     .format(type(X))
                 logger.error(msg)
                 raise ValueError(msg)
@@ -889,7 +885,6 @@ class ConvE(EmbeddingModel):
             scores = []
 
             for i in tqdm(range(self.eval_dataset_handle.get_size('test'))):
-
                 score = sess.run(self.score_positive)
                 scores.append(score[0])
 
@@ -949,7 +944,6 @@ class ConvE(EmbeddingModel):
         self._initialize_eval_graph()
 
         with tf.Session(config=self.tf_config) as sess:
-
             sess.run(tf.tables_initializer())
             sess.run(tf.global_variables_initializer())
             sess.run(self.set_training_false)
@@ -992,7 +986,6 @@ class ConvE(EmbeddingModel):
 
         # Scores for all triples
         self.sigmoid_scores = tf.sigmoid(tf.squeeze(self._fn(e_s, e_p, e_o)))
-
 
     def _get_subject_ranks(self, dataset_handle, corruption_batch_size=None):
         """Internal function for obtaining subject ranks.

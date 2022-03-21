@@ -1,6 +1,5 @@
-
 import numpy as np
-from ..datasets import BigraphDatasetAdapter
+from ..datasets import BigraphBaseDatasetAdaptor
 import tempfile
 import sqlite3
 import time
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class SQLiteAdapter(BigraphDatasetAdapter):
+class SQLiteAdapter(BigraphBaseDatasetAdaptor):
     '''SQLLite adapter
     '''
 
@@ -126,7 +125,6 @@ class SQLiteAdapter(BigraphDatasetAdapter):
             conn.rollback()
         cur.close()
         conn.close()
-
 
     def use_mappings(self, rel_to_idx, ent_to_idx):
         """Use an existing mapping with the datasource.
@@ -322,7 +320,7 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         if (np.shape(data)[1]) != 3:
             msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
             raise ValueError(msg)
-    
+
     def set_data(self, dataset, dataset_type=None, mapped_status=False, persistence_status=False):
         """set the dataset based on the type.
             Note: If you pass the same dataset type it will be appended
@@ -385,7 +383,6 @@ class SQLiteAdapter(BigraphDatasetAdapter):
         if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
             self.map_data()
 
-    
     def get_participating_entities(self, x_triple):
         """Return the entities included in the relation ?-p-o and s-p-?
 

@@ -12,23 +12,23 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('../../bigraph'))
 import sphinx_rtd_theme
 from datetime import datetime
-from pygments.styles.friendly import FriendlyStyle
-
+# from pygments.styles.friendly import FriendlyStyle
 
 # -- Project information -----------------------------------------------------
 
 project = 'Bigraph'
-copyright = f"2019-{datetime.now().year}, Soran Ghadri"
-author = 'Soran Ghadri'
+copyright = f"2019-{datetime.now().year}, Soran Ghaderi"
+author = 'Soran Ghaderi'
 
 
-FriendlyStyle.background_color = "#f3f2f1"
+# FriendlyStyle.background_color = "#f3f2f1"
 
 # The full version, including alpha/beta/rc tags
-release = 'rc1'
+
+release = bigraph.get_version()
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,7 +40,6 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
     "sphinx.ext.autosummary",
-    "sphinx.ext.napoleon",
     'sphinx.ext.mathjax',
 ]
 

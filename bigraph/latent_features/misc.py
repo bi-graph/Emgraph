@@ -9,6 +9,7 @@ DEBUG = True
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
 def get_entity_triples(entity, graph):
     """
     Return all triples of the `graph` where `entity` is a part of.

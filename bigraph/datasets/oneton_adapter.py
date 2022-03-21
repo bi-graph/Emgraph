@@ -1,7 +1,7 @@
-
 import numpy as np
 from ..datasets import NumpyDatasetAdapter
 import logging
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -64,7 +64,6 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
         self.output_mapping = None
         self.output_onehot = {}
         self.low_memory = low_memory
-
 
     def set_filter(self, filter_triples, mapped_status=False):
         """Set filters for generating the evaluation batch.
@@ -278,14 +277,13 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
 
             if not self.verify_outputs(dataset_type, use_filter=use_filter, unique_pairs=unique_pairs):
                 # Verifies that onehot outputs are as expected given filter and unique_pair settings
-                msg = 'Generating one-hot outputs for {} [filtered: {}, unique_pairs: {}]'\
+                msg = 'Generating one-hot outputs for {} [filtered: {}, unique_pairs: {}]' \
                     .format(dataset_type, use_filter, unique_pairs)
                 logger.info(msg)
                 self.generate_outputs(dataset_type, use_filter=use_filter, unique_pairs=unique_pairs)
 
             # Yield batches
             for i in range(batches_count):
-
                 out = np.int32(X[(i * batch_size):((i + 1) * batch_size), :])
                 out_onehot = self.output_onehot[dataset_type][(i * batch_size):((i + 1) * batch_size), :]
 

@@ -1,9 +1,8 @@
-
 import numpy as np
-from ..datasets import BigraphDatasetAdapter, SQLiteAdapter
+from ..datasets import BigraphBaseDatasetAdaptor, SQLiteAdapter
 
 
-class NumpyDatasetAdapter(BigraphDatasetAdapter):
+class NumpyDatasetAdapter(BigraphBaseDatasetAdaptor):
 
     def __init__(self):
         """Initialize the NumpyDatasetAdapter variables
@@ -12,7 +11,6 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         super(NumpyDatasetAdapter, self).__init__()
         # NumpyDatasetAdapter uses SQLAdapter to filter (if filters are set)
         self.filter_adapter = None
-
 
     def generate_mappings(self, use_all=False):
         """Generate mappings from either train set or use all dataset to generate mappings.
@@ -118,7 +116,6 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
 
             yield output
 
-
     def map_data(self, remap=False):
         """Map the data to the mappings of ent_to_idx and rel_to_idx
 
@@ -139,7 +136,6 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
                                            rel_to_idx=self.rel_to_idx)
                 self.mapped_status[key] = True
 
-
     def _validate_data(self, data):
         """Validate the data.
 
@@ -156,7 +152,6 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         if (np.shape(data)[1]) != 3:
             msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
             raise ValueError(msg)
-
 
     def set_data(self, dataset, dataset_type=None, mapped_status=False, focusE_numeric_edge_values=None):
         """set the dataset based on the type.
@@ -193,7 +188,6 @@ class NumpyDatasetAdapter(BigraphDatasetAdapter):
         # If the concept-idx mappings are present, then map the passed dataset
         if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
             self.map_data()
-
 
     def set_filter(self, filter_triples, mapped_status=False):
         """Set filters for generating the evaluation batch.

@@ -1,25 +1,22 @@
-# Copyright (C) 2017-2021 Bigraph developers
+# Copyright (C) 2017-2022 Bigraph developers
 # Author: Soran Ghadri
 # Contact: soran.gdr.cs@gmail.com
 
-"""A package for link prediction in bipartite networks."""
+"""Bigraph is a Python toolkit for graph embedding and link prediction."""
 
-__all__ = [
-    'evaluation',
-    'preprocessing',
-    'predict'
-]
+import logging.config
+import pkg_resources
 
-# from bigraph.predict import aa_predict, jc_predict, pa_predict, cn_predict
+import tensorflow as tf
 
-# ModuleNotFoundError: No module named 'algorithms'
-# import bigraph.algorithms
-# from bigraph.algorithms import *
-# import bigraph.predict
-# from bigraph.predict import *
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-# import bigraph.preprocessing
-# from bigraph.preprocessing import *
 
-# import bigraph.evaluation
-# from bigraph.evaluation import *
+def get_version() -> str:
+    __version__ = '1.0rc1'
+    return __version__
+
+
+__all__ = ['preprocessing', 'predict', 'datasets', 'latent_features', 'evaluation', 'utils']
+
+# logging.config.fileConfig(pkg_resources.resource_filename(__name__, 'logger.conf'), disable_existing_loggers=False)
