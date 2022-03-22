@@ -500,3 +500,328 @@ def test_train_test_split_fast():
 
     assert unique_entities_train == unique_entities and unique_rels_train == unique_rels
 
+def test_remove_unused_params():
+    params1 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+    param = _remove_unused_params(params1)
+
+    assert param["loss_params"] == {}
+    assert param["embedding_model_params"] == {}
+    assert param["regularizer_params"] == {
+        "p": 1,
+        "lambda": 1e-5
+    }
+    assert param["optimizer_params"] == {
+        "lr": 0.001
+    }
+
+    params2 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "self_adversarial",
+        "loss_params": {
+            "margin": 2
+        },
+        "regularizer": None,
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "unknown_model"
+    }
+
+    param = _remove_unused_params(params2)
+
+    assert param["loss_params"] == {
+        "margin": 2
+    }
+    assert param["regularizer_params"] == {}
+    assert param["optimizer_params"] == {
+        "lr": 0.001
+    }
+
+
+def test_flatten_nested_keys():
+    params = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    flattened_params = _flatten_nested_keys(params)
+
+    expected = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        ("loss_params", "margin"): 2,
+        "regularizer": "LP",
+        ("regularizer_params", "p"): 1,
+        ("regularizer_params", "lambda"): 1e-5,
+        "optimizer": "adam",
+        ("optimizer_params", "lr"): 0.001,
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    assert flattened_params == expected
+
+
+def test_unflatten_nested_keys():
+    flattened_params = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        ("loss_params", "margin"): 2,
+        "regularizer": "LP",
+        ("regularizer_params", "p"): 1,
+        ("regularizer_params", "lambda"): 1e-5,
+        "optimizer": "adam",
+        ("optimizer_params", "lr"): 0.001,
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    params = _unflatten_nested_keys(flattened_params)
+
+    expected = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    assert params == expected
+
+
+def test_get_param_hash():
+    params1 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    params2 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+            "useless": 2
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    params3 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+            "useless": 2
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-4
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    assert _get_param_hash(params1) == _get_param_hash(params2)
+    assert _get_param_hash(params1) != _get_param_hash(params3)
+
+
+def test_param_hist():
+    ph = ParamHistory()
+
+    params1 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    params2 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+            "useless": 2
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-5
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    params3 = {
+        "batches_count": 50,
+        "epochs": 4000,
+        "k": 200,
+        "eta": 15,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+            "useless": 2
+        },
+        "regularizer": "LP",
+        "regularizer_params": {
+            "p": 1,
+            "lambda": 1e-4
+        },
+        "optimizer": "adam",
+        "optimizer_params": {
+            "lr": 0.001
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    assert params1 not in ph
+    ph.add(params1)
+    assert params1 in ph
+    assert params2 in ph
+    assert params3 not in ph
+    ph.add(params3)
+    assert params1 in ph
+    assert params2 in ph
+    assert params3 in ph
+
