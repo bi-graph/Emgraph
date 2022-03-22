@@ -825,3 +825,283 @@ def test_param_hist():
     assert params2 in ph
     assert params3 in ph
 
+
+def test_sample_hyper_param():
+    np.random.seed(0)
+
+    param_grid = {
+        "batches_count": [50],
+        "epochs": [4000],
+        "k": [100, 200],
+        "eta": lambda: np.random.choice([5, 10, 15]),
+        "loss": ["pairwise", "nll"],
+        "loss_params": {
+            "margin": [2]
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": ["LP", None],
+        "regularizer_params": {
+            "p": [1, 3],
+            "lambda": [1e-4, 1e-5]
+        },
+        "optimizer": ["adagrad", "adam"],
+        "optimizer_params": {
+            "lr": lambda: np.random.uniform(0.001, 0.1)
+        },
+        "verbose": False,
+        "model_name": "ComplEx"
+    }
+
+    for _ in range(10):
+        param = _sample_parameters(param_grid)
+        assert param["batches_count"] == 50
+        assert param["k"] in (100, 200)
+        assert param["eta"] in (5, 10, 15)
+        assert param["loss"] in ("pairwise", "nll")
+        if param["loss"] == "pairwise":
+            assert param["loss_params"]["margin"] == 2
+        assert param["embedding_model_params"] == {}
+        assert param["regularizer"] in ("LP", None)
+        if param["regularizer"] == "LP":
+            assert param["regularizer_params"]["p"] in (1, 3)
+            assert param["regularizer_params"]["lambda"] in (1e-4, 1e-5)
+        assert param["optimizer"] in ("adagrad", "adam")
+        assert 0.001 < param["optimizer_params"]["lr"] < 0.1
+        assert not param["verbose"]
+        assert param["model_name"] == "ComplEx"
+
+
+def test_next_hyperparam():
+    param_grid = {
+        "batches_count": [50],
+        "epochs": [4000],
+        "k": [100, 200],
+        "eta": [5, 10, 15],
+        "loss": ["pairwise", "nll"],
+        "loss_params": {
+            "margin": [2]
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": ["LP", None],
+        "regularizer_params": {
+            "p": [1, 3],
+            "lambda": [1e-4, 1e-5]
+        },
+        "optimizer": ["adagrad", "adam"],
+        "optimizer_params": {
+            "lr": [0.01, 0.001, 0.0001]
+        },
+        "verbose": [False],
+        "model_name": ["ComplEx"]
+    }
+
+    combinations = [i for i in _next_hyperparam(param_grid)]
+
+    assert len(combinations) == 360
+    assert len(set(frozenset(_flatten_nested_keys(i).items()) for i in combinations)) == 360
+    assert all(type(d) is dict for d in combinations)
+    assert all(all(type(k) is str for k in d.keys()) for d in combinations)
+
+
+def test_next_hyperparam_random():
+    param_grid = {
+        "batches_count": [50],
+        "epochs": [4000],
+        "k": [100, 200],
+        "eta": [5, 10, 15],
+        "loss": ["pairwise", "nll"],
+        "loss_params": {
+            "margin": [2]
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": ["LP", None],
+        "regularizer_params": {
+            "p": [1, 3],
+            "lambda": [1e-4, 1e-5]
+        },
+        "optimizer": ["adagrad", "adam"],
+        "optimizer_params": {
+            "lr": [0.01, 0.001, 0.0001]
+        },
+        "verbose": [False],
+        "model_name": ["ComplEx"]
+    }
+
+    combinations = [i for i in islice(_next_hyperparam_random(param_grid), 200)]
+
+    assert len(combinations) == 200
+    assert len(set(frozenset(_flatten_nested_keys(i).items()) for i in combinations)) == 200
+    assert all(type(d) is dict for d in combinations)
+    assert all(all(type(k) is str for k in d.keys()) for d in combinations)
+
+
+def test_scalars_into_lists():
+    eta_fn = lambda: np.random.choice([5, 10, 15])
+
+    param_grid = {
+        "batches_count": 50,
+        "epochs": [4000],
+        "k": [100, 200],
+        "eta": eta_fn,
+        "loss": "nll",
+        "loss_params": {
+            "margin": 2
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": ["LP", None],
+        "regularizer_params": {
+            "p": [1, 3],
+            "lambda": [1e-4, 1e-5]
+        },
+        "optimizer": ["adagrad", "adam"],
+        "optimizer_params": {
+            "lr": "wrong"
+        },
+        "verbose": False
+    }
+
+    _scalars_into_lists(param_grid)
+
+    expected = {
+        "batches_count": [50],
+        "epochs": [4000],
+        "k": [100, 200],
+        "eta": eta_fn,
+        "loss": ["nll"],
+        "loss_params": {
+            "margin": [2]
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": ["LP", None],
+        "regularizer_params": {
+            "p": [1, 3],
+            "lambda": [1e-4, 1e-5]
+        },
+        "optimizer": ["adagrad", "adam"],
+        "optimizer_params": {
+            "lr": ["wrong"]
+        },
+        "verbose": [False]
+    }
+
+    assert param_grid == expected
+
+
+def test_select_best_model_ranking_grid():
+    X = load_wn18rr()
+    model_class = TransE
+    param_grid = {
+        "batches_count": [50],
+        "seed": 0,
+        "epochs": [1],
+        "k": [2, 50],
+        "eta": [1],
+        "loss": ["nll"],
+        "loss_params": {
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": [None],
+
+        "regularizer_params": {
+        },
+        "optimizer": ["adagrad"],
+        "optimizer_params": {
+            "lr": [1000.0, 0.0001]
+        }
+    }
+
+    best_model, best_params, best_mrr_train, ranks_test, test_results, experimental_history = select_best_model_ranking(
+        model_class,
+        X['train'],
+        X['valid'][::5],
+        X['test'][::10],
+        param_grid
+    )
+
+    assert best_params['k'] in (2, 50)
+    assert best_params['optimizer_params']['lr'] == 0.0001
+    assert len(experimental_history) == 4
+    assert set(i["model_params"]["k"] for i in experimental_history) == {2, 50}
+    assert set(i["model_params"]["optimizer_params"]["lr"] for i in experimental_history) == {1000.0, 0.0001}
+    assert len(set(frozenset(_flatten_nested_keys(i["model_params"]).items()) for i in experimental_history)) == 4
+    assert set(test_results.keys()) == {"mrr", "mr", "hits_1", "hits_3", "hits_10"}
+    print(test_results.values())
+    assert all(r >= 0 for r in test_results.values())
+    assert all(not np.isnan(r) for r in test_results.values())
+
+
+def test_select_best_model_ranking_random():
+    X = load_wn18rr()
+    model_class = TransE
+    param_grid = {
+        "batches_count": [50],
+        "seed": 0,
+        "epochs": [1],
+        "k": [2, 50],
+        "eta": [1],
+        "loss": ["nll"],
+        "loss_params": {
+        },
+        "embedding_model_params": {
+        },
+        "regularizer": [None],
+
+        "regularizer_params": {
+        },
+        "optimizer": ["adagrad"],
+        "optimizer_params": {
+            "lr": lambda: np.log(np.random.uniform(1.00001, 1.1))
+        }
+    }
+
+    best_model, best_params, best_mrr_train, ranks_test, test_results, experimental_history = select_best_model_ranking(
+        model_class,
+        X['train'],
+        X['valid'][::5],
+        X['test'][::10],
+        param_grid,
+        max_combinations=10
+    )
+    assert best_params['k'] in (2, 50)
+    assert np.log(1.00001) <= best_params['optimizer_params']['lr'] <= np.log(100)
+    assert len(experimental_history) == 10
+    assert set(i["model_params"]["k"] for i in experimental_history) == {2, 50}
+    assert np.all([np.log(1.00001) <= i["model_params"]["optimizer_params"]["lr"] <= np.log(100)
+                   for i in experimental_history])
+    assert len(set(frozenset(_flatten_nested_keys(i["model_params"]).items()) for i in experimental_history)) == 10
+    assert set(test_results.keys()) == {"mrr", "mr", "hits_1", "hits_3", "hits_10"}
+    assert all(r >= 0 for r in test_results.values())
+    assert all(not np.isnan(r) for r in test_results.values())
+
+
+def test_evaluate_with_ent_subset_large_graph():
+    set_entity_threshold(1)
+    X = load_wn18()
+    model = ComplEx(batches_count=10, seed=0, epochs=2, k=10, eta=1,
+                    optimizer='sgd', optimizer_params={'lr': 1e-5},
+                    loss='pairwise', loss_params={'margin': 0.5},
+                    regularizer='LP', regularizer_params={'p': 2, 'lambda': 1e-5},
+                    verbose=True)
+
+    model.fit(X['train'])
+
+    X_filter = np.concatenate((X['train'], X['valid'], X['test']))
+    all_nodes = set(X_filter[:, 0]).union(X_filter[:, 2])
+
+    entities_subset = np.random.choice(list(all_nodes), 100, replace=False)
+
+    ranks = evaluate_performance(X['test'][::10],
+                                 model=model,
+                                 filter_triples=X_filter,
+                                 corrupt_side='o',
+                                 use_default_protocol=False,
+                                 entities_subset=list(entities_subset),
+                                 verbose=True)
+    assert np.sum(ranks > (100 + 1)) == 0, "No ranks must be greater than 101"
+    reset_entity_threshold()
