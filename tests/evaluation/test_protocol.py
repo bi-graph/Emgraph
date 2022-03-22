@@ -221,3 +221,282 @@ def test_evaluate_performance_so_side_corruptions_without_filter():
     print("MRR: %f" % mrr)
     print("Hits@10: %f" % hits_10)
     assert (mrr is not np.Inf)
+
+
+@pytest.mark.skip(reason="Speeding up jenkins")
+def test_evaluate_performance_nll_complex():
+    X = load_wn18()
+    model = ComplEx(batches_count=10, seed=0, epochs=10, k=150, optimizer_params={'lr': 0.1}, eta=10, loss='nll',
+                    optimizer='adagrad', verbose=True)
+    model.fit(np.concatenate((X['train'], X['valid'])))
+
+    filter_triples = np.concatenate((X['train'], X['valid'], X['test']))
+    ranks = evaluate_performance(X['test'][:200], model=model, filter_triples=filter_triples, verbose=True)
+
+    mrr = mrr_score(ranks)
+    hits_10 = hits_at_n_score(ranks, n=10)
+    print("ranks: %s" % ranks)
+    print("MRR: %f" % mrr)
+    print("Hits@10: %f" % hits_10)
+
+
+@pytest.mark.skip(reason="Speeding up jenkins")
+def test_evaluate_performance_TransE():
+    X = load_wn18()
+    model = TransE(batches_count=10, seed=0, epochs=100, k=100, eta=5, optimizer_params={'lr': 0.1},
+                   loss='pairwise', loss_params={'margin': 5}, optimizer='adagrad')
+    model.fit(np.concatenate((X['train'], X['valid'])))
+
+    filter_triples = np.concatenate((X['train'], X['valid'], X['test']))
+    ranks = evaluate_performance(X['test'][:200], model=model, filter_triples=filter_triples, verbose=True)
+
+    # ranks = evaluate_performance(X['test'][:200], model=model)
+
+    mrr = mrr_score(ranks)
+    hits_10 = hits_at_n_score(ranks, n=10)
+    print("ranks: %s" % ranks)
+    print("MRR: %f" % mrr)
+    print("Hits@10: %f" % hits_10)
+
+    # TODO: add test condition (MRR raw for WN18 and TransE should be ~ 0.335 - check papers)
+
+
+def test_generate_corruptions_for_eval():
+    X = np.array([['a', 'x', 'b'],
+                  ['c', 'x', 'd'],
+                  ['e', 'x', 'f'],
+                  ['b', 'y', 'h'],
+                  ['a', 'y', 'l']])
+
+    rel_to_idx, ent_to_idx = create_mappings(X)
+    X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
+
+    with tf.Session() as sess:
+        all_ent = tf.constant(list(ent_to_idx.values()), dtype=tf.int64)
+        x = tf.constant(np.array([X[0]]), dtype=tf.int64)
+        x_n_actual = sess.run(generate_corruptions_for_eval(x, all_ent))
+        x_n_expected = np.array([[0, 0, 0],
+                                 [0, 0, 1],
+                                 [0, 0, 2],
+                                 [0, 0, 3],
+                                 [0, 0, 4],
+                                 [0, 0, 5],
+                                 [0, 0, 6],
+                                 [0, 0, 7],
+                                 [0, 0, 1],
+                                 [1, 0, 1],
+                                 [2, 0, 1],
+                                 [3, 0, 1],
+                                 [4, 0, 1],
+                                 [5, 0, 1],
+                                 [6, 0, 1],
+                                 [7, 0, 1]])
+    np.testing.assert_array_equal(x_n_actual, x_n_expected)
+
+
+@pytest.mark.skip(reason="Needs to change to account for prime-product evaluation strategy")
+def test_generate_corruptions_for_eval_filtered():
+    x = np.array([0, 0, 1])
+    idx_entities = np.array([0, 1, 2, 3])
+    filter_triples = np.array(([1, 0, 1], [2, 0, 1]))
+
+    x_n_actual = generate_corruptions_for_eval(x, idx_entities=idx_entities, filter=filter_triples)
+    x_n_expected = np.array([[3, 0, 1],
+                             [0, 0, 0],
+                             [0, 0, 2],
+                             [0, 0, 3]])
+    np.testing.assert_array_equal(np.sort(x_n_actual, axis=0), np.sort(x_n_expected, axis=0))
+
+
+@pytest.mark.skip(reason="Needs to change to account for prime-product evaluation strategy")
+def test_generate_corruptions_for_eval_filtered_object():
+    x = np.array([0, 0, 1])
+    idx_entities = np.array([0, 1, 2, 3])
+    filter_triples = np.array(([1, 0, 1], [2, 0, 1]))
+
+    x_n_actual = generate_corruptions_for_eval(x, idx_entities=idx_entities, filter=filter_triples, side='o')
+    x_n_expected = np.array([[0, 0, 0],
+                             [0, 0, 2],
+                             [0, 0, 3]])
+    np.testing.assert_array_equal(np.sort(x_n_actual, axis=0), np.sort(x_n_expected, axis=0))
+
+
+def test_to_idx():
+    X = np.array([['a', 'x', 'b'], ['c', 'y', 'd']])
+    X_idx_expected = [[0, 0, 1], [2, 1, 3]]
+    rel_to_idx, ent_to_idx = create_mappings(X)
+    X_idx = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
+
+    np.testing.assert_array_equal(X_idx, X_idx_expected)
+
+
+@pytest.mark.skip(reason="deprecated")
+def test_filter_unseen_entities_with_strict_mode():
+    from collections import namedtuple
+    base_model = namedtuple('test_model', 'ent_to_idx')
+
+    X = np.array([['a', 'x', 'b'],
+                  ['c', 'y', 'd'],
+                  ['e', 'y', 'd']])
+
+    model = base_model({'a': 1, 'b': 2, 'c': 3, 'd': 4})
+
+    with pytest.raises(RuntimeError):
+        _ = filter_unseen_entities(X, model, strict=True)
+
+
+def test_filter_unseen_entities():
+    from collections import namedtuple
+    base_model = namedtuple('test_model', 'ent_to_idx')
+
+    X = np.array([['a', 'x', 'b'],
+                  ['c', 'y', 'd'],
+                  ['e', 'y', 'd']])
+
+    model = base_model({'a': 1, 'b': 2, 'c': 3, 'd': 4})
+
+    X_filtered = filter_unseen_entities(X, model)
+
+    X_expected = np.array([['a', 'x', 'b'],
+                           ['c', 'y', 'd']])
+
+    np.testing.assert_array_equal(X_filtered, X_expected)
+
+
+# @pytest.mark.skip(reason="excluded to try out jenkins.")   # TODO: re-enable this
+def test_generate_corruptions_for_fit_corrupt_side_so():
+    tf.reset_default_graph()
+    X = np.array([['a', 'x', 'b'],
+                  ['c', 'x', 'd'],
+                  ['e', 'x', 'f'],
+                  ['b', 'y', 'h'],
+                  ['a', 'y', 'l']])
+    rel_to_idx, ent_to_idx = create_mappings(X)
+    X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
+    eta = 1
+    with tf.Session() as sess:
+        all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
+        dataset = tf.constant(X, dtype=tf.int32)
+        X_corr = sess.run(
+            generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='s,o', entities_size=len(X), rnd=0))
+        print(X_corr)
+    # these values occur when seed=0
+
+    X_corr_exp = [[0, 0, 1],
+                  [2, 0, 3],
+                  [3, 0, 5],
+                  [1, 1, 0],
+                  [0, 1, 3]]
+
+    np.testing.assert_array_equal(X_corr, X_corr_exp)
+
+
+def test_generate_corruptions_for_fit_curropt_side_s():
+    tf.reset_default_graph()
+    X = np.array([['a', 'x', 'b'],
+                  ['c', 'x', 'd'],
+                  ['e', 'x', 'f'],
+                  ['b', 'y', 'h'],
+                  ['a', 'y', 'l']])
+    rel_to_idx, ent_to_idx = create_mappings(X)
+    X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
+    eta = 1
+    with tf.Session() as sess:
+        all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
+        dataset = tf.constant(X, dtype=tf.int32)
+        X_corr = sess.run(generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='s', entities_size=len(X), rnd=0))
+        print(X_corr)
+
+    # these values occur when seed=0
+
+    X_corr_exp = [[1, 0, 1],
+                  [3, 0, 3],
+                  [3, 0, 5],
+                  [0, 1, 6],
+                  [3, 1, 7]]
+
+    np.testing.assert_array_equal(X_corr, X_corr_exp)
+
+
+def test_generate_corruptions_for_fit_curropt_side_o():
+    tf.reset_default_graph()
+    X = np.array([['a', 'x', 'b'],
+                  ['c', 'x', 'd'],
+                  ['e', 'x', 'f'],
+                  ['b', 'y', 'h'],
+                  ['a', 'y', 'l']])
+    rel_to_idx, ent_to_idx = create_mappings(X)
+    X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
+    eta = 1
+    with tf.Session() as sess:
+        all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
+        dataset = tf.constant(X, dtype=tf.int32)
+        X_corr = sess.run(generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='o', entities_size=len(X), rnd=0))
+        print(X_corr)
+    # these values occur when seed=0
+
+    X_corr_exp = [[0, 0, 1],
+                  [2, 0, 3],
+                  [4, 0, 3],
+                  [1, 1, 0],
+                  [0, 1, 3]]
+    np.testing.assert_array_equal(X_corr, X_corr_exp)
+
+
+def test_train_test_split():
+    # Graph
+    X = np.array([['a', 'y', 'b'],
+                  ['a', 'y', 'c'],
+                  ['c', 'y', 'a'],
+                  ['d', 'y', 'e'],
+                  ['e', 'y', 'f'],
+                  ['f', 'y', 'c'],
+                  ['f', 'y', 'c']])
+
+    expected_X_train = np.array([['a', 'y', 'b'],
+                                 ['c', 'y', 'a'],
+                                 ['d', 'y', 'e'],
+                                 ['e', 'y', 'f'],
+                                 ['f', 'y', 'c']])
+
+    expected_X_test = np.array([['a', 'y', 'c'],
+                                ['f', 'y', 'c']])
+
+    X_train, X_test = train_test_split_no_unseen(X, test_size=2, seed=0, backward_compatible=True)
+
+    np.testing.assert_array_equal(X_train, expected_X_train)
+    np.testing.assert_array_equal(X_test, expected_X_test)
+
+
+def test_train_test_split_fast():
+    X = load_fb15k_237()
+    x_all = np.concatenate([X['train'], X['valid'], X['test']], 0)
+    unique_entities = len(set(x_all[:, 0]).union(x_all[:, 2]))
+    unique_rels = len(set(x_all[:, 1]))
+
+    x_train, x_test = train_test_split_no_unseen(x_all, 0.90)
+
+    assert x_train.shape[0] + x_test.shape[0] == x_all.shape[0]
+
+    unique_entities_train = len(set(x_train[:, 0]).union(x_train[:, 2]))
+    unique_rels_train = len(set(x_train[:, 1]))
+
+    assert unique_entities_train == unique_entities and unique_rels_train == unique_rels
+
+    with pytest.raises(Exception) as e:
+        x_train, x_test = train_test_split_no_unseen(x_all, 0.99, allow_duplication=False)
+
+    assert str(e.value) == "Cannot create a test split of the desired size. " \
+                           "Some entities will not occur in both training and test set. " \
+                           "Set allow_duplication=True," \
+                           "remove filter on test predicates or " \
+                           "set test_size to a smaller value."
+
+    x_train, x_test = train_test_split_no_unseen(x_all, 0.99, allow_duplication=True)
+    assert x_train.shape[0] + x_test.shape[0] > x_all.shape[0]
+
+    unique_entities_train = len(set(x_train[:, 0]).union(x_train[:, 2]))
+    unique_rels_train = len(set(x_train[:, 1]))
+
+    assert unique_entities_train == unique_entities and unique_rels_train == unique_rels
+
