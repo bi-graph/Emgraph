@@ -555,7 +555,7 @@ def generate_corruptions_for_fit(X, entities_list=None, eta=1, corrupt_side='s,o
     dataset = tf.reshape(tf.tile(tf.reshape(X, [-1]), [eta]), [tf.shape(X)[0] * eta, 3])
 
     if corrupt_side == 's+o':
-        keep_subj_mask = tf.cast(tf.random_uniform([tf.shape(X)[0] * eta], 0, 2, dtype=tf.int32, seed=rnd), tf.bool)
+        keep_subj_mask = tf.cast(tf.random.uniform([tf.shape(X)[0] * eta], 0, 2, dtype=tf.int32, seed=rnd), tf.bool)
     else:
         keep_subj_mask = tf.cast(tf.ones(tf.shape(X)[0] * eta, tf.int32), tf.bool)
         if corrupt_side == 's':
@@ -568,7 +568,7 @@ def generate_corruptions_for_fit(X, entities_list=None, eta=1, corrupt_side='s,o
     logger.debug('Created corruption masks.')
 
     if entities_size != 0:
-        replacements = tf.random_uniform([tf.shape(dataset)[0]], 0, entities_size, dtype=tf.int32, seed=rnd)
+        replacements = tf.random.uniform([tf.shape(dataset)[0]], 0, entities_size, dtype=tf.int32, seed=rnd)
     else:
         if entities_list is None:
             # use entities in the batch

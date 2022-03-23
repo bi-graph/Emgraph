@@ -4,6 +4,21 @@ import abc
 class BigraphBaseDatasetAdaptor(abc.ABC):
     """An abstract class that provides the infrastructure for defining new data adaptors and pipelines to feed Bigraph.
 
+    It delivers the standard interface for adding additional data sources. The following methods are the main
+    components for this class:
+        - :func:`use_mappings`: Activate provided mapping for the datasource.
+        - :func:`generate_mappings`: Generate the mappings from the training set.
+        - :func:`get_size`: Return the size of the dataset
+        - :func:`data_exists`: Check if the provided dataset type (train, test, valid, etc.) exists.
+        - :func:`set_data`: Set the dataset based on the specified dataset_type.
+        - :func:`map_data`: Map the data to the ent_to_idx and rel_to_idx mappings.
+        - :func:`set_filter`: Set filters while generating evaluation batches.
+        - :func:`get_next_batch`: Generate the next batch of data.
+        - :func:`cleanup`: Clean up the internal state.
+
+    :Authors:
+        `Soran ghaderi <https://soran-ghaderi.github.io/>`_,
+        Taleb Zarhesh
     """
 
     def __init__(self):
@@ -29,8 +44,8 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
         :type rel_to_idx: dict
         :param ent_to_idx: entity to idx mapping
         :type ent_to_idx: dict
-        :return: -
-        :rtype: -
+        :return:
+        :rtype:
         """
 
         self.rel_to_idx = rel_to_idx
@@ -48,6 +63,7 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
             - rel_to_idx: Relation to idx
             - ent_to_idx: Entity to idx
         :rtype: dict, dict
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
@@ -59,6 +75,7 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
         :type dataset_type: str
         :return: Dataset size
         :rtype: int
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
@@ -70,6 +87,7 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
         :type dataset_type: str
         :return: True if the specified dataset type exists; False otherwise
         :rtype: bool
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
@@ -83,6 +101,7 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
         :type dataset_type: str
         :param mapped_status: Whether the dataset is mapped to indices or not (default=False)
         :type mapped_status: bool
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
@@ -92,6 +111,7 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
 
         :param remap: Remap the data (used after the dictionaries get updated) (default=False)
         :type remap: bool
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
@@ -101,6 +121,7 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
 
         :param filter_triples: Filter triples
         :type filter_triples: nd-array
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
@@ -119,12 +140,15 @@ class BigraphBaseDatasetAdaptor(abc.ABC):
             - participating_objects: all objects that were involved in the s-p-? relation. This is returned only if use_filter is set to true.
             - participating_subjects: all subjects that were involved in the ?-p-o relation. This is returned only if use_filter is set to true.
         :rtype: nd-array, nd-array [n,1], nd-array [n,1]
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')
 
     def cleanup(self):
         """Clean up the internal state.
+
+        :raises: NotImplementedError if the method is not overridden
         """
 
         raise NotImplementedError('Abstract Method not implemented!')

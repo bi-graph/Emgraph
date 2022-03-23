@@ -1,5 +1,8 @@
 # todo: rename most of these functions' names
+import functools
+
 import numpy as np
+# import tensorflow as tf
 import tensorflow as tf
 from sklearn.utils import check_random_state
 import abc
@@ -106,7 +109,8 @@ class EmbeddingModel(abc.ABC):
                  initializer=constants.DEFAULT_INITIALIZER,
                  initializer_params={'uniform': DEFAULT_XAVIER_IS_UNIFORM},
                  large_graphs=False,
-                 verbose=constants.DEFAULT_VERBOSE):
+                 verbose=constants.DEFAULT_VERBOSE,
+                 model_variables=None):
         """Initialize the EmbeddingModel class
 
         Also creates a new Tensorflow session for training.
@@ -213,10 +217,11 @@ class EmbeddingModel(abc.ABC):
                 'initializer_params': initializer_params,
                 'verbose': verbose
             }
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
         self.seed = seed
         self.rnd = check_random_state(self.seed)
-        tf.random.set_random_seed(seed)
+        # tf.random.set_random_seed(seed)
+        tf.random.set_seed(seed)
 
         self.is_filtered = False
         self.use_focusE = False
@@ -279,9 +284,14 @@ class EmbeddingModel(abc.ABC):
             logger.error(msg)
             raise ValueError(msg)
 
-        self.tf_config = tf.ConfigProto(allow_soft_placement=True)
-        self.tf_config.gpu_options.allow_growth = True
-        self.sess_train = None
+        # self.tf_config = tf.ConfigProto(allow_soft_placement=True)
+        self.tf_config = tf.config
+        physical_devices = tf.config.experimental.list_physical_devices('GPU')
+        try:
+            self.tf_config.experimental.set_memory_growth(physical_devices[0], True)
+        except:
+            pass
+        self.sess_train = None  # todo: remove its usage
         self.trained_model_params = []
         self.is_fitted = False
         self.eval_config = {}
@@ -292,6 +302,7 @@ class EmbeddingModel(abc.ABC):
 
     @abc.abstractmethod
     def _fn(self, e_s, e_p, e_o):
+        # todo: rename this to _calculate_score
         """The scoring function of the model.
 
         Assigns a score to a list of triples, with a model-specific strategy.
@@ -422,7 +433,7 @@ class EmbeddingModel(abc.ABC):
         """Get the embeddings of entities or relations.
 
         .. Note ::
-            Use :meth:`ampligraph.utils.create_tensorboard_visualizations` to visualize the embeddings with TensorBoard.
+            Use :meth:`bigraph.utils.create_tensorboard_visualizations` to visualize the embeddings with TensorBoard.
 
         :param entities: The entities (or relations) of interest. Element of the vector must be the original string
         literals, and not internal IDs.
@@ -495,6 +506,10 @@ class EmbeddingModel(abc.ABC):
         emb = tf.nn.embedding_lookup(self.ent_emb, remapping)
         return emb
 
+    # tf2x_dev branch
+    def _make_variable(self, shape, initializer, name=None, dtype=tf.float32):
+        return tf.Variable(initializer(shape=shape, dtype=dtype), name=name)
+
     def _initialize_parameters(self):
         """Initialize parameters of the model.
 
@@ -505,27 +520,55 @@ class EmbeddingModel(abc.ABC):
         """
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
-            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
-                                           shape=[len(self.ent_to_idx), self.internal_k],
-                                           initializer=self.initializer.get_entity_initializer(
-                                               len(self.ent_to_idx), self.internal_k),
-                                           dtype=tf.float32)
-            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
-                                           shape=[len(self.rel_to_idx), self.internal_k],
-                                           initializer=self.initializer.get_relation_initializer(
-                                               len(self.rel_to_idx), self.internal_k),
-                                           dtype=tf.float32)
+            print("shape: ", (len(self.ent_to_idx), self.internal_k))
+
+            self.ent_emb = self._make_variable(name='ent_emb_{}'.format(timestamp),
+                                               shape=[len(self.ent_to_idx), self.internal_k],
+                                               initializer=self.initializer.get_entity_initializer(),
+                                               dtype=tf.float32)
+
+            self.rel_emb = self._make_variable(name='rel_emb_{}'.format(timestamp),
+                                               shape=[len(self.rel_to_idx), self.internal_k],
+                                               initializer=self.initializer.get_relation_initializer(),
+                                               dtype=tf.float32)
+
+            # self.ent_emb2 = tf.compat.v1.get_variable('ent_emb_{}'.format(timestamp),
+            #                                           shape=[len(self.ent_to_idx), self.internal_k],
+            #                                           initializer=self.initializer.get_entity_initializer(
+            #                                               len(self.ent_to_idx), self.internal_k),
+            #                                           dtype=tf.float32)
+
+            # self.rel_emb = tf.compat.v1.get_variable('rel_emb_{}'.format(timestamp),
+            #                                          shape=[len(self.rel_to_idx), self.internal_k],
+            #                                          initializer=self.initializer.get_relation_initializer(
+            #                                              len(self.rel_to_idx), self.internal_k),
+            #                                          dtype=tf.float32)
+
+
         else:
             # initialize entity embeddings to zero (these are reinitialized every batch by batch embeddings)
-            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
-                                           shape=[self.batch_size * 2, self.internal_k],
-                                           initializer=tf.zeros_initializer(),
-                                           dtype=tf.float32)
-            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
-                                           shape=[len(self.rel_to_idx), self.internal_k],
-                                           initializer=self.initializer.get_relation_initializer(
-                                               len(self.rel_to_idx), self.internal_k),
-                                           dtype=tf.float32)
+
+            self.ent_emb = self._make_variable(name='rel_emb_{}'.format(timestamp),
+                                               shape=[self.batch_size * 2, self.internal_k],
+                                               initializer=tf.zeros_initializer(),
+                                               dtype=tf.float32)
+
+            self.rel_emb = self._make_variable(name='rel_emb_{}'.format(timestamp),
+                                               shape=[len(self.rel_to_idx), self.internal_k],
+                                               initializer=self.initializer.get_relation_initializer(),
+                                               dtype=tf.float32)
+
+            # self.ent_emb = tf.compat.v1.get_variable('ent_emb_{}'.format(timestamp),
+            #                                          shape=[self.batch_size * 2, self.internal_k],
+            #                                          initializer=tf.zeros_initializer(),
+            #                                          dtype=tf.float32)
+            #
+            # self.rel_emb = tf.compat.v1.get_variable('rel_emb_{}'.format(timestamp),
+            #                                          shape=[len(self.rel_to_idx), self.internal_k],
+            #                                          initializer=self.initializer.get_relation_initializer(
+            #                                              len(self.rel_to_idx), self.internal_k),
+            #                                          dtype=tf.float32)
+
 
     def _get_model_loss(self, dataset_iterator):
         """Get the current loss including loss due to regularization.
@@ -536,9 +579,11 @@ class EmbeddingModel(abc.ABC):
         :return: The loss value that must be minimized.
         :rtype: tf.Tensor
         """
+        # self.epoch = tf.placeholder(tf.float32)
+        self.epoch = 0
 
-        self.epoch = tf.placeholder(tf.float32)
-        self.batch_number = tf.placeholder(tf.int32)
+        # self.batch_number = tf.placeholder(tf.int32)
+        self.batch_number = 0
 
         if self.use_focusE:
             x_pos_tf, self.unique_entities, ent_emb_batch, weights = dataset_iterator.get_next()
@@ -558,9 +603,9 @@ class EmbeddingModel(abc.ABC):
             dependencies.append(init_ent_emb_batch)
 
             # create a lookup dependency(to remap the entity indices to the corresponding indices of variables in memory
-            self.sparse_mappings = tf.contrib.lookup.MutableDenseHashTable(key_dtype=tf.int32, value_dtype=tf.int32,
-                                                                           default_value=-1, empty_key=-2,
-                                                                           deleted_key=-1)
+            self.sparse_mappings = tf.lookup.experimental.DenseHashTable(key_dtype=tf.int32, value_dtype=tf.int32,
+                                                                         default_value=-1, empty_key=-2,
+                                                                         deleted_key=-1)
 
             insert_lookup_op = self.sparse_mappings.insert(self.unique_entities,
                                                            tf.reshape(tf.range(tf.shape(self.unique_entities)[0],
@@ -708,7 +753,7 @@ class EmbeddingModel(abc.ABC):
                 # this assumes that the validation data has already been set in the adapter
                 self.eval_dataset_handle = self.x_valid
             else:
-                msg = 'Invalid type for input X. Expected ndarray/AmpligraphDataset object, \
+                msg = 'Invalid type for input X. Expected ndarray/BigraphDataset object, \
                        got {}'.format(type(self.x_valid))
                 logger.error(msg)
                 raise ValueError(msg)
@@ -934,7 +979,7 @@ class EmbeddingModel(abc.ABC):
 
         The following string keys are supported:
 
-            - **'x_valid'**: ndarray (shape [n, 3]) or object of AmpligraphDatasetAdapter :
+            - **'x_valid'**: ndarray (shape [n, 3]) or object of BigraphDatasetAdapter :
                              Numpy array of validation triples OR handle of Dataset adapter which
                              would help retrieve data.
             - **'criteria'**: string : criteria for early stopping 'hits10', 'hits3', 'hits1' or 'mrr'(default).
@@ -1012,7 +1057,7 @@ class EmbeddingModel(abc.ABC):
             elif isinstance(X, BigraphBaseDatasetAdaptor):
                 self.train_dataset_handle = X
             else:
-                msg = 'Invalid type for input X. Expected ndarray/AmpligraphDataset object, got {}'.format(type(X))
+                msg = 'Invalid type for input X. Expected ndarray/BigraphDataset object, got {}'.format(type(X))
                 logger.error(msg)
                 raise ValueError(msg)
 
@@ -1033,9 +1078,11 @@ class EmbeddingModel(abc.ABC):
                     raise Exception('Early stopping not supported for large graphs')
 
                 if not isinstance(self.optimizer, SGDOptimizer):
-                    raise Exception("This mode works well only with SGD optimizer with decay.\
-    Kindly change the optimizer and restart the experiment. For details refer the following link: \n \
-    https://docs.ampligraph.org/en/latest/dev_notes.html#dealing-with-large-graphs")
+                    raise Exception("This mode works well only with SGD optimizer with decay."
+                                    "Kindly change the optimizer and restart the experiment. For details refer the "
+                                    "following link: \n"
+                                    # todo: remove this
+                                    "https://docs.ampligraph.org/en/latest/dev_notes.html#dealing-with-large-graphs")
 
             if self.dealing_with_large_graphs:
                 prefetch_batches = 0
@@ -1052,9 +1099,11 @@ class EmbeddingModel(abc.ABC):
                 self.rnd = check_random_state(self.seed)
                 tf.random.set_random_seed(self.seed)
 
-            self.sess_train = tf.Session(config=self.tf_config)
+            # self.sess_train = tf.Session(config=self.tf_config)
+            print('self.sess train: ', self.sess_train)
             if self.tensorboard_logs_path is not None:
-                self.writer = tf.summary.FileWriter(self.tensorboard_logs_path, self.sess_train.graph)
+                # self.writer = tf.summary.FileWriter(self.tensorboard_logs_path, self.sess_train.graph)
+                self.writer = tf.summary.create_file_writer(self.tensorboard_logs_path)
             batch_size = int(np.ceil(self.train_dataset_handle.get_size("train") / self.batches_count))
             # dataset = tf.data.Dataset.from_tensor_slices(X).repeat().batch(batch_size).prefetch(2)
 
@@ -1077,16 +1126,25 @@ class EmbeddingModel(abc.ABC):
 
             dataset = dataset.repeat().prefetch(prefetch_batches)
 
-            dataset_iterator = tf.data.make_one_shot_iterator(dataset)
+            # dataset_iterator = tf.data.make_one_shot_iterator(dataset)
+            dataset_iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+            # dataset_iterator = dataset.__iter__()
+
             # init tf graph/dataflow for training
             # init variables (model parameters to be learned - i.e. the embeddings)
 
             if self.loss.get_state('require_same_size_pos_neg'):
                 batch_size = batch_size * self.eta
 
-            loss = self._get_model_loss(dataset_iterator)
+            # loss = self._get_model_loss(dataset_iterator)
+            loss = functools.partial(self._get_model_loss, dataset_iterator)
+            print("model: ", MODEL_REGISTRY['TransE'].get_hyperparameter_dict(self))
+            print("optimizer: ", self.optimizer)
+            print("OPTIMIZER_REGISTRY: ", OPTIMIZER_REGISTRY)
+            print("loss: ", loss)
 
-            train = self.optimizer.minimize(loss)
+            train = self.optimizer.minimize(loss, [self.ent_emb, self.rel_emb])
+            print("train: ", train)
 
             # Entity embeddings normalization
             normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
@@ -1154,10 +1212,10 @@ class EmbeddingModel(abc.ABC):
 
                 if early_stopping:
 
-                    try:
-                        self.sess_train.run(self.set_training_false)
-                    except AttributeError:
-                        pass
+                    # try:
+                    #     self.sess_train.run(self.set_training_false)
+                    # except AttributeError:
+                    #     pass
 
                     if self._perform_early_stopping_test(epoch):
                         if self.tensorboard_logs_path is not None:
@@ -1873,6 +1931,7 @@ class EmbeddingModel(abc.ABC):
 
         .. Note ::
             `Experiments for the ICLR-21 calibration paper are available here
+            #todo remove this
             <https://github.com/Accenture/AmpliGraph/tree/paper/ICLR-20/experiments/ICLR-20>`_ :cite:`calibration`.
 
         :param X_pos: Numpy array of positive triples.

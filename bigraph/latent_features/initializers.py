@@ -390,9 +390,11 @@ class Xavier(Initializer):
         :return: Initializer instance
         :rtype: Initializer
         """
+        # return tf.contrib.layers.xavier_initializer(uniform=self._initializer_params['uniform'], dtype=tf.float32)
+        # return tf.initializers.glorot_uniform()
+        return tf.keras.initializers.GlorotUniform()
 
-        return tf.contrib.layers.xavier_initializer(uniform=self._initializer_params['uniform'],
-                                                    dtype=tf.float32)
+
 
     def _get_np_initializer(self, in_shape, out_shape, concept='e'):
         """

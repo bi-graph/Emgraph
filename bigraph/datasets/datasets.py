@@ -193,6 +193,19 @@ def _load_dataset(dataset_metadata, data_home=None, check_md5hash=False, add_rec
 
 
 def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
+    """Loads the WN18 dataset.
+
+    The WN18 dataset has 18 relations scraped from WordNet for roughly 41,000 synsets, resulting in 141,442 triplets.
+    It was found out that a large number of the test triplets can be found in the training set with another relation or
+    the inverse relation. Therefore, a new version of the dataset WN18RR has been proposed to address this issue.
+
+    :param check_md5hash: Check MD5 hash (default = False)
+    :type check_md5hash: bool
+    :param add_reciprocal_rels: Add reciprocal relations (default = False)
+    :type add_reciprocal_rels: bool
+    :return: Dictionary containing 'train', 'valid' and 'test' datasets
+    :rtype: dict
+    """
     wn18 = DatasetMetadata(
         dataset_name='wn18',
         filename='wn18.zip',
@@ -212,6 +225,22 @@ def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
 
 
 def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
+    """Loads the WN18RR dataset.
+
+    WN18RR is a link prediction dataset created from WN18, which is a subset of WordNet. WN18 consists of 18 relations
+    and 40,943 entities. However, many text triples are obtained by inverting triples from the training set. Thus the
+    WN18RR dataset is created to ensure that the evaluation dataset does not have inverse relation test leakage.
+    In summary, WN18RR dataset contains 93,003 triples with 40,943 entities and 11 relation types.
+
+    :param check_md5hash: Check MD5 hash (default = False)
+    :type check_md5hash: bool
+    :param clean_unseen: Clean Unseen data (default = False)
+    :type clean_unseen: bool
+    :param add_reciprocal_rels: Add reciprocal relations (default = False)
+    :type add_reciprocal_rels: bool
+    :return: Dictionary containing 'train', 'valid' and 'test' datasets
+    :rtype: dict
+    """
     wn18rr = DatasetMetadata(
         dataset_name='wn18RR',
         filename='wn18RR.zip',
@@ -237,6 +266,21 @@ def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fals
 
 
 def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
+    """Loads the FB15k dataset.
+
+    The FB15k dataset contains knowledge base relation triples and textual mentions of Freebase entity pairs. It has a
+    total of 592,213 triplets with 14,951 entities and 1,345 relationships. FB15K-237 is a variant of the original
+    dataset where inverse relations are removed, since it was found that a large number of test triplets could be
+    obtained by inverting triplets in the training set.
+
+    :param check_md5hash: Check MD5 hash (default = False)
+    :type check_md5hash: bool
+    :param add_reciprocal_rels: Add reciprocal relations (default = False)
+    :type add_reciprocal_rels: bool
+    :return: Dictionary containing 'train', 'valid' and 'test' datasets
+    :rtype: dict
+    """
+
     FB15K = DatasetMetadata(
         dataset_name='fb15k',
         filename='fb15k.zip',
@@ -256,6 +300,17 @@ def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
 
 
 def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
+    """
+
+    :param check_md5hash: Check MD5 hash (default = False)
+    :type check_md5hash: bool
+    :param clean_unseen: Clean Unseen data (default = False)
+    :type clean_unseen: bool
+    :param add_reciprocal_rels: Add reciprocal relations (default = False)
+    :type add_reciprocal_rels: bool
+    :return: Dictionary containing 'train', 'valid' and 'test' datasets
+    :rtype: dict
+    """
     fb15k_237 = DatasetMetadata(
         dataset_name='fb15k-237',
         filename='fb15k-237.zip',

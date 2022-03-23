@@ -208,7 +208,7 @@ class AdamOptimizer(Optimizer):
 
         super(AdamOptimizer, self).__init__(optimizer_params, batches_count, verbose)
 
-    def minimize(self, loss):
+    def minimize(self, loss, var_list):
         """
         Create an optimizer to minimize the model loss.
 
@@ -217,9 +217,11 @@ class AdamOptimizer(Optimizer):
         :return: Node that needs to be evaluated for minimizing the loss during training
         :rtype: tf.Operation
         """
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self._optimizer_params['lr'])
 
-        train = self.optimizer.minimize(loss)
+        # self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self._optimizer_params['lr'])
+        self.optimizer = tf.optimizers.Adam(learning_rate=self._optimizer_params['lr'])
+        train = self.optimizer.minimize(loss, var_list)
+
         return train
 
     def update_feed_dict(self, feed_dict, batch_num, epoch_num):
