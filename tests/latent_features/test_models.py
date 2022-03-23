@@ -179,3 +179,188 @@ def test_fit_predict_DistMult():
     print(y_pred)
     assert y_pred[0] > y_pred[1]
 
+
+def test_fit_predict_CompleEx():
+    model = ComplEx(batches_count=1, seed=555, epochs=20, k=10,
+                    loss='pairwise', loss_params={'margin': 1}, regularizer='LP',
+                    regularizer_params={'lambda': 0.1, 'p': 2},
+                    optimizer='adagrad', optimizer_params={'lr': 0.1})
+    X = np.array([['a', 'y', 'b'],
+                  ['b', 'y', 'a'],
+                  ['a', 'y', 'c'],
+                  ['c', 'y', 'a'],
+                  ['a', 'y', 'd'],
+                  ['c', 'y', 'd'],
+                  ['b', 'y', 'c'],
+                  ['f', 'y', 'e']])
+    model.fit(X)
+    y_pred = model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
+    print(y_pred)
+    assert y_pred[0] > y_pred[1]
+
+
+def test_fit_predict_HolE():
+    model = HolE(batches_count=1, seed=555, epochs=20, k=10,
+                 loss='pairwise', loss_params={'margin': 1}, regularizer='LP',
+                 regularizer_params={'lambda': 0.1, 'p': 2},
+                 optimizer='adagrad', optimizer_params={'lr': 0.1})
+    X = np.array([['a', 'y', 'b'],
+                  ['b', 'y', 'a'],
+                  ['a', 'y', 'c'],
+                  ['c', 'y', 'a'],
+                  ['a', 'y', 'd'],
+                  ['c', 'y', 'd'],
+                  ['b', 'y', 'c'],
+                  ['f', 'y', 'e']])
+    model.fit(X)
+    y_pred = model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
+    print(y_pred)
+    assert y_pred[0] > y_pred[1]
+
+
+def test_retrain():
+    model = ComplEx(batches_count=1, seed=555, epochs=20, k=10,
+                    loss='pairwise', loss_params={'margin': 1}, regularizer='LP',
+                    regularizer_params={'lambda': 0.1, 'p': 2},
+                    optimizer='adagrad', optimizer_params={'lr': 0.1})
+    X = np.array([['a', 'y', 'b'],
+                  ['b', 'y', 'a'],
+                  ['a', 'y', 'c'],
+                  ['c', 'y', 'a'],
+                  ['a', 'y', 'd'],
+                  ['c', 'y', 'd'],
+                  ['b', 'y', 'c'],
+                  ['f', 'y', 'e']])
+    model.fit(X)
+    y_pred_1st = model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
+    model.fit(X)
+    y_pred_2nd = model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
+    np.testing.assert_array_equal(y_pred_1st, y_pred_2nd)
+
+
+def test_fit_predict_wn18_TransE():
+    X = load_wn18()
+    model = TransE(batches_count=1, seed=555, epochs=5, k=100, loss='pairwise',
+                   loss_params={'margin': 5},
+                   verbose=True, optimizer='adagrad',
+                   optimizer_params={'lr': 0.1})
+    model.fit(X['train'])
+    y = model.predict(X['test'][:1])
+
+    print(y)
+
+
+def test_missing_entity_ComplEx():
+
+    X = np.array([['a', 'y', 'b'],
+                  ['b', 'y', 'a'],
+                  ['a', 'y', 'c'],
+                  ['c', 'y', 'a'],
+                  ['a', 'y', 'd'],
+                  ['c', 'y', 'd'],
+                  ['b', 'y', 'c'],
+                  ['f', 'y', 'e']])
+    model = ComplEx(batches_count=1, seed=555, epochs=2, k=5)
+    model.fit(X)
+    with pytest.raises(ValueError):
+        model.predict(['a', 'y', 'zzzzzzzzzzz'])
+    with pytest.raises(ValueError):
+        model.predict(['a', 'xxxxxxxxxx', 'e'])
+    with pytest.raises(ValueError):
+        model.predict(['zzzzzzzz', 'y', 'e'])
+
+
+def test_fit_predict_wn18_ComplEx():
+    X = load_wn18()
+    model = ComplEx(batches_count=1, seed=555, epochs=5, k=10,
+                    loss='pairwise', loss_params={'margin': 1}, regularizer='LP',
+                    regularizer_params={'lambda': 0.1, 'p': 2},
+                    optimizer='adagrad', optimizer_params={'lr': 0.1})
+    model.fit(X['train'])
+    y = model.predict(X['test'][:1])
+    print(y)
+
+
+def test_lookup_embeddings():
+    model = DistMult(batches_count=2, seed=555, epochs=20, k=10, loss='pairwise', loss_params={'margin': 5},
+                     optimizer='adagrad', optimizer_params={'lr': 0.1})
+    X = np.array([['a', 'y', 'b'],
+                  ['b', 'y', 'a'],
+                  ['a', 'y', 'c'],
+                  ['c', 'y', 'a'],
+                  ['a', 'y', 'd'],
+                  ['c', 'y', 'd'],
+                  ['b', 'y', 'c'],
+                  ['f', 'y', 'e']])
+    model.fit(X)
+    model.get_embeddings(['a', 'b'], embedding_type='entity')
+
+
+def test_is_fitted_on():
+
+    model = DistMult(batches_count=2, seed=555, epochs=1, k=10,
+                     loss='pairwise', loss_params={'margin': 5},
+                     optimizer='adagrad', optimizer_params={'lr': 0.1})
+    X = np.array([['a', 'y', 'b'],
+                  ['b', 'y', 'a'],
+                  ['a', 'y', 'c'],
+                  ['c', 'z', 'a'],
+                  ['a', 'z', 'd']])
+
+    model.fit(X)
+
+    X1 = np.array([['a', 'y', 'b'],
+                   ['b', 'y', 'a'],
+                   ['a', 'y', 'c'],
+                   ['c', 'z', 'a'],
+                   ['g', 'z', 'd']])
+
+    X2 = np.array([['a', 'y', 'b'],
+                   ['b', 'y', 'a'],
+                   ['a', 'y', 'c'],
+                   ['c', 'z', 'a'],
+                   ['a', 'x', 'd']])
+
+    # Fits the train triples
+    assert model.is_fitted_on(X) is True
+    # Doesn't fit the extra entity triples
+    assert model.is_fitted_on(X1) is False
+    # Doesn't fit the extra relationship triples
+    assert model.is_fitted_on(X2) is False
+
+
+def test_conve_fit_predict_save_restore():
+
+    X = np.array([['a', 'y', 'b'],
+                  ['b', 'y', 'a'],
+                  ['a', 'y', 'c'],
+                  ['c', 'y', 'a'],
+                  ['a', 'y', 'd'],
+                  ['c', 'y', 'd'],
+                  ['b', 'y', 'c'],
+                  ['f', 'y', 'e']])
+
+    X_test = np.array([['f', 'y', 'a'],
+                       ['f', 'y', 'b']])
+
+    model = ConvE(batches_count=1, seed=22, epochs=1, k=10,
+                  embedding_model_params={'conv_filters': 16, 'conv_kernel_size': 3},
+                  optimizer='adam', optimizer_params={'lr': 0.01},
+                  loss='bce', loss_params={},
+                  regularizer=None, regularizer_params={'p': 2, 'lambda': 1e-5},
+                  verbose=True, low_memory=True)
+
+
+    model.fit(X)
+
+    y1 = model.predict(X_test)
+    print(y1)
+
+    save_model(model, 'model.tmp')
+    del model
+    model = restore_model('model.tmp')
+
+    y2 = model.predict(X_test)
+
+    assert np.all(y1 == y2)
+    os.remove('model.tmp')
