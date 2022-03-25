@@ -307,6 +307,7 @@ class NLLLoss(Loss):
         scores_neg = clip_before_exp(scores_neg)
         scores_pos = clip_before_exp(scores_pos)
         scores = tf.concat([-scores_pos, scores_neg], 0)
+
         return tf.reduce_sum(tf.log(1 + tf.exp(scores)))
 
 

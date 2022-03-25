@@ -219,7 +219,8 @@ class AdamOptimizer(Optimizer):
         """
 
         # self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self._optimizer_params['lr'])
-        self.optimizer = tf.optimizers.Adam(learning_rate=self._optimizer_params['lr'])
+        # self.optimizer = tf.optimizers.Adam(learning_rate=self._optimizer_params['lr'])
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self._optimizer_params['lr'])
         train = self.optimizer.minimize(loss, var_list)
 
         return train
@@ -363,7 +364,7 @@ class SGDOptimizer(Optimizer):
         if self.verbose:
             self._display_params()
 
-    def minimize(self, loss):
+    def minimize(self, loss, var_list):
         """
         Create an optimizer to minimize the model loss.
 
@@ -374,9 +375,12 @@ class SGDOptimizer(Optimizer):
         """
 
         # create a placeholder for learning rate
-        self.lr_placeholder = tf.placeholder(tf.float32)
+        # self.lr_placeholder = tf.placeholder(tf.float32)
+        self.lr_placeholder = 0
+
         # create the optimizer with the placeholder
-        self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.lr_placeholder)
+        # self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.lr_placeholder)
+        self.optimizer = tf.keras.optimizers.SGD(learning_rate=self.lr_placeholder)
 
         # load the hyperparameters that would be used while generating the learning rate per batch
         # start learning rate
@@ -400,7 +404,7 @@ class SGDOptimizer(Optimizer):
         self.curr_start = 0
 
         # create the operation that minimizes the loss
-        train = self.optimizer.minimize(loss)
+        train = self.optimizer.minimize(loss, var_list)
         return train
 
     def update_feed_dict(self, feed_dict, batch_num, epoch_num):

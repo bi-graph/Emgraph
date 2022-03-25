@@ -91,6 +91,84 @@ class EmbeddingModel(abc.ABC):
     BiGraph neural knowledge graph embeddings models extend this class and
     its core methods.
 
+    :param k: Embedding space dimensionality.
+    :type k: int
+    :param eta: The number of negatives that must be generated at runtime during training for each positive.
+    :type eta: int
+    :param epochs: The iterations of the training loop.
+    :type epochs: int
+    :param batches_count: The number of batches in which the training set must be split during the training loop.
+    :type batches_count: int
+    :param seed: The seed used by the internal random numbers generator.
+    :type seed: int
+    :param embedding_model_params: Model-specific hyperparams, passed to the model as a dictionary.
+    Refer to model-specific documentation for details.
+
+    For FocusE Layer, following hyper-params can be passed:
+
+        - **'non_linearity'**: can be one of the following values ``linear``, ``softplus``, ``sigmoid``, ``tanh``
+        - **'stop_epoch'**: specifies how long to decay (linearly) the numeric values from 1 to original value
+        until it reaches original value.
+        - **'structural_wt'**: structural influence hyperparameter [0, 1] that modulates the influence of graph
+        topology.
+    - **'normalize_numeric_values'**: normalize the numeric values, such that they are scaled between [0, 1]
+    :type embedding_model_params: dict
+    :param optimizer: The optimizer used to minimize the loss function. Choose between
+        'sgd', 'adagrad', 'adam', 'momentum'.
+    :type optimizer: str
+    :param optimizer_params: Arguments specific to the optimizer, passed as a dictionary.
+
+        Supported keys:
+
+        - **'lr'** (float): learning rate (used by all the optimizers). Default: 0.1.
+        - **'momentum'** (float): learning momentum (only used when ``optimizer=momentum``). Default: 0.9.
+
+        Example: ``optimizer_params={'lr': 0.009}``
+    :type optimizer_params: dict
+    :param loss: The type of loss function to use during training.
+
+        - ``pairwise``  the model will use pairwise margin-based loss function.
+        - ``nll`` the model will use negative loss likelihood.
+        - ``absolute_margin`` the model will use absolute margin likelihood.
+        - ``self_adversarial`` the model will use adversarial sampling loss function.
+        - ``multiclass_nll`` the model will use multiclass nll loss. Switch to multiclass loss defined in
+          :cite:`chen2015` by passing 'corrupt_side' as ['s','o'] to embedding_model_params.
+          To use loss defined in :cite:`kadlecBK17` pass 'corrupt_side' as 'o' to embedding_model_params.
+    :type loss: str
+    :param loss_params: Dictionary of loss-specific hyperparameters. See :ref:`loss
+        functions <loss>`
+        documentation for additional details.
+
+        Example: ``optimizer_params={'lr': 0.01}`` if ``loss='pairwise'``.
+    :type loss_params: dict
+    :param regularizer: The regularization strategy to use with the loss function.
+
+        - ``None``: the model will not use any regularizer (default)
+        - ``LP``: the model will use L1, L2 or L3 based on the value of ``regularizer_params['p']`` (see below).
+    :type regularizer: str
+    :param regularizer_params: Dictionary of regularizer-specific hyperparameters. See the
+        :ref:`regularizers <ref-reg>`
+        documentation for additional details.
+
+        Example: ``regularizer_params={'lambda': 1e-5, 'p': 2}`` if ``regularizer='LP'``.
+    :type regularizer_params: dict
+    :param initializer: The type of initializer to use.
+
+        - ``normal``: The embeddings will be initialized from a normal distribution
+        - ``uniform``: The embeddings will be initialized from a uniform distribution
+        - ``xavier``: The embeddings will be initialized using xavier strategy (default)
+    :type initializer: str
+    :param initializer_params: Dictionary of initializer-specific hyperparameters. See the
+        :ref:`initializer <ref-init>`
+        documentation for additional details.
+
+        Example: ``initializer_params={'mean': 0, 'std': 0.001}`` if ``initializer='normal'``.
+    :type initializer_params: dict
+    :param large_graphs: Avoid loading entire dataset onto GPU when dealing with large graphs.
+    :type large_graphs: bool
+    :param verbose: Verbose mode.
+    :type verbose: bool
+
     """
 
     def __init__(self,
@@ -114,84 +192,6 @@ class EmbeddingModel(abc.ABC):
         """Initialize the EmbeddingModel class
 
         Also creates a new Tensorflow session for training.
-
-        :param k: Embedding space dimensionality.
-        :type k: int
-        :param eta: The number of negatives that must be generated at runtime during training for each positive.
-        :type eta: int
-        :param epochs: The iterations of the training loop.
-        :type epochs: int
-        :param batches_count: The number of batches in which the training set must be split during the training loop.
-        :type batches_count: int
-        :param seed: The seed used by the internal random numbers generator.
-        :type seed: int
-        :param embedding_model_params: Model-specific hyperparams, passed to the model as a dictionary.
-        Refer to model-specific documentation for details.
-
-        For FocusE Layer, following hyper-params can be passed:
-
-            - **'non_linearity'**: can be one of the following values ``linear``, ``softplus``, ``sigmoid``, ``tanh``
-            - **'stop_epoch'**: specifies how long to decay (linearly) the numeric values from 1 to original value
-            until it reaches original value.
-            - **'structural_wt'**: structural influence hyperparameter [0, 1] that modulates the influence of graph
-            topology.
-        - **'normalize_numeric_values'**: normalize the numeric values, such that they are scaled between [0, 1]
-        :type embedding_model_params: dict
-        :param optimizer: The optimizer used to minimize the loss function. Choose between
-            'sgd', 'adagrad', 'adam', 'momentum'.
-        :type optimizer: str
-        :param optimizer_params: Arguments specific to the optimizer, passed as a dictionary.
-
-            Supported keys:
-
-            - **'lr'** (float): learning rate (used by all the optimizers). Default: 0.1.
-            - **'momentum'** (float): learning momentum (only used when ``optimizer=momentum``). Default: 0.9.
-
-            Example: ``optimizer_params={'lr': 0.009}``
-        :type optimizer_params: dict
-        :param loss: The type of loss function to use during training.
-
-            - ``pairwise``  the model will use pairwise margin-based loss function.
-            - ``nll`` the model will use negative loss likelihood.
-            - ``absolute_margin`` the model will use absolute margin likelihood.
-            - ``self_adversarial`` the model will use adversarial sampling loss function.
-            - ``multiclass_nll`` the model will use multiclass nll loss. Switch to multiclass loss defined in
-              :cite:`chen2015` by passing 'corrupt_side' as ['s','o'] to embedding_model_params.
-              To use loss defined in :cite:`kadlecBK17` pass 'corrupt_side' as 'o' to embedding_model_params.
-        :type loss: str
-        :param loss_params: Dictionary of loss-specific hyperparameters. See :ref:`loss
-            functions <loss>`
-            documentation for additional details.
-
-            Example: ``optimizer_params={'lr': 0.01}`` if ``loss='pairwise'``.
-        :type loss_params: dict
-        :param regularizer: The regularization strategy to use with the loss function.
-
-            - ``None``: the model will not use any regularizer (default)
-            - ``LP``: the model will use L1, L2 or L3 based on the value of ``regularizer_params['p']`` (see below).
-        :type regularizer: str
-        :param regularizer_params: Dictionary of regularizer-specific hyperparameters. See the
-            :ref:`regularizers <ref-reg>`
-            documentation for additional details.
-
-            Example: ``regularizer_params={'lambda': 1e-5, 'p': 2}`` if ``regularizer='LP'``.
-        :type regularizer_params: dict
-        :param initializer: The type of initializer to use.
-
-            - ``normal``: The embeddings will be initialized from a normal distribution
-            - ``uniform``: The embeddings will be initialized from a uniform distribution
-            - ``xavier``: The embeddings will be initialized using xavier strategy (default)
-        :type initializer: str
-        :param initializer_params: Dictionary of initializer-specific hyperparameters. See the
-            :ref:`initializer <ref-init>`
-            documentation for additional details.
-
-            Example: ``initializer_params={'mean': 0, 'std': 0.001}`` if ``initializer='normal'``.
-        :type initializer_params: dict
-        :param large_graphs: Avoid loading entire dataset onto GPU when dealing with large graphs.
-        :type large_graphs: bool
-        :param verbose: Verbose mode.
-        :type verbose: bool
         """
 
         if (loss == "bce") ^ (self.name == "ConvE"):
@@ -376,11 +376,13 @@ class EmbeddingModel(abc.ABC):
         """
         params_to_save = []
         if not self.dealing_with_large_graphs:
-            params_to_save.append(self.sess_train.run(self.ent_emb))
+            # params_to_save.append(self.sess_train.run(self.ent_emb))
+            params_to_save.append(self.ent_emb)
         else:
             params_to_save.append(self.ent_emb_cpu)
 
-        params_to_save.append(self.sess_train.run(self.rel_emb))
+        # params_to_save.append(self.sess_train.run(self.rel_emb))
+        params_to_save.append(self.rel_emb)
 
         self.trained_model_params = params_to_save
 
@@ -569,9 +571,8 @@ class EmbeddingModel(abc.ABC):
             #                                              len(self.rel_to_idx), self.internal_k),
             #                                          dtype=tf.float32)
 
-
     def _get_model_loss(self, dataset_iterator):
-        """Get the current loss including loss due to regularization.
+        """Get the current loss including loss wrt to regularization.
         This function must be overridden if the model uses combination of different losses(eg: VAE).
 
         :param dataset_iterator: Dataset iterator.
@@ -584,7 +585,6 @@ class EmbeddingModel(abc.ABC):
 
         # self.batch_number = tf.placeholder(tf.int32)
         self.batch_number = 0
-
         if self.use_focusE:
             x_pos_tf, self.unique_entities, ent_emb_batch, weights = dataset_iterator.get_next()
 
@@ -1120,15 +1120,17 @@ class EmbeddingModel(abc.ABC):
                 output_types = (tf.int32, tf.int32, tf.float32)
                 output_shapes = ((None, 3), (None, 1), (None, self.internal_k))
 
+            # todo ============================= Starts from here =============================================================
+            # todo ============================================================================================================
+
             dataset = tf.data.Dataset.from_generator(self._training_data_generator,
                                                      output_types=output_types,
                                                      output_shapes=output_shapes)
-
             dataset = dataset.repeat().prefetch(prefetch_batches)
+            # print("dataset: ", dataset)
 
-            # dataset_iterator = tf.data.make_one_shot_iterator(dataset)
-            dataset_iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
-            # dataset_iterator = dataset.__iter__()
+            dataset_iterator = dataset.__iter__()
+            # dataset_iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
 
             # init tf graph/dataflow for training
             # init variables (model parameters to be learned - i.e. the embeddings)
@@ -1136,15 +1138,16 @@ class EmbeddingModel(abc.ABC):
             if self.loss.get_state('require_same_size_pos_neg'):
                 batch_size = batch_size * self.eta
 
-            # loss = self._get_model_loss(dataset_iterator)
             loss = functools.partial(self._get_model_loss, dataset_iterator)
+            # loss = self._get_model_loss(dataset_iterator)
+            print(loss)
+            # todo: change this to get other models' hyperparameters instead of TrnasE
             print("model: ", MODEL_REGISTRY['TransE'].get_hyperparameter_dict(self))
             print("optimizer: ", self.optimizer)
             print("OPTIMIZER_REGISTRY: ", OPTIMIZER_REGISTRY)
-            print("loss: ", loss)
+
 
             train = self.optimizer.minimize(loss, [self.ent_emb, self.rel_emb])
-            print("train: ", train)
 
             # Entity embeddings normalization
             normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
@@ -1155,33 +1158,45 @@ class EmbeddingModel(abc.ABC):
             if early_stopping:
                 self._initialize_early_stopping()
 
-            self.sess_train.run(tf.tables_initializer())
-            self.sess_train.run(tf.global_variables_initializer())
-            try:
-                self.sess_train.run(self.set_training_true)
-            except AttributeError:
-                pass
+            # tf2x_dev changes:
+            # self.sess_train.run(tf.tables_initializer())
+            # self.sess_train.run(tf.global_variables_initializer())
+            # try:
+            #     self.sess_train.run(self.set_training_true)
+            # except AttributeError:
+            #     pass
 
             normalize_rel_emb_op = self.rel_emb.assign(tf.clip_by_norm(self.rel_emb, clip_norm=1, axes=1))
 
+            # todo: this is tf1 compatible -> should be removed
             if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
                 self.sess_train.run(normalize_rel_emb_op)
                 self.sess_train.run(normalize_ent_emb_op)
 
             epoch_iterator_with_progress = tqdm(range(1, self.epochs + 1), disable=(not self.verbose), unit='epoch')
-
+            # print("epoch_iterator_with_progress: ", epoch_iterator_with_progress)
             for epoch in epoch_iterator_with_progress:
                 losses = []
                 for batch in range(1, self.batches_count + 1):
                     feed_dict = {self.epoch: epoch, self.batch_number: batch - 1}
+                    # print("feed_dict: ", feed_dict)
+                    # print("feed_dict: ", self.epoch, epoch)
+                    # print("feed_dict: ", self.batch_number, batch - 1)
                     self.optimizer.update_feed_dict(feed_dict, batch, epoch)
+                    # print("self.optimizer.update_feed_dict: ", self.optimizer.update_feed_dict)
                     if self.dealing_with_large_graphs:
                         loss_batch, unique_entities, _ = self.sess_train.run([loss, self.unique_entities, train],
                                                                              feed_dict=feed_dict)
                         self.ent_emb_cpu[np.squeeze(unique_entities), :] = \
                             self.sess_train.run(self.ent_emb)[:unique_entities.shape[0], :]
                     else:
-                        loss_batch, _ = self.sess_train.run([loss, train], feed_dict=feed_dict)
+                        # print("loss: ", loss)
+                        # print("train: ", train)
+
+                        loss_batch = self._get_model_loss(dataset_iterator).numpy()
+                        train = self.optimizer.minimize(loss, [self.ent_emb, self.rel_emb])
+                        # print("loss_batch: ", loss_batch.numpy())
+                        # loss_batch, _ = self.sess_train.run([loss, train], feed_dict=feed_dict)
 
                     if np.isnan(loss_batch) or np.isinf(loss_batch):
                         msg = 'Loss is {}. Please change the hyperparameters.'.format(loss_batch)
@@ -1189,6 +1204,10 @@ class EmbeddingModel(abc.ABC):
                         raise ValueError(msg)
 
                     losses.append(loss_batch)
+
+                    # todo ============================= Ends here ====================================================================
+                    # todo ============================================================================================================
+
                     if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
                         self.sess_train.run(normalize_ent_emb_op)
                 if self.tensorboard_logs_path is not None:
