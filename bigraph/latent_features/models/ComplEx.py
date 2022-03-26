@@ -218,18 +218,18 @@ class ComplEx(EmbeddingModel):
                                            initializer=self.initializer.get_entity_initializer(
                                                len(self.ent_to_idx), self.internal_k),
                                            dtype=tf.float32)
-            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+            self.rel_emb = self.make_variable('rel_emb_{}'.format(timestamp),
                                            shape=[len(self.rel_to_idx), self.internal_k],
                                            initializer=self.initializer.get_relation_initializer(
                                                len(self.rel_to_idx), self.internal_k),
                                            dtype=tf.float32)
         else:
             # initialize entity embeddings to zero (these are reinitialized every batch by batch embeddings)
-            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+            self.ent_emb = self.make_variable('ent_emb_{}'.format(timestamp),
                                            shape=[self.batch_size * 2, self.internal_k],
                                            initializer=tf.zeros_initializer(),
                                            dtype=tf.float32)
-            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+            self.rel_emb = self.make_variable('rel_emb_{}'.format(timestamp),
                                            shape=[len(self.rel_to_idx), self.internal_k],
                                            initializer=self.initializer.get_relation_initializer(
                                                len(self.rel_to_idx), self.internal_k),

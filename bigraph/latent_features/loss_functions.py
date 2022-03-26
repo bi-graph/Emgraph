@@ -308,7 +308,7 @@ class NLLLoss(Loss):
         scores_pos = clip_before_exp(scores_pos)
         scores = tf.concat([-scores_pos, scores_neg], 0)
 
-        return tf.reduce_sum(tf.log(1 + tf.exp(scores)))
+        return tf.reduce_sum(tf.math.log(1 + tf.exp(scores)))
 
 
 @register_loss("absolute_margin", ['margin'])
@@ -452,8 +452,8 @@ class SelfAdversarialLoss(Loss):
         p_neg = tf.nn.softmax(alpha * scores_neg_reshaped, axis=0)
 
         # Compute Loss based on eg 5
-        loss = tf.reduce_sum(-tf.log_sigmoid(margin - tf.negative(scores_pos))) - tf.reduce_sum(
-            tf.multiply(p_neg, tf.log_sigmoid(tf.negative(scores_neg_reshaped) - margin)))
+        loss = tf.reduce_sum(-tf.math.log_sigmoid(margin - tf.negative(scores_pos))) - tf.reduce_sum(
+            tf.multiply(p_neg, tf.math.log_sigmoid(tf.negative(scores_neg_reshaped) - margin)))
 
         return loss
 
@@ -529,7 +529,7 @@ class NLLMulticlass(Loss):
         pos_exp = tf.exp(scores_pos)
         softmax_score = pos_exp / (tf.reduce_sum(neg_exp, axis=0) + pos_exp)
 
-        loss = -tf.reduce_sum(tf.log(softmax_score))
+        loss = -tf.reduce_sum(tf.math.log(softmax_score))
         return loss
 
 
@@ -662,8 +662,8 @@ class BCELoss(Loss):
 
             eps = 1e-6
             wt = tf.reduce_mean(y_true)
-            loss = -tf.reduce_sum((1 - wt) * y_true * tf.log_sigmoid(y_pred)
-                                  + wt * (1 - y_true) * tf.log(1 - tf.sigmoid(y_pred) + eps))
+            loss = -tf.reduce_sum((1 - wt) * y_true * tf.math.log_sigmoid(y_pred)
+                                  + wt * (1 - y_true) * tf.math.log(1 - tf.sigmoid(y_pred) + eps))
 
         else:
             loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=y_pred))

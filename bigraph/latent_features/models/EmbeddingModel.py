@@ -509,8 +509,9 @@ class EmbeddingModel(abc.ABC):
         return emb
 
     # tf2x_dev branch
-    def make_variable(self, name=None, shape=None, initializer=tf.keras.initializers.Zeros, dtype=tf.float32):
-        return tf.Variable(initializer(shape=shape, dtype=dtype), name=name)
+    def make_variable(self, name=None, shape=None, initializer=tf.keras.initializers.Zeros, dtype=tf.float32,
+                      trainable=True):
+        return tf.Variable(initializer(shape=shape, dtype=dtype), name=name, trainable=trainable)
 
     def _initialize_parameters(self):
         """Initialize parameters of the model.
@@ -1181,11 +1182,11 @@ class EmbeddingModel(abc.ABC):
             for epoch in epoch_iterator_with_progress:
                 losses = []
                 for batch in range(1, self.batches_count + 1):
-                    feed_dict = {self.epoch: epoch, self.batch_number: batch - 1}
+                    # feed_dict = {self.epoch: epoch, self.batch_number: batch - 1}
                     # print("feed_dict: ", feed_dict)
                     # print("feed_dict: ", self.epoch, epoch)
                     # print("feed_dict: ", self.batch_number, batch - 1)
-                    self.optimizer.update_feed_dict(feed_dict, batch, epoch)
+                    # self.optimizer.update_feed_dict(feed_dict, batch, epoch)
                     # print("self.optimizer.update_feed_dict: ", self.optimizer.update_feed_dict)
                     if self.dealing_with_large_graphs:
                         # loss_batch, unique_entities, _ = self.sess_train.run([loss, self.unique_entities, train],
@@ -1199,11 +1200,11 @@ class EmbeddingModel(abc.ABC):
                         # print("loss: ", loss)
                         # print("train: ", train)
 
-                        loss_batch = self._get_model_loss(dataset_iterator).numpy()
+                        loss_batch = partial(self._get_model_loss, dataset_iterator)
                         train = self.optimizer.minimize(loss_batch, [self.ent_emb, self.rel_emb])
                         # print("loss_batch: ", loss_batch.numpy())
                         # loss_batch, _ = self.sess_train.run([loss, train], feed_dict=feed_dict)
-
+                        loss_batch = self._get_model_loss(dataset_iterator).numpy()
                     if np.isnan(loss_batch) or np.isinf(loss_batch):
                         msg = 'Loss is {}. Please change the hyperparameters.'.format(loss_batch)
                         logger.error(msg)

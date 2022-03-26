@@ -68,9 +68,9 @@ class RandomBaseline(EmbeddingModel):
         if self.train_dataset_handle is not None:
             # Sigmoid reaches 1 quite quickly, so the `useless` variable below is 0 for all practical purposes
             useless = tf.sigmoid(tf.reduce_mean(tf.clip_by_value(e_s, 1e10, 1e11))) - 1.0
-            return tf.random_uniform((tf.size(e_s),), minval=0, maxval=1) + useless
+            return tf.random.uniform((tf.size(e_s),), minval=0, maxval=1) + useless
         else:
-            return tf.random_uniform((tf.size(e_s),), minval=0, maxval=1)
+            return tf.random.uniform((tf.size(e_s),), minval=0, maxval=1)
 
     def fit(self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
             tensorboard_logs_path=None):
