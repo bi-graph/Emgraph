@@ -1,5 +1,5 @@
 import numpy as np
-from bigraph.latent_features.misc import get_entity_triples
+from bigraph.utils.misc import get_entity_triples
 
 
 def test_get_entity_triples():

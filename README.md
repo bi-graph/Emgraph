@@ -74,7 +74,7 @@
 <code><b>Adamic-Adar</b></code> algorithm:</p>
 
 ```python
-from bigraph.predict import aa_predict
+from bigraph.to_remove._predict import aa_predict
 from bigraph.preprocessing import import_files, make_graph
 
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 You can try other provided prediction algorithms by replacing the <b>"aa"</b> argument.</p>
 
 ```python
-from bigraph.evaluation.evaluation import evaluate
+from bigraph.to_remove._evaluation import evaluate
 from bigraph.preprocessing import import_files, make_graph
 
 
@@ -241,7 +241,7 @@ df, df_nodes = import_files()</code></pre>will create a sample graph for you and
 </ul>
 
 ```python
-from bigraph.predict import pa_predict, jc_predict, cn_predict
+from bigraph.to_remove._predict import pa_predict, jc_predict, cn_predict
 from bigraph.preprocessing import import_files, make_graph
 
 

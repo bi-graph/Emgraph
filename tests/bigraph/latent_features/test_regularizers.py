@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from bigraph.latent_features import REGULARIZER_REGISTRY
+from bigraph.regularizers._regularizer_constants import REGULARIZER_REGISTRY
 
 
 def test_l1_regularizer():

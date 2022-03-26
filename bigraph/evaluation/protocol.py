@@ -949,8 +949,11 @@ def _remove_unused_params(params):
     :rtype: dict
     """
 
-    from ..latent_features import LOSS_REGISTRY, REGULARIZER_REGISTRY, MODEL_REGISTRY, \
-        OPTIMIZER_REGISTRY, INITIALIZER_REGISTRY
+    from ..latent_features import MODEL_REGISTRY
+    from ..regularizers._regularizer_constants import REGULARIZER_REGISTRY
+    from ..losses._loss_constants import LOSS_REGISTRY
+    from ..initializers._initializer_constants import INITIALIZER_REGISTRY
+    from ..training._optimizer_constants import OPTIMIZER_REGISTRY
 
     def _param_without_unused(param, registry, category_type, category_type_params):
         """Remove one particular nested param (if unused) given a registry"""

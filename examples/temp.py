@@ -5,7 +5,7 @@ from sklearn.metrics import brier_score_loss
 from scipy.special import expit
 
 from bigraph.datasets import load_wn11
-from bigraph.latent_features.models import ComplEx, TransE, ConvE, ConvKB, HolE, DistMult, RandomBaseline
+from bigraph.models import ComplEx, TransE, ConvE, ConvKB, HolE, DistMult, RandomBaseline
 import tensorflow as tf
 
 X = load_wn11()
@@ -42,9 +42,9 @@ import numpy as np
 #              loss='pairwise', loss_params={'margin': 1},
 #              regularizer='LP', regularizer_params={'lambda': 0.1})
 
-# model = DistMult(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
-#                  loss_params={'margin': 5})
-model = RandomBaseline()
+model = DistMult(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
+                 loss_params={'margin': 5})
+# model = RandomBaseline()
 model.fit(X['train'])
 
 # scores

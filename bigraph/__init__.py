@@ -4,19 +4,16 @@
 
 """Bigraph is a Python toolkit for graph embedding and link prediction."""
 
-import logging.config
-import pkg_resources
 
 import tensorflow as tf
-
+tf.__version__()
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-
+from . import datasets, evaluation, initializers, layers, losses, models, regularizers, training
 def get_version() -> str:
-    __version__ = '1.0rc1'
+    __version__ = '1.0rc2'
     return __version__
 
 
-__all__ = ['preprocessing', 'predict', 'datasets', 'latent_features', 'evaluation', 'utils']
+__all__ = ['datasets', 'evaluation', 'initializers', 'layers', 'losses', 'models', 'regularizers', 'training']
 
-# logging.config.fileConfig(pkg_resources.resource_filename(__name__, 'logger.conf'), disable_existing_loggers=False)

@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from bigraph.latent_features import OPTIMIZER_REGISTRY
+from bigraph.training._optimizer_constants import OPTIMIZER_REGISTRY
 
 
 def test_sgd_optimizer_const_lr():

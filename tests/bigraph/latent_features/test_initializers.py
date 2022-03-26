@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from bigraph.latent_features import INITIALIZER_REGISTRY
+from bigraph.initializers._initializer_constants import INITIALIZER_REGISTRY
 
 
 def test_random_normal():
@@ -23,7 +23,7 @@ def test_random_normal():
 
 
 def test_xavier_normal():
-    """Xavier normal initializer test
+    """GlorotUniform normal initializer test
     """
     tf.reset_default_graph()
     tf.random.set_random_seed(0)
@@ -42,7 +42,7 @@ def test_xavier_normal():
 
 
 def test_xavier_uniform():
-    """Xavier uniform initializer test
+    """GlorotUniform uniform initializer test
     """
     tf.reset_default_graph()
     tf.random.set_random_seed(0)

@@ -1,5 +1,5 @@
 from bigraph.preprocessing import import_files, make_graph
-from bigraph.predict import aa_predict
+from bigraph.to_remove._predict import aa_predict
 
 import unittest
 
