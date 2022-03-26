@@ -509,7 +509,7 @@ class EmbeddingModel(abc.ABC):
         return emb
 
     # tf2x_dev branch
-    def _make_variable(self, shape, initializer, name=None, dtype=tf.float32):
+    def make_variable(self, name=None, shape=None, initializer=tf.keras.initializers.Zeros, dtype=tf.float32):
         return tf.Variable(initializer(shape=shape, dtype=dtype), name=name)
 
     def _initialize_parameters(self):
@@ -524,15 +524,15 @@ class EmbeddingModel(abc.ABC):
         if not self.dealing_with_large_graphs:
             print("shape: ", (len(self.ent_to_idx), self.internal_k))
 
-            self.ent_emb = self._make_variable(name='ent_emb_{}'.format(timestamp),
-                                               shape=[len(self.ent_to_idx), self.internal_k],
-                                               initializer=self.initializer.get_entity_initializer(),
-                                               dtype=tf.float32)
+            self.ent_emb = self.make_variable(name='ent_emb_{}'.format(timestamp),
+                                              shape=[len(self.ent_to_idx), self.internal_k],
+                                              initializer=self.initializer.get_entity_initializer(),
+                                              dtype=tf.float32)
 
-            self.rel_emb = self._make_variable(name='rel_emb_{}'.format(timestamp),
-                                               shape=[len(self.rel_to_idx), self.internal_k],
-                                               initializer=self.initializer.get_relation_initializer(),
-                                               dtype=tf.float32)
+            self.rel_emb = self.make_variable(name='rel_emb_{}'.format(timestamp),
+                                              shape=[len(self.rel_to_idx), self.internal_k],
+                                              initializer=self.initializer.get_relation_initializer(),
+                                              dtype=tf.float32)
 
             # self.ent_emb2 = tf.compat.v1.get_variable('ent_emb_{}'.format(timestamp),
             #                                           shape=[len(self.ent_to_idx), self.internal_k],
@@ -550,15 +550,15 @@ class EmbeddingModel(abc.ABC):
         else:
             # initialize entity embeddings to zero (these are reinitialized every batch by batch embeddings)
 
-            self.ent_emb = self._make_variable(name='rel_emb_{}'.format(timestamp),
-                                               shape=[self.batch_size * 2, self.internal_k],
-                                               initializer=tf.zeros_initializer(),
-                                               dtype=tf.float32)
+            self.ent_emb = self.make_variable(name='rel_emb_{}'.format(timestamp),
+                                              shape=[self.batch_size * 2, self.internal_k],
+                                              initializer=tf.zeros_initializer(),
+                                              dtype=tf.float32)
 
-            self.rel_emb = self._make_variable(name='rel_emb_{}'.format(timestamp),
-                                               shape=[len(self.rel_to_idx), self.internal_k],
-                                               initializer=self.initializer.get_relation_initializer(),
-                                               dtype=tf.float32)
+            self.rel_emb = self.make_variable(name='rel_emb_{}'.format(timestamp),
+                                              shape=[len(self.rel_to_idx), self.internal_k],
+                                              initializer=self.initializer.get_relation_initializer(),
+                                              dtype=tf.float32)
 
             # self.ent_emb = tf.compat.v1.get_variable('ent_emb_{}'.format(timestamp),
             #                                          shape=[self.batch_size * 2, self.internal_k],
@@ -1095,9 +1095,11 @@ class EmbeddingModel(abc.ABC):
 
             # This is useful when we re-fit the same model (e.g. retraining in model selection)
             if self.is_fitted:
-                tf.reset_default_graph()
+                # tf.reset_default_graph()
                 self.rnd = check_random_state(self.seed)
-                tf.random.set_random_seed(self.seed)
+                # tf.random.set_random_seed(self.seed)
+                tf.random.set_seed(self.seed)
+
 
             # self.sess_train = tf.Session(config=self.tf_config)
             print('self.sess train: ', self.sess_train)
@@ -1140,17 +1142,16 @@ class EmbeddingModel(abc.ABC):
 
             loss = functools.partial(self._get_model_loss, dataset_iterator)
             # loss = self._get_model_loss(dataset_iterator)
-            print(loss)
+            # print(loss)
             # todo: change this to get other models' hyperparameters instead of TrnasE
             print("model: ", MODEL_REGISTRY['TransE'].get_hyperparameter_dict(self))
             print("optimizer: ", self.optimizer)
             print("OPTIMIZER_REGISTRY: ", OPTIMIZER_REGISTRY)
 
 
-            train = self.optimizer.minimize(loss, [self.ent_emb, self.rel_emb])
+            # train = self.optimizer.minimize(loss, [self.ent_emb, self.rel_emb])
 
-            # Entity embeddings normalization
-            normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
+
 
             self.early_stopping_params = early_stopping_params
 
@@ -1166,12 +1167,14 @@ class EmbeddingModel(abc.ABC):
             # except AttributeError:
             #     pass
 
-            normalize_rel_emb_op = self.rel_emb.assign(tf.clip_by_norm(self.rel_emb, clip_norm=1, axes=1))
 
             # todo: this is tf1 compatible -> should be removed
             if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
-                self.sess_train.run(normalize_rel_emb_op)
-                self.sess_train.run(normalize_ent_emb_op)
+                # Entity embeddings normalization
+                normalize_rel_emb_op = self.rel_emb.assign(tf.clip_by_norm(self.rel_emb, clip_norm=1, axes=1))
+                normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
+                # self.sess_train.run(normalize_rel_emb_op)
+                # self.sess_train.run(normalize_ent_emb_op)
 
             epoch_iterator_with_progress = tqdm(range(1, self.epochs + 1), disable=(not self.verbose), unit='epoch')
             # print("epoch_iterator_with_progress: ", epoch_iterator_with_progress)
@@ -1185,16 +1188,19 @@ class EmbeddingModel(abc.ABC):
                     self.optimizer.update_feed_dict(feed_dict, batch, epoch)
                     # print("self.optimizer.update_feed_dict: ", self.optimizer.update_feed_dict)
                     if self.dealing_with_large_graphs:
-                        loss_batch, unique_entities, _ = self.sess_train.run([loss, self.unique_entities, train],
-                                                                             feed_dict=feed_dict)
-                        self.ent_emb_cpu[np.squeeze(unique_entities), :] = \
-                            self.sess_train.run(self.ent_emb)[:unique_entities.shape[0], :]
+                        # loss_batch, unique_entities, _ = self.sess_train.run([loss, self.unique_entities, train],
+                        #                                                      feed_dict=feed_dict)
+                        loss_batch = loss
+                        unique_entities = self.unique_entities
+                        train = self.optimizer.minimize(loss_batch, [self.ent_emb, self.rel_emb])
+                        self.ent_emb_cpu[np.squeeze(unique_entities), :] = self.ent_emb[:unique_entities.shape[0], :]
+                        # self.sess_train.run(self.ent_emb)[:unique_entities.shape[0], :]
                     else:
                         # print("loss: ", loss)
                         # print("train: ", train)
 
                         loss_batch = self._get_model_loss(dataset_iterator).numpy()
-                        train = self.optimizer.minimize(loss, [self.ent_emb, self.rel_emb])
+                        train = self.optimizer.minimize(loss_batch, [self.ent_emb, self.rel_emb])
                         # print("loss_batch: ", loss_batch.numpy())
                         # loss_batch, _ = self.sess_train.run([loss, train], feed_dict=feed_dict)
 
@@ -1209,7 +1215,8 @@ class EmbeddingModel(abc.ABC):
                     # todo ============================================================================================================
 
                     if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
-                        self.sess_train.run(normalize_ent_emb_op)
+                        normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
+                        # self.sess_train.run(normalize_ent_emb_op)
                 if self.tensorboard_logs_path is not None:
                     avg_loss = sum(losses) / (batch_size * self.batches_count)
                     summary = tf.Summary(value=[tf.Summary.Value(tag="Average Loss",
@@ -1707,33 +1714,36 @@ class EmbeddingModel(abc.ABC):
         self.eval_dataset_handle = dataset_handle
 
         # build tf graph for predictions
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
         self.rnd = check_random_state(self.seed)
-        tf.random.set_random_seed(self.seed)
+        # tf.random.set_random_seed(self.seed)
+        tf.random.set_seed(self.seed)
         # load the parameters
         self._load_model_from_trained_params()
         # build the eval graph
         self._initialize_eval_graph()
 
-        with tf.Session(config=self.tf_config) as sess:
-            sess.run(tf.tables_initializer())
-            sess.run(tf.global_variables_initializer())
+        # with tf.Session(config=self.tf_config) as sess:
+            # sess.run(tf.tables_initializer())
+            # sess.run(tf.global_variables_initializer())
 
-            try:
-                sess.run(self.set_training_false)
-            except AttributeError:
-                pass
+        try:
+            # sess.run(self.set_training_false)
+            self.set_training_false
+        except AttributeError:
+            pass
 
-            ranks = []
+        ranks = []
 
-            for _ in tqdm(range(self.eval_dataset_handle.get_size('test')), disable=(not self.verbose)):
-                rank = sess.run(self.rank)
-                if self.eval_config.get('corrupt_side', constants.DEFAULT_CORRUPT_SIDE_EVAL) == 's,o':
-                    ranks.append(list(rank))
-                else:
-                    ranks.append(rank)
+        for _ in tqdm(range(self.eval_dataset_handle.get_size('test')), disable=(not self.verbose)):
+            # rank = sess.run(self.rank)
+            rank = self.rank
+            if self.eval_config.get('corrupt_side', constants.DEFAULT_CORRUPT_SIDE_EVAL) == 's,o':
+                ranks.append(list(rank))
+            else:
+                ranks.append(rank)
 
-            return ranks
+        return ranks
 
     def predict(self, X, from_idx=False):
         """Predict the scores of triples using a trained embedding model.
@@ -1756,7 +1766,7 @@ class EmbeddingModel(abc.ABC):
             logger.error(msg)
             raise RuntimeError(msg)
 
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
         self._load_model_from_trained_params()
 
         if type(X) is not np.ndarray:
@@ -1782,9 +1792,10 @@ class EmbeddingModel(abc.ABC):
             else:
                 raise ValueError('Invalid non-linearity')
 
-            with tf.Session(config=self.tf_config) as sess:
-                sess.run(tf.global_variables_initializer())
-                return sess.run(scores)
+            return scores
+            # with tf.Session(config=self.tf_config) as sess:
+            #     sess.run(tf.global_variables_initializer())
+            #     return sess.run(scores)
         else:
             dataset_handle = NumpyDatasetAdapter()
             dataset_handle.use_mappings(self.rel_to_idx, self.ent_to_idx)
@@ -1794,27 +1805,30 @@ class EmbeddingModel(abc.ABC):
 
             # build tf graph for predictions
             self.rnd = check_random_state(self.seed)
-            tf.random.set_random_seed(self.seed)
+            # tf.random.set_random_seed(self.seed)
+            tf.random.set_seed(self.seed)
             # load the parameters
             # build the eval graph
             self._initialize_eval_graph()
 
-            with tf.Session(config=self.tf_config) as sess:
-                sess.run(tf.tables_initializer())
-                sess.run(tf.global_variables_initializer())
+            # with tf.Session(config=self.tf_config) as sess:
+            #     sess.run(tf.tables_initializer())
+            #     sess.run(tf.global_variables_initializer())
 
-                try:
-                    sess.run(self.set_training_false)
-                except AttributeError:
-                    pass
+            try:
+                # sess.run(self.set_training_false)
+                self.set_training_false
+            except AttributeError:
+                pass
 
-                scores = []
+            scores = []
 
-                for _ in tqdm(range(self.eval_dataset_handle.get_size('test')), disable=(not self.verbose)):
-                    score = sess.run(self.score_positive)
-                    scores.append(score)
+            for _ in tqdm(range(self.eval_dataset_handle.get_size('test')), disable=(not self.verbose)):
+                # score = sess.run(self.score_positive)
+                score = self.score_positive
+                scores.append(score)
 
-                return scores
+            return scores
 
     def is_fitted_on(self, X):
         """Determine heuristically if a model was fitted on the given triples.
@@ -1910,8 +1924,8 @@ class EmbeddingModel(abc.ABC):
 
         return scores_pos, scores_neg
 
-    def calibrate(self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50):
-        """Calibrate predictions
+    def _calibrate(self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50):
+        """Calibrate predictions tod o: un-underscore this method later
 
         The method implements the heuristics described in :cite:`calibration`,
         using Platt scaling :cite:`platt1999probabilistic`.
@@ -2038,9 +2052,10 @@ class EmbeddingModel(abc.ABC):
         dataset_handle = None
 
         try:
-            tf.reset_default_graph()
+            # tf.reset_default_graph()
             self.rnd = check_random_state(self.seed)
-            tf.random.set_random_seed(self.seed)
+            # tf.random.set_random_seed(self.seed)
+            tf.random.set_seed(self.seed)
 
             self._load_model_from_trained_params()
 
@@ -2065,10 +2080,25 @@ class EmbeddingModel(abc.ABC):
                                axis=0)
 
             # Platt scaling model
-            w = tf.get_variable('w', initializer=0.0, dtype=tf.float32)
-            b = tf.get_variable('b', initializer=np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32),
-                                dtype=tf.float32)
-            logits = -(w * tf.stop_gradient(scores_tf) + b)
+            # w = tf.get_variable('w', initializer=0.0, dtype=tf.float32)
+            # b = tf.get_variable('b', initializer=np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32),
+            #                     dtype=tf.float32)
+
+            # w = tf.Variable(tf.constant_initializer(0.0, shape=[scores_tf.shape]), name='w', dtype=tf.float32)
+            w = self.make_variable(name='w',
+                                   shape=scores_tf.shape,
+                                   initializer=tf.zeros_initializer(),
+                                   dtype=tf.float32)
+            # w = self._make_variable(name='w', shape=tf.TensorShape(None), initializer=tf.zeros_initializer(), dtype=tf.float32)
+            print("np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32): ", tf.constant_initializer(np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32)))
+            b = self.make_variable(name='b',
+                                   shape=scores_tf.shape,
+                                   initializer=tf.constant_initializer(np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32)),
+                                   dtype=tf.float32)
+
+            print(f"w: {w}\ntf.stop_gradient(scores_tf): {tf.stop_gradient(scores_tf)}\nb: {b}")
+            # logits = -(w * tf.stop_gradient(scores_tf) + b)
+            logits = -(w * scores_tf + b)
 
             # Sample weights make sure the given positive_base_rate will be achieved irrespective of batch sizes
             weigths_pos = tf.size(scores_neg) / tf.size(scores_pos)
@@ -2076,32 +2106,40 @@ class EmbeddingModel(abc.ABC):
             weights = tf.concat([tf.cast(tf.fill(tf.shape(scores_pos), weigths_pos), tf.float32),
                                  tf.cast(tf.fill(tf.shape(scores_neg), weights_neg), tf.float32)], axis=0)
 
-            loss = tf.losses.sigmoid_cross_entropy(labels, logits, weights=weights)
+            print("w: ", w, "\nweights: ", weights)
 
-            optimizer = tf.train.AdamOptimizer()
-            train = optimizer.minimize(loss)
+            # loss = functools.partial(tf.compat.v1.losses.sigmoid_cross_entropy, labels, logits, weights=weights)
+            loss = functools.partial(tf.nn.sigmoid_cross_entropy_with_logits, labels, logits)
 
-            with tf.Session(config=self.tf_config) as sess:
-                sess.run(tf.global_variables_initializer())
 
-                epoch_iterator_with_progress = tqdm(range(1, epochs + 1), disable=(not self.verbose), unit='epoch')
-                for _ in epoch_iterator_with_progress:
-                    losses = []
-                    for batch in range(batches_count):
-                        loss_batch, _ = sess.run([loss, train])
-                        losses.append(loss_batch)
-                    if self.verbose:
-                        msg = 'Calibration Loss: {:10f}'.format(sum(losses) / batches_count)
-                        logger.debug(msg)
-                        epoch_iterator_with_progress.set_description(msg)
+            # optimizer = tf.train.AdamOptimizer()
+            optimizer = tf.keras.optimizers.Adam()
 
-                self.calibration_parameters = sess.run([w, b])
+            train = optimizer.minimize(loss, [logits, labels])
+
+            # with tf.Session(config=self.tf_config) as sess:
+            #     sess.run(tf.global_variables_initializer())
+
+            epoch_iterator_with_progress = tqdm(range(1, epochs + 1), disable=(not self.verbose), unit='epoch')
+            for _ in epoch_iterator_with_progress:
+                losses = []
+                for batch in range(batches_count):
+                    # loss_batch, _ = sess.run([loss, train])
+                    loss_batch, _ = [loss, train]
+                    losses.append(loss_batch)
+                if self.verbose:
+                    msg = 'Calibration Loss: {:10f}'.format(sum(losses) / batches_count)
+                    logger.debug(msg)
+                    epoch_iterator_with_progress.set_description(msg)
+
+            # self.calibration_parameters = sess.run([w, b])
+            self.calibration_parameters = [w, b]
             self.is_calibrated = True
         finally:
             if dataset_handle is not None:
                 dataset_handle.cleanup()
 
-    def predict_proba(self, X):
+    def _predict_proba(self, X):
         """Predicts probabilities using the Platt scaling model (after calibration).
 
         Model must be calibrated beforehand with the ``calibrate`` method.
@@ -2117,7 +2155,7 @@ class EmbeddingModel(abc.ABC):
             logger.error(msg)
             raise RuntimeError(msg)
 
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
 
         self._load_model_from_trained_params()
 
@@ -2132,6 +2170,7 @@ class EmbeddingModel(abc.ABC):
         logits = -(w * scores + b)
         probas = tf.sigmoid(logits)
 
-        with tf.Session(config=self.tf_config) as sess:
-            sess.run(tf.global_variables_initializer())
-            return sess.run(probas)
+        # with tf.Session(config=self.tf_config) as sess:
+        #     sess.run(tf.global_variables_initializer())
+        #     return sess.run(probas)
+        return probas

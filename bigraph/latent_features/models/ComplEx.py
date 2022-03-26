@@ -213,7 +213,7 @@ class ComplEx(EmbeddingModel):
         """
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
-            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+            self.ent_emb = self.make_variable('ent_emb_{}'.format(timestamp),
                                            shape=[len(self.ent_to_idx), self.internal_k],
                                            initializer=self.initializer.get_entity_initializer(
                                                len(self.ent_to_idx), self.internal_k),

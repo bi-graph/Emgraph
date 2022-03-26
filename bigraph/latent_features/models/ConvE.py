@@ -216,6 +216,9 @@ class ConvE(EmbeddingModel):
                          initializer=initializer, initializer_params=initializer_params,
                          verbose=verbose)
 
+    def make_variable(self, name=None, shape=None, initializer=tf.keras.initializers.Zeros, dtype=tf.float32):
+        return tf.Variable(initializer(shape=shape, dtype=dtype), name=name)
+
     def _initialize_parameters(self):
         """Initialize parameters of the model.
 
@@ -227,42 +230,55 @@ class ConvE(EmbeddingModel):
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
 
-            with tf.variable_scope('meta'):
-                self.tf_is_training = tf.Variable(False, trainable=False)
-                self.set_training_true = tf.assign(self.tf_is_training, True)
-                self.set_training_false = tf.assign(self.tf_is_training, False)
+            # with tf.variable_scope('meta'):
+            self.tf_is_training = tf.Variable(False, trainable=False)
+            # self.set_training_true = tf.assign(self.tf_is_training, True)
+            self.set_training_true = self.tf_is_training.assign(True)
+            # self.set_training_false = tf.assign(self.tf_is_training, False)
+            self.set_training_false = self.tf_is_training.assign(False)
 
             nfilters = self.embedding_model_params['conv_filters']
             ninput = self.embedding_model_params['embed_image_depth']
             ksize = self.embedding_model_params['conv_kernel_size']
             dense_dim = self.embedding_model_params['dense_dim']
 
-            self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
-                                           shape=[len(self.ent_to_idx), self.k],
-                                           initializer=self.initializer.get_entity_initializer(
-                                               len(self.ent_to_idx), self.k),
-                                           dtype=tf.float32)
-            self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
-                                           shape=[len(self.rel_to_idx), self.k],
-                                           initializer=self.initializer.get_relation_initializer(
-                                               len(self.rel_to_idx), self.k),
-                                           dtype=tf.float32)
+            self.ent_emb = self.make_variable(name='ent_emb_{}'.format(timestamp),
+                                              shape=[len(self.ent_to_idx), self.internal_k],
+                                              initializer=self.initializer.get_entity_initializer(),
+                                              dtype=tf.float32)
 
-            self.conv2d_W = tf.get_variable('conv2d_weights_{}'.format(timestamp),
-                                            shape=[ksize, ksize, ninput, nfilters],
-                                            initializer=tf.initializers.he_normal(seed=self.seed),
-                                            dtype=tf.float32)
-            self.conv2d_B = tf.get_variable('conv2d_bias_{}'.format(timestamp),
-                                            shape=[nfilters],
-                                            initializer=tf.zeros_initializer(), dtype=tf.float32)
+            self.rel_emb = self.make_variable(name='rel_emb_{}'.format(timestamp),
+                                              shape=[len(self.rel_to_idx), self.k],
+                                              initializer=self.initializer.get_relation_initializer(),
+                                              dtype=tf.float32)
 
-            self.dense_W = tf.get_variable('dense_weights_{}'.format(timestamp),
-                                           shape=[dense_dim, self.k],
-                                           initializer=tf.initializers.he_normal(seed=self.seed),
-                                           dtype=tf.float32)
-            self.dense_B = tf.get_variable('dense_bias_{}'.format(timestamp),
-                                           shape=[self.k],
-                                           initializer=tf.zeros_initializer(), dtype=tf.float32)
+            # self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
+            #                                shape=[len(self.ent_to_idx), self.k],
+            #                                initializer=self.initializer.get_entity_initializer(
+            #                                    len(self.ent_to_idx), self.k),
+            #                                dtype=tf.float32)
+
+            # self.rel_emb = tf.get_variable('rel_emb_{}'.format(timestamp),
+            #                                shape=[len(self.rel_to_idx), self.k],
+            #                                initializer=self.initializer.get_relation_initializer(
+            #                                    len(self.rel_to_idx), self.k),
+            #                                dtype=tf.float32)
+            print("[ksize, ksize, ninput, nfilters]: ", [ksize, ksize, ninput, nfilters])
+            self.conv2d_W = self.make_variable(name='conv2d_weights_{}'.format(timestamp),
+                                               shape=[ksize, ksize, ninput, nfilters],
+                                               initializer=tf.initializers.he_normal(seed=self.seed),
+                                               dtype=tf.float32)
+            self.conv2d_B = self.make_variable(name='conv2d_bias_{}'.format(timestamp),
+                                               shape=[nfilters],
+                                               initializer=tf.zeros_initializer(), dtype=tf.float32)
+
+            self.dense_W = self.make_variable(name='dense_weights_{}'.format(timestamp),
+                                              shape=[dense_dim, self.k],
+                                              initializer=tf.initializers.he_normal(seed=self.seed),
+                                              dtype=tf.float32)
+            self.dense_B = self.make_variable(name='dense_bias_{}'.format(timestamp),
+                                              shape=[self.k],
+                                              initializer=tf.zeros_initializer(), dtype=tf.float32)
 
             if self.embedding_model_params['use_batchnorm']:
                 emb_img_dim = self.embedding_model_params['embed_image_depth']
@@ -281,9 +297,13 @@ class ConvE(EmbeddingModel):
                                                     'moving_variance': np.ones(shape=[1])}}
 
             if self.embedding_model_params['use_bias']:
-                self.bias = tf.get_variable('activation_bias_{}'.format(timestamp),
-                                            shape=[1, len(self.ent_to_idx)],
-                                            initializer=tf.zeros_initializer(), dtype=tf.float32)
+                self.bias = self.make_variable(name='activation_bias_{}'.format(timestamp),
+                                               shape=[1, len(self.ent_to_idx)],
+                                               initializer=tf.zeros_initializer(), dtype=tf.float32)
+
+                # self.bias = tf.get_variable('activation_bias_{}'.format(timestamp),
+                #                                             shape=[1, len(self.ent_to_idx)],
+                #                                             initializer=tf.zeros_initializer(), dtype=tf.float32)
 
         else:
             raise NotImplementedError('ConvE not implemented when dealing with large graphs.')
@@ -599,11 +619,12 @@ class ConvE(EmbeddingModel):
 
             # This is useful when we re-fit the same model (e.g. retraining in model selection)
             if self.is_fitted:
-                tf.reset_default_graph()
+                # tf.reset_default_graph()
                 self.rnd = check_random_state(self.seed)
-                tf.random.set_random_seed(self.seed)
+                # tf.random.set_random_seed(self.seed)
+                tf.random.set_seed(self.seed)
 
-            self.sess_train = tf.Session(config=self.tf_config)
+            # self.sess_train = tf.Session(config=self.tf_config)
 
             batch_size = int(np.ceil(self.train_dataset_handle.get_size("train") / self.batches_count))
             self.batch_size = batch_size
@@ -628,7 +649,8 @@ class ConvE(EmbeddingModel):
                                                      output_shapes=((None, 3), (None, len(self.ent_to_idx))))
             prefetch_batches = 5
             dataset = dataset.repeat().prefetch(prefetch_batches)
-            dataset_iterator = dataset.make_one_shot_iterator()
+            # dataset_iterator = dataset.make_one_shot_iterator()
+            dataset_iterator = dataset.__iter__()
 
             # init tf graph/dataflow for training
             # init variables (model parameters to be learned - i.e. the embeddings)
@@ -651,17 +673,18 @@ class ConvE(EmbeddingModel):
             if early_stopping:
                 self._initialize_early_stopping()
 
-            self.sess_train.run(tf.tables_initializer())
-            self.sess_train.run(tf.global_variables_initializer())
-            self.sess_train.run(self.set_training_true)
+            # self.sess_train.run(tf.tables_initializer())
+            # self.sess_train.run(tf.global_variables_initializer())
+            # self.sess_train.run(self.set_training_true)
 
             # Entity embeddings normalization
-            normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
-            normalize_rel_emb_op = self.rel_emb.assign(tf.clip_by_norm(self.rel_emb, clip_norm=1, axes=1))
 
             if self.embedding_model_params.get('normalize_ent_emb', constants.DEFAULT_NORMALIZE_EMBEDDINGS):
-                self.sess_train.run(normalize_rel_emb_op)
-                self.sess_train.run(normalize_ent_emb_op)
+                normalize_ent_emb_op = self.ent_emb.assign(tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1))
+                normalize_rel_emb_op = self.rel_emb.assign(tf.clip_by_norm(self.rel_emb, clip_norm=1, axes=1))
+
+                # self.sess_train.run(normalize_rel_emb_op)
+                # self.sess_train.run(normalize_ent_emb_op)
 
             epoch_iterator_with_progress = tqdm(range(1, self.epochs + 1), disable=(not self.verbose), unit='epoch')
 
@@ -860,7 +883,7 @@ class ConvE(EmbeddingModel):
             logger.error(msg)
             raise RuntimeError(msg)
 
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
         self._load_model_from_trained_params()
 
         dataset_handle = OneToNDatasetAdapter(low_memory=self.low_memory)
@@ -873,22 +896,27 @@ class ConvE(EmbeddingModel):
         self.eval_dataset_handle = dataset_handle
 
         self.rnd = check_random_state(self.seed)
-        tf.random.set_random_seed(self.seed)
+        # tf.random.set_random_seed(self.seed)
+        tf.random.set_seed(self.seed)
         self._initialize_eval_graph()
 
-        with tf.Session(config=self.tf_config) as sess:
+        # with tf.Session(config=self.tf_config) as sess:
 
-            sess.run(tf.tables_initializer())
-            sess.run(tf.global_variables_initializer())
-            sess.run(self.set_training_false)
+        # sess.run(tf.tables_initializer())
+        # sess.run(tf.global_variables_initializer())
+        # sess.run(self.set_training_false)
 
-            scores = []
 
-            for i in tqdm(range(self.eval_dataset_handle.get_size('test'))):
-                score = sess.run(self.score_positive)
-                scores.append(score[0])
+        self.set_training_false
 
-            return scores
+        scores = []
+
+        for i in tqdm(range(self.eval_dataset_handle.get_size('test'))):
+            # score = sess.run(self.score_positive)
+            score = self.score_positive
+            scores.append(score[0])
+
+        return scores
 
     def get_ranks(self, dataset_handle):
         """Used by evaluate_predictions to get the ranks for evaluation.
@@ -933,9 +961,10 @@ class ConvE(EmbeddingModel):
         self.eval_dataset_handle = dataset_handle
 
         # Load model parameters, build tf evaluation graph for predictions
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
         self.rnd = check_random_state(self.seed)
-        tf.random.set_random_seed(self.seed)
+        # tf.random.set_random_seed(self.seed)
+        tf.random.set_seed(self.seed)
         self._load_model_from_trained_params()
 
         # Set the output mapping of the dataset handle - this is superceded if a filter has been set.
@@ -1007,9 +1036,10 @@ class ConvE(EmbeddingModel):
         self.eval_dataset_handle = dataset_handle
 
         # Load model parameters, build tf evaluation graph for predictions
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
         self.rnd = check_random_state(self.seed)
-        tf.random.set_random_seed(self.seed)
+        # tf.random.set_random_seed(self.seed)
+        tf.random.set_seed(self.seed)
         self._load_model_from_trained_params()
 
         # Set the output mapping of the dataset handle - this is superceded if a filter has been set.

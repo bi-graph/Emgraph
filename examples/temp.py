@@ -1,37 +1,44 @@
 import os
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from sklearn.metrics import brier_score_loss
 from scipy.special import expit
 
 from bigraph.datasets import load_wn11
-from bigraph.latent_features.models import TransE
+from bigraph.latent_features.models import ComplEx, TransE, ConvE, ConvKB, HolE, DistMult, RandomBaseline
 import tensorflow as tf
+
 X = load_wn11()
 X_valid_pos = X['valid'][X['valid_labels']]
 X_valid_neg = X['valid'][~X['valid_labels']]
 tf.config.experimental_run_functions_eagerly(False)
-model = TransE(batches_count=64, seed=0, epochs=1, k=100, eta=20,
-               optimizer='adam', optimizer_params={'lr':0.0001},
-               loss='pairwise', verbose=True, large_graphs=False)
 
+import numpy as np
 
+# model = TransE(batches_count=64, seed=0, epochs=0, k=100, eta=20,
+#                optimizer='adam', optimizer_params={'lr': 0.0001},
+#                loss='pairwise', verbose=True, large_graphs=True)
 
+# model = ConvE(batches_count=1, seed=22, epochs=5, k=100)
+
+model = ComplEx(
+    batches_count=2,
+    seed=555,
+    epochs=100,
+    k=20,
+    eta=5,
+    loss='pairwise',
+    loss_params={'margin': 1},
+    regularizer='LP',
+    regularizer_params={'p': 2, 'lambda': 0.1})
+
+ConvKB(batches_count=2, seed=22, epochs=1, k=10, eta=1,
+       embedding_model_params={'num_filters': 32, 'filter_sizes': [1],
+                               'dropout': 0.1},
+       optimizer='adam', optimizer_params={'lr': 0.001},
+       loss='pairwise', loss_params={}, verbose=True)
 model.fit(X['train'])
 
-# Raw scores
+# scores
 scores = model.predict(X['test'])
-
-# Calibrate with positives and negatives
-model.calibrate(X_valid_pos, X_valid_neg, positive_base_rate=None)
-probas_pos_neg = model.predict_proba(X['test'])
-print(probas_pos_neg)
-# Calibrate with just positives and base rate of 50%
-model.calibrate(X_valid_pos, positive_base_rate=0.5)
-probas_pos = model.predict_proba(X['test'])
-print(probas_pos)
-
-# Calibration evaluation with the Brier score loss (the smaller, the better)
-print("Brier scores")
-print("Raw scores:", brier_score_loss(X['test_labels'], expit(scores)))
-print("Positive and negative calibration:", brier_score_loss(X['test_labels'], probas_pos_neg))
-print("Positive only calibration:", brier_score_loss(X['test_labels'], probas_pos))
+print("scores: ", scores)
