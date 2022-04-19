@@ -1,12 +1,12 @@
 License
 =======
 
-BiGraph is distributed with the 3-clause BSD license.
+EmGraph is distributed with the 3-clause BSD license.
 
 ::
 
    Copyright (C) 2019-2021, BiGraph Developers
-   Soran Ghadri <soran.gdr.cs@gmail.com>
+   Soran Ghaderi <soran.gdr.cs@gmail.com>
    Taleb Zarhesh <taleb.zarhesh@gmail.com>
    All rights reserved.
 

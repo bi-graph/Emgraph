@@ -5,14 +5,14 @@ import sys
 from setuptools import setup, find_packages, Command
 from shutil import rmtree
 
-from bigraph import get_version
+from emgraph import get_version
 
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-NAME = "Bigraph"
+NAME = "Emgraph"
 DESCRIPTION = "Bigraph is a Python toolkit for graph embedding and link prediction."
 
 PLATFORMS = ["Linux", "Mac OSX", "Windows", "Unix"]
@@ -30,7 +30,7 @@ KEYWORDS = [
     "network",
     "graph",
     "bipartite graph",
-    "bigraph",
+    "emgraph",
     "link prediction",
 ]
 

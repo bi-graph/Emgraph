@@ -1,31 +1,35 @@
-<h1>BiGraph</h1>
+<h1><b>Emgraph</b></h1>
 <div>
-<a href="https://badge.fury.io/py/bigraph"><img src="https://badge.fury.io/py/bigraph.svg" alt="PyPI version" height="18"></a>
-<a href="https://www.codacy.com/gh/bi-graph/bigraph/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=bi-graph/bigraph&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/e320ed8c06a3466aa9711a138085b9d2" alt="PyPI version" height="18"></a>
-<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/bigraph">
 
-[comment]: <> (<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dw/bigraph">)
+[//]: # (<a href="https://badge.fury.io/py/emgraph"><img src="https://badge.fury.io/py/emgraph.svg" alt="PyPI version" height="18"></a>)
+[//]: # (<a href="https://www.codacy.com/gh/bi-graph/emgraph/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=bi-graph/emgraph&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/e320ed8c06a3466aa9711a138085b9d2" alt="PyPI version" height="18"></a>)
+[//]: # (<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/emgraph">)
 
-[comment]: <> (<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/bigraph">)
+[comment]: <> (<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dw/emgraph">)
 
-[comment]: <> (<img alt="GitHub search hit counter" src="https://img.shields.io/github/search/bi-graph/bigraph/hit">)
+[comment]: <> (<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/emgraph">)
 
-[comment]: <> (<img alt="GitHub search hit counter" src="https://img.shields.io/github/search/bi-graph/bigraph/goto">)
+[comment]: <> (<img alt="GitHub search hit counter" src="https://img.shields.io/github/search/bi-graph/emgraph/hit">)
 
-[comment]: <> (<img alt="PyPI - Implementation" src="https://img.shields.io/pypi/implementation/bigraph">)
+[comment]: <> (<img alt="GitHub search hit counter" src="https://img.shields.io/github/search/bi-graph/emgraph/goto">)
 
-[comment]: <> (<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/bi-graph/bigraph">)
+[comment]: <> (<img alt="PyPI - Implementation" src="https://img.shields.io/pypi/implementation/emgraph">)
 
-[comment]: <> (<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/bi-graph/bigraph">)
-<img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/bi-graph/bigraph?style=social">
+[comment]: <> (<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/bi-graph/emgraph">)
+
+[comment]: <> (<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/bi-graph/emgraph">)
+<img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/bi-graph/emgraph?style=social">
 </div>
-<p>BiGraph is a Python package for Link prediction in bipartite networks.</p>
+<p><b>Emgraph</b> is a Python toolkit for graph embedding.</p>
 
-<ul>
-    <li><b>Bug reports:</b> https://github.com/bi-graph/bigraph/issues</li>
-</ul>
 
-> Node based similarities and Katz has been implemented. you can find algorithms in bigraph module. Algorithms implemented so far:
+[//]: # (<ul>)
+
+[//]: # (    <li><b>Bug reports:</b> https://github.com/bi-graph/emgraph/issues</li>)
+
+[//]: # (</ul>)
+
+[//]: # (> Node based similarities and Katz has been implemented. you can find algorithms in emgraph module. Algorithms implemented so far:)
 
 <div align="center">
 <table>
@@ -36,99 +40,116 @@
     </tr>
     <tr>
         <td align="center">1</td>
-        <td><code>jaccard</code></td>
+        <td><code><b>TransE</b></code></td>
     </tr>
     <tr>
         <td align="center">2</td>
-        <td><code>adamic adar</code></td>
+        <td><code><b>ComplEx</b></code></td>
     </tr>
     <tr>
         <td align="center">3</td>
-        <td><code>common neighbors</code></td>
+        <td><code><b>HolE</b></code></td>
     </tr>
     <tr>
         <td align="center">4</td>
-        <td><code>	preferential attachment</code></td>
+        <td><code><b>DistMult</b></code></td>
     </tr>
     <tr>
         <td align="center">5</td>
-        <td><code>katz similarity</code></td>
+        <td><code><b>ConvE</b></code></td>
+    </tr>
+    <tr>
+        <td align="center">6</td>
+        <td><code><b>ConvKB</b></code></td>
+    </tr>
+    <tr>
+        <td align="center">7</td>
+        <td><code><b>RandomBaseline</b></code></td>
     </tr>
 </table>
 </div>
 
 <div>
   <h2>Installation</h2>
-  <p>Install the latest version of BiGraph:</p>
-  <pre>$ pip install bigraph</pre>
+  <p>Install the latest version of <b>Emgraph</b>:</p>
+
+[//]: # (  <pre>$ pip install emgraph</pre>)
+  <pre>(will be built soon)</pre>
 </div>
 
 <div>
 <h2>Documentation</h2>
-<p> <a href="https://bigraph.readthedocs.io/en/latest/index.html">https://bigraph.readthedocs.io/en/latest/</a></p>
+<p>Soon</p>
+
+[//]: # (<p> <a href="https://emgraph.readthedocs.io/en/latest/index.html">https://emgraph.readthedocs.io/en/latest/</a></p>)
 
 </div>
 
 <h2>Simple example</h2>
-<p>Predicting new links in a randomly generated graph using 
-<code><b>Adamic-Adar</b></code> algorithm:</p>
+<p>Embedding wordnet11 graph using 
+<code><b>TransE</b></code> model:</p>
 
 ```python
-from bigraph.to_remove._predict import aa_predict
-from bigraph.preprocessing import import_files, make_graph
+from sklearn.metrics import brier_score_loss, log_loss
+from scipy.special import expit
+from emgraph.datasets import load_wn11
+from emgraph.models import TransE
 
 
-def adamic_adar_prediction():
-    """
-    Link prediction on bipartite networks
-    :return: A dictionary containing predicted links
-    """
+def train_transe():
+    X = load_wn11()
+    model = TransE(batches_count=64, seed=0, epochs=20, k=100, eta=20,
+                   optimizer='adam', optimizer_params={'lr': 0.0001},
+                   loss='pairwise', verbose=True, large_graphs=False)
 
-    df, df_nodes = import_files()
-    print(df)
-    print(f"Graph Nodes: ", df_nodes)
-    G = make_graph(df)
-    print(G)
-    predicted = aa_predict(G)  # Here we have called Adamic Adar method from bigraph module
-    return predicted
+    model.fit(X['train'])
+
+    scores = model.predict(X['test'])
+
+    print("Scores: ", scores)
+    print("Brier score loss:", brier_score_loss(X['test_labels'], expit(scores)))
 
 
 # Executing the function
 
 if __name__ == '__main__':
-    adamic_adar_prediction()
+    train_transe()
 ```
 
-<p>Evaluating <code><b>Adamic-Adar</b></code> algorithm.<br>
-You can try other provided prediction algorithms by replacing the <b>"aa"</b> argument.</p>
+<p>Evaluating <code><b>ComplEx</b></code> model after training:<br>
 
 ```python
-from bigraph.to_remove._evaluation import evaluate
-from bigraph.preprocessing import import_files, make_graph
+import numpy as np
+from emgraph.datasets import load_wn18
+from emgraph.models import ComplEx
+from emgraph.evaluation import evaluate_performance
 
 
-def adamic_adar_evaluation():
-    """
-    Evaluate Adamic-Adar algorithm using 10-Fold cross-validation 
-    :return: A dictionary containing the evaluation results
-    """
-    df, df_nodes = import_files()
-    G = make_graph(df)
-    results = evaluate(G, k=10,
-                       method='aa')  # Here we have evaluated adamic-adar
-    # methods using evaluation module. Methods are 'jc', 'aa', 'pa', 'cn'
-    return results
+def complex_performance():
+    X = load_wn18()
+    model = ComplEx(batches_count=10, seed=0, epochs=20, k=150, eta=1,
+                    loss='nll', optimizer='adam')
+    model.fit(np.concatenate((X['train'], X['valid'])))
+    filter_triples = np.concatenate((X['train'], X['valid'], X['test']))
+    ranks = evaluate_performance(X['test'][:5], model=model,
+                                 filter_triples=filter_triples,
+                                 corrupt_side='s+o',
+                                 use_default_protocol=False)
+    return ranks
 
 
 # Executing the function
+
 if __name__ == '__main__':
-    adamic_adar_evaluation()
+    ranks = complex_performance()
+    print("ranks {}".format(ranks))
 ```
+
 <div>
 <h2>Call for Contributions</h2>
-<p>The Bigraph project welcomes your expertise and enthusiasm!</p>
+<p>The <b>Emgraph</b> project welcomes your expertise and enthusiasm!</p>
 
-<p>Ways to contribute to Bigraph:</p>
+<p>Ways to contribute to <b>Emgraph</b>:</p>
 <ul>
   <li>Writing code</li>
   <li>Review pull requests</li>
@@ -140,183 +161,279 @@ if __name__ == '__main__':
 <div>
   <h2>Issues</h2>
   <p>If you happened to encounter any issue in the codes, please report it
-    <a href="https://github.com/bi-graph/bigraph/issues">here</a>. 
+    <a href="https://github.com/bi-graph/emgraph/issues">here</a>. 
     A better way is to fork the repository on <b>Github</b> and/or create a pull request.</p>
-    
+
 </div>
 
 
-<h3>Metrics</h3>
-<p>Metrics that are calculated during evaluation:</p>
+[//]: # (<h3>Metrics</h3>)
 
-<div>
-<table>
-<caption><b>Metrics table</b></caption>
-    <tr>
-        <td><b>Number</b></td>
-        <td align="center"><b>Evaluattion metrics</b></td>
-    </tr>
-    <tr>
-        <td align="center">1</td>
-        <td><code>Precision</code></td>
-    </tr>
-    <tr>
-        <td align="center">2</td>
-        <td><code>AUC</code></td>
-    </tr>
-    <tr>
-        <td align="center">3</td>
-        <td><code>ROC</code></td>
-    </tr>
-    <tr>
-        <td align="center">4</td>
-        <td><code>returns fpr*</code></td>
-    </tr>
-    <tr>
-        <td align="center">5</td>
-        <td><code>returns tpr*</code></td>
-    </tr>
-</table>
-</div>
+[//]: # (<p>Metrics that are calculated during evaluation:</p>)
 
-> * For further usages and calculating different metrics
+[//]: # ()
+[//]: # (<div>)
 
-<h3>Dataset format</h3>
-<p>Your dataset should be in the following format (Exclude the 'Row' column):</p>
+[//]: # (<table>)
 
-<div>
-<table>
-<caption><b>Sample edges (links) dataset</b></caption>
-    <tr>
-        <td><b>Row</b></td>
-        <td align="center"><b>left_side</b></td>
-        <td align="center"><b>right_side</b></td>
-        <td align="center"><b>Weight*</b></td>
-    </tr>
-    <tr>
-        <td align="center">1</td>
-        <td><code>u0</code></td>
-        <td><code>v1</code></td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td align="center">2</td>
-        <td><code>u2</code></td>
-        <td><code>v1</code></td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td align="center">3</td>
-        <td><code>u1</code></td>
-        <td><code>v2</code></td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td align="center">4</td>
-        <td><code>u3</code></td>
-        <td><code>v3</code></td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td align="center">5</td>
-        <td><code>u4</code></td>
-        <td><code>v3</code></td>
-        <td>2</td>
-    </tr>
-</table>
-</div>
+[//]: # (<caption><b>Metrics table</b></caption>)
 
-> * Note that running <pre>
-<code>from bigraph.preprocessing import import_files
-df, df_nodes = import_files()</code></pre>will create a sample graph for you and will place it in the
-<code>inputs</code> directory.
-> * Although the weight has not been involved in current version, but, the format will be the same.
+[//]: # (    <tr>)
+
+[//]: # (        <td><b>Number</b></td>)
+
+[//]: # (        <td align="center"><b>Evaluattion metrics</b></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">1</td>)
+
+[//]: # (        <td><code>Precision</code></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">2</td>)
+
+[//]: # (        <td><code>AUC</code></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">3</td>)
+
+[//]: # (        <td><code>ROC</code></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">4</td>)
+
+[//]: # (        <td><code>returns fpr*</code></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">5</td>)
+
+[//]: # (        <td><code>returns tpr*</code></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (</table>)
+
+[//]: # (</div>)
+
+[//]: # ()
+[//]: # (> * For further usages and calculating different metrics)
+
+[//]: # ()
+[//]: # (<h3>Dataset format</h3>)
+
+[//]: # (<p>Your dataset should be in the following format &#40;Exclude the 'Row' column&#41;:</p>)
+
+[//]: # ()
+[//]: # (<div>)
+
+[//]: # (<table>)
+
+[//]: # (<caption><b>Sample edges &#40;links&#41; dataset</b></caption>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td><b>Row</b></td>)
+
+[//]: # (        <td align="center"><b>left_side</b></td>)
+
+[//]: # (        <td align="center"><b>right_side</b></td>)
+
+[//]: # (        <td align="center"><b>Weight*</b></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">1</td>)
+
+[//]: # (        <td><code>u0</code></td>)
+
+[//]: # (        <td><code>v1</code></td>)
+
+[//]: # (        <td>1</td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">2</td>)
+
+[//]: # (        <td><code>u2</code></td>)
+
+[//]: # (        <td><code>v1</code></td>)
+
+[//]: # (        <td>1</td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">3</td>)
+
+[//]: # (        <td><code>u1</code></td>)
+
+[//]: # (        <td><code>v2</code></td>)
+
+[//]: # (        <td>1</td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">4</td>)
+
+[//]: # (        <td><code>u3</code></td>)
+
+[//]: # (        <td><code>v3</code></td>)
+
+[//]: # (        <td>1</td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">5</td>)
+
+[//]: # (        <td><code>u4</code></td>)
+
+[//]: # (        <td><code>v3</code></td>)
+
+[//]: # (        <td>2</td>)
+
+[//]: # (    </tr>)
+
+[//]: # (</table>)
+
+[//]: # (</div>)
+
+[//]: # ()
+[//]: # (> * Note that running <pre>)
+
+[//]: # (    <code>from bigraph.preprocessing import import_files df, df_nodes = import_files&#40;&#41;</code></pre>will create a sample graph for you and will place it in the)
+
+[//]: # (    <code>inputs</code> directory.)
+
+[//]: # (> * Although the weight has not been involved in current version, but, the format will be the same.)
 
 <h3>More examples</h3>
-<p>Predicting new links in a randomly generated graph using following algorithms:</p>
-<ul>
-  <li><code><b>Preferential attachment</b></code></li>
-  <li><code><b>Jaccard similarity</b></code></li>
-  <li><code><b>Common neighbours</b></code></li>
-</ul>
+<p>Embedding wordnet11 graph using 
+<code><b>DistMult</b></code> model:</p>
 
 ```python
-from bigraph.to_remove._predict import pa_predict, jc_predict, cn_predict
-from bigraph.preprocessing import import_files, make_graph
+from sklearn.metrics import brier_score_loss, log_loss
+from scipy.special import expit
+from emgraph.datasets import load_wn11
+from emgraph.models import DistMult
 
 
-def main():
-    """
-    Link prediction on bipartite networks
-    :return:
-    """
-    df, df_nodes = import_files()
-    G = make_graph(df)
-    pa_predict(G)  # Preferential attachment
-    jc_predict(G)  # Jaccard coefficient
-    cn_predict(G)  # Common neighbors
+def train_dist_mult():
+    X = load_wn11()
+    model = DistMult(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
+                 loss_params={'margin': 5})
+
+    model.fit(X['train'])
+
+    scores = model.predict(X['test'])
+
+    print("Scores: ", scores)
+    print("Brier score loss:", brier_score_loss(X['test_labels'], expit(scores)))
 
 
 # Executing the function
+
 if __name__ == '__main__':
-    main()
+    train_dist_mult()
+
 ```
 
-<h3>References</h3>
+[//]: # (<h3>References</h3>)
 
-<div>
-<table>
-<caption><b>References table</b></caption>
-    <tr>
-        <td><b>Number</b></td>
-        <td align="center"><b>Reference</b></td>
-        <td align="center"><b>Year</b></td>
-    </tr>
-    <tr>
-        <td align="center">1</td>
-        <td><code>Yang, Y., Lichtenwalter, R.N. & Chawla, N.V. Evaluating link prediction methods. Knowl Inf Syst 45, 751–782 (2015).</code> <a href="https://doi.org/10.1007/s10115-014-0789-0"
-target="_blank">https://doi.org/10.1007/s10115-014-0789-0</a></td>
-        <td align="center"><b>2015</b></td>
-    </tr>
-    <tr>
-        <td align="center">2</td>
-        <td><code>Liben-nowell, David & Kleinberg, Jon. (2003). The Link Prediction Problem for Social Networks. Journal of the American Society for Information Science and Technology.</code><a href="https://doi.org/58.10.1002/asi.20591"
-target="_blank">https://doi.org/58.10.1002/asi.20591</a></td>
-        <td align="center"><b>2003</b></td>
-    </tr>
-    <tr>
-        <td align="center">2</td>
-        <td><code>...</code></td>
-        <td align="center"><b>...</b></td>
-    </tr>
-</table>
-</div>
+[//]: # (<div>)
+
+[//]: # (<table>)
+
+[//]: # (<caption><b>References table</b></caption>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td><b>Number</b></td>)
+
+[//]: # (        <td align="center"><b>Reference</b></td>)
+
+[//]: # (        <td align="center"><b>Year</b></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">1</td>)
+
+[//]: # (        <td><code>Yang, Y., Lichtenwalter, R.N. & Chawla, N.V. Evaluating link prediction methods. Knowl Inf Syst 45, 751–782 &#40;2015&#41;.</code> <a href="https://doi.org/10.1007/s10115-014-0789-0")
+
+[//]: # (target="_blank">https://doi.org/10.1007/s10115-014-0789-0</a></td>)
+
+[//]: # (        <td align="center"><b>2015</b></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">2</td>)
+
+[//]: # (        <td><code>Liben-nowell, David & Kleinberg, Jon. &#40;2003&#41;. The Link Prediction Problem for Social Networks. Journal of the American Society for Information Science and Technology.</code><a href="https://doi.org/58.10.1002/asi.20591")
+
+[//]: # (target="_blank">https://doi.org/58.10.1002/asi.20591</a></td>)
+
+[//]: # (        <td align="center"><b>2003</b></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td align="center">2</td>)
+
+[//]: # (        <td><code>...</code></td>)
+
+[//]: # (        <td align="center"><b>...</b></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (</table>)
+
+[//]: # (</div>)
 
 <h3>Future work</h3>
 
 - [x] Modulate the functions
 - [ ] Add more algorithms
-- [ ] Run on CUDA cores
-- [ ] Make it faster using vectorization etc.
-- [ ] Add more preprocessors
+- [x] Run on CUDA cores
+- [x] Make it faster using vectorization etc.
+- [x] Add more preprocessors
 - [ ] Add dataset, graph, and dataframe manipulations
-- [ ] Unify and reconstruct the architecture and eliminate redundancy
+- [x] Unify and reconstruct the architecture and eliminate redundancy
 
-
-<h3>Notes</h3>
-<ul>
-  <li>
-    <code>It can export the graph in .json and .gexf format 
-    for further usages. For instance: Gephi etc.</code>
-  </li>
-</ul>
 
 
 <h2>If you found it helpful, please give us a <span>:star:</span></h2>
 
 <h2>License</h3>
 <p>Released under the BSD license</p>
-<div class="footer"><pre>Copyright &copy; 2017-2021 BiGraph Developers
-Soran Ghadri (soran.gdr.cs@gmail.com)
-Taleb Zarhesh (taleb.zarhesh@gmail.com)</pre>
+<div class="footer"><pre>Copyright &copy; 2019-2022 <b>Emgraph</b> Developers
+<a href="https://www.linkedin.com/in/soran-ghaderi/">Soran Ghaderi</a> (soran.gdr.cs@gmail.com)
+<a href="https://uk.linkedin.com/in/taleb-zarhesh">Taleb Zarhesh</a> (taleb.zarhesh@gmail.com)</pre>
 </div>

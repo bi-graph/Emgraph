@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/bigraph.iml" filepath="$PROJECT_DIR$/.idea/bigraph.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../emgraph/.idea/emgraph.iml" filepath="$PROJECT_DIR$/../emgraph/.idea/emgraph.iml" />
     </modules>
   </component>
 </project>

@@ -3,9 +3,9 @@ import importlib
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
-from emgraph.utils import save_model, restore_model, create_tensorboard_visualizations, \
+from bigraph.utils import save_model, restore_model, create_tensorboard_visualizations, \
     write_metadata_tsv, dataframe_to_triples
-from emgraph.models import TransE
+from bigraph.latent_features import TransE
 import pytest
 
 
