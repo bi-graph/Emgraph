@@ -13,7 +13,7 @@ with open("README.md", "r") as readme_file:
 here = os.path.abspath(os.path.dirname(__file__))
 
 NAME = "Emgraph"
-DESCRIPTION = "Bigraph is a Python toolkit for graph embedding and link prediction."
+DESCRIPTION = "Emgraph is a Python toolkit for graph embedding."
 
 PLATFORMS = ["Linux", "Mac OSX", "Windows", "Unix"]
 VERSION = get_version()
@@ -22,7 +22,7 @@ AUTHORS = {
     "Taleb": ("Taleb Zarhesh", "taleb.zarhesh@gmail.com"),
 }
 
-MAINTAINER = "BiGraph Developers"
+MAINTAINER = "Emgraph Developers"
 MAINTAINER_EMAIL = "soran.gdr.cs@gmail.com"
 
 KEYWORDS = [
@@ -96,7 +96,7 @@ setup(
     keywords=KEYWORDS,
     platforms=PLATFORMS,
     long_description_content_type="text/markdown",
-    url="https://github.com/bi-graph/bigraph",
+    url="https://github.com/bi-graph/emgraph",
     packages=find_packages(exclude=('tests', 'docs', 'html', 'requirements')),
     install_requires=requirements,
     extras_require=extras_require,

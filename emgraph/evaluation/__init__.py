@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2021 Bigraph developers
+# Copyright (C) 2017-2022 Emgraph developers
 # Author: Soran Ghadri
 # Contact: soran.gdr.cs@gmail.com
 

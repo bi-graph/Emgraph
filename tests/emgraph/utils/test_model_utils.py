@@ -3,9 +3,9 @@ import importlib
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
-from bigraph.utils import save_model, restore_model, create_tensorboard_visualizations, \
+from emgraph.utils import save_model, restore_model, create_tensorboard_visualizations, \
     write_metadata_tsv, dataframe_to_triples
-from bigraph.latent_features import TransE
+from emgraph.models import TransE
 import pytest
 
 
@@ -13,7 +13,7 @@ def test_save_and_restore_model():
     models = ('ComplEx', 'TransE', 'DistMult')
 
     for model_name in models:
-        module = importlib.import_module("emgraph.latent_features.models")
+        module = importlib.import_module("emgraph.models.models")
 
         print('Doing save/restore testing for model class: ', model_name)
 

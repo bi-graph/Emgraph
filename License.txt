@@ -5,7 +5,7 @@ EmGraph is distributed with the 3-clause BSD license.
 
 ::
 
-   Copyright (C) 2019-2021, BiGraph Developers
+   Copyright (C) 2019-2021, EmGraph Developers
    Soran Ghaderi <soran.gdr.cs@gmail.com>
    Taleb Zarhesh <taleb.zarhesh@gmail.com>
    All rights reserved.
@@ -22,7 +22,7 @@ EmGraph is distributed with the 3-clause BSD license.
        disclaimer in the documentation and/or other materials provided
        with the distribution.
 
-     * Neither the name of the BiGraph Developers nor the names of its
+     * Neither the name of the EmGraph Developers nor the names of its
        contributors may be used to endorse or promote products derived
        from this software without specific prior written permission.
 

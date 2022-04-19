@@ -13,7 +13,7 @@ def test_save_and_restore_model():
     models = ('ComplEx', 'TransE', 'DistMult')
 
     for model_name in models:
-        module = importlib.import_module("emgraph.latent_features.models")
+        module = importlib.import_module("emgraph.models.models")
 
         print('Doing save/restore testing for model class: ', model_name)
 
