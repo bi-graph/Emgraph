@@ -1665,9 +1665,9 @@ class EmbeddingModel(abc.ABC):
 
         assert comparision_type in ['worst', 'best', 'middle'], 'Invalid score comparision type!'
 
-        score_corr = tf.cast(score_corr * constants.SCORE_COMPARISION_PRECISION, tf.int32)
+        score_corr = tf.cast(score_corr * constants.SCORE_COMPARISON_PRECISION, tf.int32)
 
-        score_pos = tf.cast(score_pos * constants.SCORE_COMPARISION_PRECISION, tf.int32)
+        score_pos = tf.cast(score_pos * constants.SCORE_COMPARISON_PRECISION, tf.int32)
 
         # if pos score: 0.5, corr_score: 0.5, 0.5, 0.3, 0.6, 0.5, 0.5
         if comparision_type == 'best':

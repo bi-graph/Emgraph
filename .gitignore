@@ -131,3 +131,4 @@ dmypy.json
 .pyre/
 ./idea
 /poetry.lock
+/tests/emgraph/datasets/emgraph_datasets/

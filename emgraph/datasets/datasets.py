@@ -209,7 +209,7 @@ def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
     wn18 = DatasetMetadata(
         dataset_name='wn18',
         filename='wn18.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/wn18.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/wn18.zip',
         train_name='train.txt',
         valid_name='valid.txt',
         test_name='test.txt',
@@ -244,7 +244,7 @@ def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fals
     wn18rr = DatasetMetadata(
         dataset_name='wn18RR',
         filename='wn18RR.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/wn18RR.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/wn18RR.zip',
         train_name='train.txt',
         valid_name='valid.txt',
         test_name='test.txt',
@@ -284,7 +284,7 @@ def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
     FB15K = DatasetMetadata(
         dataset_name='fb15k',
         filename='fb15k.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/fb15k.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/fb15k.zip',
         train_name='train.txt',
         valid_name='valid.txt',
         test_name='test.txt',
@@ -314,7 +314,7 @@ def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=F
     fb15k_237 = DatasetMetadata(
         dataset_name='fb15k-237',
         filename='fb15k-237.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/fb15k-237.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/fb15k-237.zip',
         train_name='train.txt',
         valid_name='valid.txt',
         test_name='test.txt',
@@ -339,7 +339,7 @@ def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fa
     yago3_10 = DatasetMetadata(
         dataset_name='YAGO3-10',
         filename='YAGO3-10.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/YAGO3-10.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/YAGO3-10.zip',
         train_name='train.txt',
         valid_name='valid.txt',
         test_name='test.txt',
@@ -364,7 +364,7 @@ def load_wn11(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
     wn11 = DatasetMetadata(
         dataset_name='wordnet11',
         filename='wordnet11.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/wordnet11.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/wordnet11.zip',
         train_name='train.txt',
         valid_name='dev.txt',
         test_name='test.txt',
@@ -399,7 +399,7 @@ def load_fb13(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
     fb13 = DatasetMetadata(
         dataset_name='freebase13',
         filename='freebase13.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/freebase13.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/freebase13.zip',
         train_name='train.txt',
         valid_name='dev.txt',
         test_name='test.txt',
@@ -503,7 +503,7 @@ def load_onet20k(check_md5hash=False, clean_unseen=True, split_test_into_top_bot
     onet20k = DatasetMetadata(
         dataset_name='onet20k',
         filename='onet20k.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/onet20k.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/onet20k.zip',
         train_name='train.tsv',
         valid_name='valid.tsv',
         test_name='test.tsv',
@@ -525,7 +525,7 @@ def load_ppi5k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
     ppi5k = DatasetMetadata(
         dataset_name='ppi5k',
         filename='ppi5k.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/ppi5k.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/ppi5k.zip',
         train_name='train.tsv',
         valid_name='valid.tsv',
         test_name='test.tsv',
@@ -547,7 +547,7 @@ def load_nl27k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
     nl27k = DatasetMetadata(
         dataset_name='nl27k',
         filename='nl27k.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/nl27k.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/nl27k.zip',
         train_name='train.tsv',
         valid_name='valid.tsv',
         test_name='test.tsv',
@@ -569,7 +569,7 @@ def load_cn15k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
     cn15k = DatasetMetadata(
         dataset_name='cn15k',
         filename='cn15k.zip',
-        url='https://github.com/bi-graph/KGdatasets/blob/master/datasets/cn15k.zip',
+        url='https://github.com/bi-graph/KGdatasets/raw/master/datasets/cn15k.zip',
         train_name='train.tsv',
         valid_name='valid.tsv',
         test_name='test.tsv',
