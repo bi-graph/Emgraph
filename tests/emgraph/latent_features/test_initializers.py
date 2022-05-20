@@ -60,7 +60,8 @@ def test_random_uniform():
     runiform_class = INITIALIZER_REGISTRY['uniform']
     runiform_obj = runiform_class({"low": 0.1, "high": 0.4})
     tf_init = runiform_obj.get_entity_initializer(init_type='tf')
-    tf_var = make_variable(shape=(1000, 100), initializer=tf_init, name="var1")
+    var1 = make_variable(shape=(1000, 100), initializer=tf_init, name="var1")
+    tf_var = tf.convert_to_tensor(var1)
     np_var = runiform_obj.get_entity_initializer(1000, 100, init_type='np')
     # print(np.min(np_var), np.max(np_var))
     # print(np.min(tf_var), np.max(tf_var))
