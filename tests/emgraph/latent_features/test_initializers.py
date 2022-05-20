@@ -14,30 +14,27 @@ def test_random_normal():
     rnormal_class = INITIALIZER_REGISTRY['normal']
     rnormal_obj = rnormal_class({"mean": 0.5, "std": 0.1})
     tf_init = rnormal_obj.get_entity_initializer(init_type='tf')
-    tf_var = make_variable(shape=(100, 10), initializer=tf_init, name="var1")
+    var1 = make_variable(shape=(100, 10), initializer=tf_init, name="var1")
     np_var = rnormal_obj.get_entity_initializer(100, 10, init_type='np')
-    tf_var = tf.convert_to_tensor(tf_var)
+    tf_var = tf.convert_to_tensor(var1)
     assert (np.round(np.mean(np_var), 1) == np.round(np.mean(tf_var), 1))
     assert (np.round(np.std(np_var), 1) == np.round(np.std(tf_var), 1))
 
 
-def test_xavier_normal():
+def test_glorot_uniform():
     """GlorotUniform normal initializer test
     """
-    tf.reset_default_graph()
-    tf.random.set_random_seed(0)
-    xnormal_class = INITIALIZER_REGISTRY['xavier']
+    tf.random.set_seed(0)
+    xnormal_class = INITIALIZER_REGISTRY['glorot_uniform']
     xnormal_obj = xnormal_class({"uniform": False})
     tf_init = xnormal_obj.get_entity_initializer(init_type='tf')
-    var1 = tf.get_variable(shape=(2000, 100), initializer=tf_init, name="var1")
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        tf_var = sess.run(var1)
-        np_var = xnormal_obj.get_entity_initializer(2000, 100, init_type='np')
-        # print(np.mean(np_var), np.std(np_var))
-        # print(np.mean(tf_var), np.std(tf_var))
-        assert (np.round(np.mean(np_var), 2) == np.round(np.mean(tf_var), 2))
-        assert (np.round(np.std(np_var), 2) == np.round(np.std(tf_var), 2))
+    var1 = make_variable(shape=(2000, 100), initializer=tf_init, name="var1")
+    tf_var = tf.convert_to_tensor(var1)
+    np_var = xnormal_obj.get_entity_initializer(2000, 100, init_type='np')
+    # print(np.mean(np_var), np.std(np_var))
+    # print(np.mean(tf_var), np.std(tf_var))
+    assert (np.round(np.mean(np_var), 2) == np.round(np.mean(tf_var), 2))
+    assert (np.round(np.std(np_var), 2) == np.round(np.std(tf_var), 2))
 
 
 def test_xavier_uniform():
