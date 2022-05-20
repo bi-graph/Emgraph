@@ -66,8 +66,7 @@ class RandomUniform(Initializer):
 
         return tf.random_uniform_initializer(
             minval=self._initializer_params['low'],
-            maxval=self._initializer_params['high'],
-            dtype=tf.float32
+            maxval=self._initializer_params['high']
         )
 
     def _get_np_initializer(self, in_shape, out_shape, concept='e'):

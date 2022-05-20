@@ -68,13 +68,13 @@ class Constant(Initializer):
             assert self._initializer_params['entity'].shape[0] == in_shape and \
                    self._initializer_params['entity'].shape[1] == out_shape, \
                 "Invalid shape for entity initializer!"
-            return tf.constant_initializer(self._initializer_params['entity'], dtype=tf.float32)
+            return tf.constant_initializer(self._initializer_params['entity'])
         else:
             assert self._initializer_params['relation'].shape[0] == in_shape and \
                    self._initializer_params['relation'].shape[1] == out_shape, \
                 "Invalid shape for relation initializer!"
 
-            return tf.constant_initializer(self._initializer_params['relation'], dtype=tf.float32)
+            return tf.constant_initializer(self._initializer_params['relation'])
 
     def _get_np_initializer(self, in_shape, out_shape, concept='e'):
         """
