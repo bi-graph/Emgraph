@@ -21,7 +21,7 @@ def test_random_normal():
     assert (np.round(np.std(np_var), 1) == np.round(np.std(tf_var), 1))
 
 
-def test_glorot_uniform():
+def test_glorot_normal():
     """GlorotUniform normal initializer test
     """
     tf.random.set_seed(0)
@@ -37,14 +37,15 @@ def test_glorot_uniform():
     assert (np.round(np.std(np_var), 2) == np.round(np.std(tf_var), 2))
 
 
-def test_xavier_uniform():
+def test_glorot_uniform():
     """GlorotUniform uniform initializer test
     """
     tf.random.set_seed(0)
-    xuniform_class = INITIALIZER_REGISTRY['xavier']
+    xuniform_class = INITIALIZER_REGISTRY['glorot_uniform']
     xuniform_obj = xuniform_class({"uniform": True})
     tf_init = xuniform_obj.get_entity_initializer(init_type='tf')
-    tf_var = make_variable(shape=(200, 1000), initializer=tf_init, name="var1")
+    var1 = make_variable(shape=(200, 1000), initializer=tf_init, name="var1")
+    tf_var = tf.convert_to_tensor(var1)
     np_var = xuniform_obj.get_entity_initializer(200, 1000, init_type='np')
     # print(np.min(np_var), np.max(np_var))
     # print(np.min(tf_var), np.max(tf_var))
