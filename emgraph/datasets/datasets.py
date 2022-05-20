@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 import urllib
 import zipfile
@@ -7,14 +8,15 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 Emgraph_ENV_NAME = 'Emgraph_DATA_HOME'
-DatasetMetadata = namedtuple('DatasetMetadata', ['dataset_name', 'filename', 'url', 'train_name', 'valid_name',
-                                                 'test_name', 'train_checksum', 'valid_checksum', 'test_checksum'])
+DatasetMetadata = namedtuple(
+    'DatasetMetadata', ['dataset_name', 'filename', 'url', 'train_name', 'valid_name',
+                        'test_name', 'train_checksum', 'valid_checksum', 'test_checksum']
+    )
 
 
 # todo: try this as well for the datasets: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/datasets.py
@@ -158,11 +160,13 @@ def load_from_csv(directory_path, file_name, sep='\t', header=None, add_reciproc
     """
 
     logger.debug('Loading data from {}.'.format(file_name))
-    df = pd.read_csv(os.path.join(directory_path, file_name),
-                     sep=sep,
-                     header=header,
-                     names=None,
-                     dtype=str)
+    df = pd.read_csv(
+        os.path.join(directory_path, file_name),
+        sep=sep,
+        header=header,
+        names=None,
+        dtype=str
+        )
     logger.debug('Dropping duplicates.')
     df = df.drop_duplicates()
     if add_reciprocal_rels:
@@ -179,15 +183,21 @@ def _load_dataset(dataset_metadata, data_home=None, check_md5hash=False, add_rec
             .url.rfind('.')]
     dataset_path = _fetch_dataset(dataset_metadata, data_home, check_md5hash)
 
-    train = load_from_csv(dataset_path,
-                          dataset_metadata.train_name,
-                          add_reciprocal_rels=add_reciprocal_rels)
-    valid = load_from_csv(dataset_path,
-                          dataset_metadata.valid_name,
-                          add_reciprocal_rels=add_reciprocal_rels)
-    test = load_from_csv(dataset_path,
-                         dataset_metadata.test_name,
-                         add_reciprocal_rels=add_reciprocal_rels)
+    train = load_from_csv(
+        dataset_path,
+        dataset_metadata.train_name,
+        add_reciprocal_rels=add_reciprocal_rels
+        )
+    valid = load_from_csv(
+        dataset_path,
+        dataset_metadata.valid_name,
+        add_reciprocal_rels=add_reciprocal_rels
+        )
+    test = load_from_csv(
+        dataset_path,
+        dataset_metadata.test_name,
+        add_reciprocal_rels=add_reciprocal_rels
+        )
 
     return {'train': train, 'valid': valid, 'test': test}
 
@@ -218,10 +228,12 @@ def load_wn18(check_md5hash=False, add_reciprocal_rels=False):
         test_checksum='b035247a8916c7ec3443fa949e1ff02c'
     )
 
-    return _load_dataset(wn18,
-                         data_home=None,
-                         check_md5hash=check_md5hash,
-                         add_reciprocal_rels=add_reciprocal_rels)
+    return _load_dataset(
+        wn18,
+        data_home=None,
+        check_md5hash=check_md5hash,
+        add_reciprocal_rels=add_reciprocal_rels
+        )
 
 
 def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
@@ -254,15 +266,21 @@ def load_wn18rr(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fals
     )
 
     if clean_unseen:
-        return _clean_data(_load_dataset(wn18rr,
-                                         data_home=None,
-                                         check_md5hash=check_md5hash,
-                                         add_reciprocal_rels=add_reciprocal_rels))
+        return _clean_data(
+            _load_dataset(
+                wn18rr,
+                data_home=None,
+                check_md5hash=check_md5hash,
+                add_reciprocal_rels=add_reciprocal_rels
+                )
+            )
     else:
-        return _load_dataset(wn18rr,
-                             data_home=None,
-                             check_md5hash=check_md5hash,
-                             add_reciprocal_rels=add_reciprocal_rels)
+        return _load_dataset(
+            wn18rr,
+            data_home=None,
+            check_md5hash=check_md5hash,
+            add_reciprocal_rels=add_reciprocal_rels
+            )
 
 
 def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
@@ -293,10 +311,12 @@ def load_fb15k(check_md5hash=False, add_reciprocal_rels=False):
         test_checksum='71098693b0efcfb8ac6cd61cf3a3b505'
     )
 
-    return _load_dataset(FB15K,
-                         data_home=None,
-                         check_md5hash=check_md5hash,
-                         add_reciprocal_rels=add_reciprocal_rels)
+    return _load_dataset(
+        FB15K,
+        data_home=None,
+        check_md5hash=check_md5hash,
+        add_reciprocal_rels=add_reciprocal_rels
+        )
 
 
 def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
@@ -324,15 +344,21 @@ def load_fb15k_237(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=F
     )
 
     if clean_unseen:
-        return _clean_data(_load_dataset(fb15k_237,
-                                         data_home=None,
-                                         check_md5hash=check_md5hash,
-                                         add_reciprocal_rels=add_reciprocal_rels))
+        return _clean_data(
+            _load_dataset(
+                fb15k_237,
+                data_home=None,
+                check_md5hash=check_md5hash,
+                add_reciprocal_rels=add_reciprocal_rels
+                )
+            )
     else:
-        return _load_dataset(fb15k_237,
-                             data_home=None,
-                             check_md5hash=check_md5hash,
-                             add_reciprocal_rels=add_reciprocal_rels)
+        return _load_dataset(
+            fb15k_237,
+            data_home=None,
+            check_md5hash=check_md5hash,
+            add_reciprocal_rels=add_reciprocal_rels
+            )
 
 
 def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
@@ -349,15 +375,21 @@ def load_yago3_10(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=Fa
     )
 
     if clean_unseen:
-        return _clean_data(_load_dataset(yago3_10,
-                                         data_home=None,
-                                         check_md5hash=check_md5hash,
-                                         add_reciprocal_rels=add_reciprocal_rels))
+        return _clean_data(
+            _load_dataset(
+                yago3_10,
+                data_home=None,
+                check_md5hash=check_md5hash,
+                add_reciprocal_rels=add_reciprocal_rels
+                )
+            )
     else:
-        return _load_dataset(yago3_10,
-                             data_home=None,
-                             check_md5hash=check_md5hash,
-                             add_reciprocal_rels=add_reciprocal_rels)
+        return _load_dataset(
+            yago3_10,
+            data_home=None,
+            check_md5hash=check_md5hash,
+            add_reciprocal_rels=add_reciprocal_rels
+            )
 
 
 def load_wn11(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False):
@@ -373,9 +405,11 @@ def load_wn11(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
         test_checksum='24113b464f8042c339e3e6833c1cebdf'
     )
 
-    dataset = _load_dataset(wn11, data_home=None,
-                            check_md5hash=check_md5hash,
-                            add_reciprocal_rels=add_reciprocal_rels)
+    dataset = _load_dataset(
+        wn11, data_home=None,
+        check_md5hash=check_md5hash,
+        add_reciprocal_rels=add_reciprocal_rels
+        )
 
     valid_labels = dataset['valid'][:, 3]
     test_labels = dataset['test'][:, 3]
@@ -408,10 +442,12 @@ def load_fb13(check_md5hash=False, clean_unseen=True, add_reciprocal_rels=False)
         test_checksum='f9af2eac7c5a86996c909bdffd295528'
     )
 
-    dataset = _load_dataset(fb13,
-                            data_home=None,
-                            check_md5hash=check_md5hash,
-                            add_reciprocal_rels=add_reciprocal_rels)
+    dataset = _load_dataset(
+        fb13,
+        data_home=None,
+        check_md5hash=check_md5hash,
+        add_reciprocal_rels=add_reciprocal_rels
+        )
 
     valid_labels = dataset['valid'][:, 3]
     test_labels = dataset['test'][:, 3]
@@ -458,12 +494,14 @@ def load_from_rdf(folder_name, file_name, rdf_format='nt', data_home=None, add_r
 def load_from_ntriples(folder_name, file_name, data_home=None, add_reciprocal_rels=False):
     logger.debug('Loading rdf ntriples from {}.'.format(file_name))
     data_home = _get_data_home(data_home)
-    df = pd.read_csv(os.path.join(data_home, folder_name, file_name),
-                     sep=r'\s+',
-                     header=None,
-                     names=None,
-                     dtype=str,
-                     usecols=[0, 1, 2])
+    df = pd.read_csv(
+        os.path.join(data_home, folder_name, file_name),
+        sep=r'\s+',
+        header=None,
+        names=None,
+        dtype=str,
+        usecols=[0, 1, 2]
+        )
 
     # Remove trailing full stop (if present)
     df[2] = df[2].apply(lambda x: x.rsplit(".", 1)[0])
@@ -512,8 +550,10 @@ def load_onet20k(check_md5hash=False, clean_unseen=True, split_test_into_top_bot
         test_checksum='e5baec19037cb0bddc5a2fe3c0f4445a'
     )
 
-    dataset = _load_dataset(onet20k, data_home=None,
-                            check_md5hash=check_md5hash)
+    dataset = _load_dataset(
+        onet20k, data_home=None,
+        check_md5hash=check_md5hash
+        )
 
     if clean_unseen:
         dataset = _clean_data(dataset)
@@ -534,8 +574,10 @@ def load_ppi5k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
         test_checksum='7e6e345f496ed9a0cc58b91d4877ddd6'
     )
 
-    dataset = _load_dataset(ppi5k, data_home=None,
-                            check_md5hash=check_md5hash)
+    dataset = _load_dataset(
+        ppi5k, data_home=None,
+        check_md5hash=check_md5hash
+        )
 
     if clean_unseen:
         dataset = _clean_data(dataset)
@@ -556,8 +598,10 @@ def load_nl27k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
         test_checksum='2ba17f29119688d93c9d29ab40f63b3e'
     )
 
-    dataset = _load_dataset(nl27k, data_home=None,
-                            check_md5hash=check_md5hash)
+    dataset = _load_dataset(
+        nl27k, data_home=None,
+        check_md5hash=check_md5hash
+        )
 
     if clean_unseen:
         dataset = _clean_data(dataset)
@@ -578,8 +622,10 @@ def load_cn15k(check_md5hash=False, clean_unseen=True, split_test_into_top_botto
         test_checksum='29df4b8d24a3d89fc7c1032b9c508112'
     )
 
-    dataset = _load_dataset(cn15k, data_home=None,
-                            check_md5hash=check_md5hash)
+    dataset = _load_dataset(
+        cn15k, data_home=None,
+        check_md5hash=check_md5hash
+        )
 
     if clean_unseen:
         dataset = _clean_data(dataset)

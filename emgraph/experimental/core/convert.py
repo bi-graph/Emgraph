@@ -2,8 +2,8 @@ import warnings
 from collections import defaultdict, namedtuple
 from typing import Iterable
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 FEATURE_ATTR_NAME = "feature"
 TARGET_ATTR_NAME = "target"

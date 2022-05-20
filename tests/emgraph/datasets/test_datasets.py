@@ -1,9 +1,13 @@
-from emgraph.datasets import load_wn18, load_fb15k, load_fb15k_237, load_yago3_10, load_wn18rr, load_wn11, \
-    load_fb13, load_onet20k, load_ppi5k, load_nl27k, load_cn15k, OneToNDatasetAdapter, load_from_ntriples
-from emgraph.datasets.datasets import _clean_data
 import os
+
 import numpy as np
 import pytest
+
+from emgraph.datasets import (
+    OneToNDatasetAdapter, load_cn15k, load_fb13, load_fb15k, load_fb15k_237,
+    load_from_ntriples, load_nl27k, load_onet20k, load_ppi5k, load_wn11, load_wn18, load_wn18rr, load_yago3_10,
+)
+from emgraph.datasets.datasets import _clean_data
 
 
 def test_clean_data():
@@ -32,8 +36,10 @@ def test_load_wn18():
     ent_valid = np.union1d(np.unique(wn18["valid"][:, 0]), np.unique(wn18["valid"][:, 2]))
     ent_test = np.union1d(np.unique(wn18["test"][:, 0]), np.unique(wn18["test"][:, 2]))
     distinct_ent = np.union1d(np.union1d(ent_train, ent_valid), ent_test)
-    distinct_rel = np.union1d(np.union1d(np.unique(wn18["train"][:, 1]), np.unique(wn18["train"][:, 1])),
-                              np.unique(wn18["train"][:, 1]))
+    distinct_rel = np.union1d(
+        np.union1d(np.unique(wn18["train"][:, 1]), np.unique(wn18["train"][:, 1])),
+        np.unique(wn18["train"][:, 1])
+        )
 
     assert len(distinct_ent) == 40943
     assert len(distinct_rel) == 18
@@ -112,8 +118,10 @@ def test_wn18rr():
     ent_valid = np.union1d(np.unique(wn18rr["valid"][:, 0]), np.unique(wn18rr["valid"][:, 2]))
     ent_test = np.union1d(np.unique(wn18rr["test"][:, 0]), np.unique(wn18rr["test"][:, 2]))
     distinct_ent = np.union1d(np.union1d(ent_train, ent_valid), ent_test)
-    distinct_rel = np.union1d(np.union1d(np.unique(wn18rr["train"][:, 1]), np.unique(wn18rr["train"][:, 1])),
-                              np.unique(wn18rr["train"][:, 1]))
+    distinct_rel = np.union1d(
+        np.union1d(np.unique(wn18rr["train"][:, 1]), np.unique(wn18rr["train"][:, 1])),
+        np.unique(wn18rr["train"][:, 1])
+        )
 
     assert len(wn18rr['train']) == 86835
 
@@ -221,39 +229,52 @@ def test_load_from_ntriples(request):
 
 
 def test_oneton_adapter():
-
     from emgraph.evaluation.protocol import create_mappings, to_idx
 
     # Train set
-    X = np.array([['a', 'p', 'b'],
-                  ['a', 'p', 'd'],
-                  ['c', 'p', 'd'],
-                  ['c', 'p', 'e'],
-                  ['c', 'p', 'f']])
+    X = np.array(
+        [['a', 'p', 'b'],
+         ['a', 'p', 'd'],
+         ['c', 'p', 'd'],
+         ['c', 'p', 'e'],
+         ['c', 'p', 'f']]
+        )
 
     #              a, b, c, d, e, f
-    O = np.array([[0, 1, 0, 1, 0, 0],       # (a, p)
-                  [0, 0, 0, 1, 1, 1]])      # (c, p)
+    O = np.array(
+        [[0, 1, 0, 1, 0, 0],  # (a, p)
+         [0, 0, 0, 1, 1, 1]]
+        )  # (c, p)
 
     # Test
-    T = np.array([['a', 'p', 'c'],
-                  ['c', 'p', 'b']])
+    T = np.array(
+        [['a', 'p', 'c'],
+         ['c', 'p', 'b']]
+        )
 
     #               a, b, c, d, e, f
-    OT1 = np.array([[0, 1, 0, 1, 0, 0],    # (a, p)     # test set onehots when output mapping is from train set
-                    [0, 0, 0, 1, 1, 1]]),  # (c, p)
-    OT2 = np.array([[0, 0, 1, 0, 0, 0],    # (a, p)     # test set onehots when output mapping is from test set
-                    [0, 1, 0, 0, 0, 0]]),  # (c, p)
+    OT1 = np.array(
+        [[0, 1, 0, 1, 0, 0],  # (a, p)     # test set onehots when output mapping is from train set
+         [0, 0, 0, 1, 1, 1]]
+        ),  # (c, p)
+    OT2 = np.array(
+        [[0, 0, 1, 0, 0, 0],  # (a, p)     # test set onehots when output mapping is from test set
+         [0, 1, 0, 0, 0, 0]]
+        ),  # (c, p)
 
     # Filter
     filter = np.concatenate((X, T))
     #               a, b, c, d, e, f
-    OF = np.array([[0, 1, 1, 1, 0, 0],       # (a, p)   # train set onehots when output mapping is from filter
-                   [0, 1, 0, 1, 1, 1]])      # (c, p)
+    OF = np.array(
+        [[0, 1, 1, 1, 0, 0],  # (a, p)   # train set onehots when output mapping is from filter
+         [0, 1, 0, 1, 1, 1]]
+        )  # (c, p)
 
     # Expected input tuple to filtered outputs
-    OF_map = {(0, 0): [0, 1, 1, 1, 0, 0],
-              (2, 0): [0, 1, 0, 1, 1, 1]}
+    OF_map = {
+        (0, 0): [0, 1, 1, 1, 0, 0],
+        (2, 0): [0, 1, 0, 1, 1, 1]
+    }
 
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx, rel_to_idx)
@@ -273,7 +294,7 @@ def test_oneton_adapter():
     # Assert all unique sp pairs are in the output_map keys
     unique_sp = set([(s, p) for s, p in X[:, [0, 1]]])
     for sp in train_output_map.keys():
-        assert(sp in unique_sp)
+        assert (sp in unique_sp)
 
     # ValueError if generating onehot outputs before output_mapping is set
     with pytest.raises(ValueError):
@@ -310,9 +331,9 @@ def test_oneton_adapter():
     assert np.all(OF == onehot)
 
     ##  Test adapter clear_outputs
-    assert(len(adapter.filtered_status) > 0)
+    assert (len(adapter.filtered_status) > 0)
     adapter.clear_outputs()
-    assert(len(adapter.filtered_status) == 0)
+    assert (len(adapter.filtered_status) == 0)
 
     # Test verify_outputs
     adapter.clear_outputs()
@@ -344,14 +365,16 @@ def test_oneton_adapter():
 
     # Test batch subject corruptions
     batch_size = 3
-    batch_iter = adapter.get_next_batch_subject_corruptions(batch_size=batch_size, dataset_type='train', use_filter=True)
+    batch_iter = adapter.get_next_batch_subject_corruptions(
+        batch_size=batch_size, dataset_type='train', use_filter=True
+        )
     triples, out, out_onehot = next(batch_iter)
 
     assert np.all(X == triples)  # only 1 relation in X, so triples should be the same (ignores batch_size)
     assert triples.shape[1] == 3  # triples should be triples!
-    assert out.shape[1] == 3      # batch out should also be triples!
-    assert out.shape[0] == batch_size # batch dimension of out should equal batch_size
-    assert out_onehot.shape[0] == batch_size   # Onehot batch_dimension should equal batch size
+    assert out.shape[1] == 3  # batch out should also be triples!
+    assert out.shape[0] == batch_size  # batch dimension of out should equal batch_size
+    assert out_onehot.shape[0] == batch_size  # Onehot batch_dimension should equal batch size
     assert out_onehot.shape[0] == out.shape[0]  # .. and should be same size as number of unique entities
     assert out_onehot.shape[1] == len(adapter.ent_to_idx)
 
@@ -359,11 +382,11 @@ def test_oneton_adapter():
     batch_iter = adapter.get_next_batch_subject_corruptions(batch_size=-1, dataset_type='train', use_filter=True)
     triples, out, out_onehot = next(batch_iter)
 
-    assert np.all(X == triples)   # only 1 relation in X, so triples should be the same
+    assert np.all(X == triples)  # only 1 relation in X, so triples should be the same
     assert triples.shape[1] == 3  # triples should be triples!
-    assert out.shape[1] == 3      # batch out should also be triples!
+    assert out.shape[1] == 3  # batch out should also be triples!
     assert out.shape[0] == len(adapter.ent_to_idx)  # batch_size=-1 (entire set), so the batch_dim should equal ents
-    assert out_onehot.shape[0] == out_onehot.shape[1] # Onehot should be a square matrix
+    assert out_onehot.shape[0] == out_onehot.shape[1]  # Onehot should be a square matrix
     assert out_onehot.shape[0] == out.shape[0]  # .. and should be same size as number of unique entities
     assert out_onehot.shape[1] == len(adapter.ent_to_idx)
 

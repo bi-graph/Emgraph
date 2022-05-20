@@ -1,6 +1,8 @@
-import numpy as np
-from ..datasets import NumpyDatasetAdapter
 import logging
+
+import numpy as np
+
+from ..datasets import NumpyDatasetAdapter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -424,8 +424,8 @@ class DistMult(EmbeddingModel):
         Positive and negative calibration: 0.20434617882733366
         Positive only calibration: 0.22597599585144656
         """
-        __doc__ = super().calibrate.__doc__  # NOQA
-        super().calibrate(X_pos, X_neg, positive_base_rate, batches_count, epochs)
+        __doc__ = super()._calibrate.__doc__  # NOQA
+        super()._calibrate(X_pos, X_neg, positive_base_rate, batches_count, epochs)
 
     def _predict_proba(self, X):
         """Predicts probabilities using the Platt scaling model (after calibration).
@@ -437,5 +437,5 @@ class DistMult(EmbeddingModel):
         :return: Probability of each triple to be true according to the Platt scaling calibration.
         :rtype: ndarray, shape [n, 3]
         """
-        __doc__ = super().predict_proba.__doc__  # NOQA
-        return super().predict_proba(X)
+        __doc__ = super()._predict_proba.__doc__  # NOQA
+        return super()._predict_proba(X)

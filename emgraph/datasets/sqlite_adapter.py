@@ -1,10 +1,12 @@
-import numpy as np
-from ..datasets import EmgraphBaseDatasetAdaptor
-import tempfile
-import sqlite3
-import time
-import os
 import logging
+import os
+import sqlite3
+import tempfile
+import time
+
+import numpy as np
+
+from ..datasets import EmgraphBaseDatasetAdaptor
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -62,13 +64,15 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         conn = sqlite3.connect("{}".format(self.dbname))
         cur = conn.cursor()
         cur.execute("CREATE TABLE entity_table (entity_type integer primary key);")
-        cur.execute("CREATE TABLE triples_table (subject integer, \
-                                                    predicate integer, \
-                                                    object integer, \
-                                                    dataset_type text(50), \
-                                                    foreign key (object) references entity_table(entity_type), \
-                                                    foreign key (subject) references entity_table(entity_type) \
-                                                    );")
+        cur.execute(
+            "CREATE TABLE triples_table (subject integer, \
+                                                                predicate integer, \
+                                                                object integer, \
+                                                                dataset_type text(50), \
+                                                                foreign key (object) references entity_table(entity_type), \
+                                                                foreign key (subject) references entity_table(entity_type) \
+                                                                );"
+            )
 
         cur.execute("CREATE INDEX triples_table_sp_idx ON triples_table (subject, predicate);")
         cur.execute("CREATE INDEX triples_table_po_idx ON triples_table (predicate, object);")
@@ -215,8 +219,12 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         key = np.array([[key]])
         for j in range(int(np.ceil(triples.shape[0] / 500000.0))):
             pg_triple_values = triples[j * 500000:(j + 1) * 500000]
-            pg_triple_values = np.concatenate((pg_triple_values, np.repeat(key,
-                                                                           pg_triple_values.shape[0], axis=0)), axis=1)
+            pg_triple_values = np.concatenate(
+                (pg_triple_values, np.repeat(
+                    key,
+                    pg_triple_values.shape[0], axis=0
+                    )), axis=1
+                )
             pg_triple_values = pg_triple_values.tolist()
             cur = conn.cursor()
             cur.executemany('INSERT INTO triples_table VALUES (?,?,?,?)', pg_triple_values)
@@ -244,9 +252,11 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         for key in self.dataset.keys():
             if isinstance(self.dataset[key], np.ndarray):
                 if (not self.mapped_status[key]) or (remap is True):
-                    self.dataset[key] = to_idx(self.dataset[key],
-                                               ent_to_idx=self.ent_to_idx,
-                                               rel_to_idx=self.rel_to_idx)
+                    self.dataset[key] = to_idx(
+                        self.dataset[key],
+                        ent_to_idx=self.ent_to_idx,
+                        rel_to_idx=self.rel_to_idx
+                        )
                     self.mapped_status[key] = True
                 if not self.persistance_status[key]:
                     self._insert_triples(self.dataset[key], key)
@@ -258,49 +268,61 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         cur.execute('Update integrity_check set validity=1 where validity=0')
         conn.commit()
 
-        cur.execute('''CREATE TRIGGER IF NOT EXISTS triples_table_ins_integrity_check_trigger
-                        AFTER INSERT ON triples_table
-                        BEGIN
-                            Update integrity_check set validity=0 where validity=1;
-                        END
-                            ;
-                    ''')
-        cur.execute('''CREATE TRIGGER IF NOT EXISTS triples_table_upd_integrity_check_trigger
-                        AFTER UPDATE ON triples_table
-                        BEGIN
-                            Update integrity_check set validity=0 where validity=1;
-                        END
-                            ;
-                    ''')
-        cur.execute('''CREATE TRIGGER IF NOT EXISTS triples_table_del_integrity_check_trigger
-                        AFTER DELETE ON triples_table
-                        BEGIN
-                            Update integrity_check set validity=0 where validity=1;
-                        END
-                            ;
-                    ''')
+        cur.execute(
+            '''CREATE TRIGGER IF NOT EXISTS triples_table_ins_integrity_check_trigger
+                                    AFTER INSERT ON triples_table
+                                    BEGIN
+                                        Update integrity_check set validity=0 where validity=1;
+                                    END
+                                        ;
+                                '''
+            )
+        cur.execute(
+            '''CREATE TRIGGER IF NOT EXISTS triples_table_upd_integrity_check_trigger
+                                    AFTER UPDATE ON triples_table
+                                    BEGIN
+                                        Update integrity_check set validity=0 where validity=1;
+                                    END
+                                        ;
+                                '''
+            )
+        cur.execute(
+            '''CREATE TRIGGER IF NOT EXISTS triples_table_del_integrity_check_trigger
+                                    AFTER DELETE ON triples_table
+                                    BEGIN
+                                        Update integrity_check set validity=0 where validity=1;
+                                    END
+                                        ;
+                                '''
+            )
 
-        cur.execute('''CREATE TRIGGER IF NOT EXISTS entity_table_upd_integrity_check_trigger
-                        AFTER UPDATE ON entity_table
-                        BEGIN
-                            Update integrity_check set validity=0 where validity=1;
-                        END
-                        ;
-                    ''')
-        cur.execute('''CREATE TRIGGER IF NOT EXISTS entity_table_ins_integrity_check_trigger
-                        AFTER INSERT ON entity_table
-                        BEGIN
-                            Update integrity_check set validity=0 where validity=1;
-                        END
-                        ;
-                    ''')
-        cur.execute('''CREATE TRIGGER IF NOT EXISTS entity_table_del_integrity_check_trigger
-                        AFTER DELETE ON entity_table
-                        BEGIN
-                            Update integrity_check set validity=0 where validity=1;
-                        END
-                        ;
-                    ''')
+        cur.execute(
+            '''CREATE TRIGGER IF NOT EXISTS entity_table_upd_integrity_check_trigger
+                                    AFTER UPDATE ON entity_table
+                                    BEGIN
+                                        Update integrity_check set validity=0 where validity=1;
+                                    END
+                                    ;
+                                '''
+            )
+        cur.execute(
+            '''CREATE TRIGGER IF NOT EXISTS entity_table_ins_integrity_check_trigger
+                                    AFTER INSERT ON entity_table
+                                    BEGIN
+                                        Update integrity_check set validity=0 where validity=1;
+                                    END
+                                    ;
+                                '''
+            )
+        cur.execute(
+            '''CREATE TRIGGER IF NOT EXISTS entity_table_del_integrity_check_trigger
+                                    AFTER DELETE ON entity_table
+                                    BEGIN
+                                        Update integrity_check set validity=0 where validity=1;
+                                    END
+                                    ;
+                                '''
+            )
         cur.close()
         conn.close()
 

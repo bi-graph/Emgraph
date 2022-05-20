@@ -1,5 +1,6 @@
 import numpy as np
-from ..datasets import EmgraphBaseDatasetAdaptor, SQLiteAdapter
+
+from ..datasets import EmgraphBaseDatasetAdaptor
 
 
 class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
@@ -131,9 +132,11 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
 
         for key in self.dataset.keys():
             if (not self.mapped_status[key]) or (remap is True):
-                self.dataset[key] = to_idx(self.dataset[key],
-                                           ent_to_idx=self.ent_to_idx,
-                                           rel_to_idx=self.rel_to_idx)
+                self.dataset[key] = to_idx(
+                    self.dataset[key],
+                    ent_to_idx=self.ent_to_idx,
+                    rel_to_idx=self.rel_to_idx
+                )
                 self.mapped_status[key] = True
 
     def _validate_data(self, data):
@@ -200,6 +203,8 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         :return: -
         :rtype: -
         """
+
+        from ..datasets import SQLiteAdapter
 
         self.filter_adapter = SQLiteAdapter()
         self.filter_adapter.use_mappings(self.rel_to_idx, self.ent_to_idx)

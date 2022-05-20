@@ -1,15 +1,15 @@
-from collections.abc import Iterable
-from itertools import product, islice
 import logging
 import warnings
+from collections.abc import Iterable
+from itertools import islice, product
 
-import pandas as pd
 import numpy as np
-from tqdm import tqdm
+import pandas as pd
 import tensorflow as tf
+from tqdm import tqdm
 
-from ..evaluation import mrr_score, hits_at_n_score, mr_score
 from ..datasets import EmgraphBaseDatasetAdaptor, NumpyDatasetAdapter, OneToNDatasetAdapter
+from ..evaluation import hits_at_n_score, mr_score, mrr_score
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -99,8 +99,12 @@ def _train_test_split_no_unseen_fast(X, test_size=100, seed=0, allow_duplication
         X_train = None
         X_test_candidates = X
 
-    entities, entity_cnt = np.unique(np.concatenate([X_test_candidates[:, 0],
-                                                     X_test_candidates[:, 2]]), return_counts=True)
+    entities, entity_cnt = np.unique(
+        np.concatenate(
+            [X_test_candidates[:, 0],
+             X_test_candidates[:, 2]]
+            ), return_counts=True
+        )
     rels, rels_cnt = np.unique(X_test_candidates[:, 1], return_counts=True)
     dict_entities = dict(zip(entities, entity_cnt))
     dict_rels = dict(zip(rels, rels_cnt))
@@ -148,11 +152,13 @@ def _train_test_split_no_unseen_fast(X, test_size=100, seed=0, allow_duplication
         else:
             # throw an exception since we cannot get unique triples in the test set without creating
             # unseen entities
-            raise Exception("Cannot create a test split of the desired size. "
-                            "Some entities will not occur in both training and test set. "
-                            "Set allow_duplication=True,"
-                            "remove filter on test predicates or "
-                            "set test_size to a smaller value.")
+            raise Exception(
+                "Cannot create a test split of the desired size. "
+                "Some entities will not occur in both training and test set. "
+                "Set allow_duplication=True,"
+                "remove filter on test predicates or "
+                "set test_size to a smaller value."
+                )
 
     if X_train is None:
         X_train = X_test_candidates[idx_train]
@@ -280,16 +286,20 @@ def _train_test_split_no_unseen_old(X, test_size=100, seed=0, allow_duplication=
         # in case can't find solution
         if loop_count == tolerance:
             if allow_duplication:
-                raise Exception("Cannot create a test split of the desired size. "
-                                "Some entities will not occur in both training and test set. "
-                                "Change seed values, remove filter on test predicates or set "
-                                "test_size to a smaller value.")
+                raise Exception(
+                    "Cannot create a test split of the desired size. "
+                    "Some entities will not occur in both training and test set. "
+                    "Change seed values, remove filter on test predicates or set "
+                    "test_size to a smaller value."
+                    )
             else:
-                raise Exception("Cannot create a test split of the desired size. "
-                                "Some entities will not occur in both training and test set. "
-                                "Set allow_duplication=True,"
-                                "change seed values, remove filter on test predicates or "
-                                "set test_size to a smaller value.")
+                raise Exception(
+                    "Cannot create a test split of the desired size. "
+                    "Some entities will not occur in both training and test set. "
+                    "Set allow_duplication=True,"
+                    "change seed values, remove filter on test predicates or "
+                    "set test_size to a smaller value."
+                    )
 
     logger.debug('Completed random search.')
 
@@ -300,8 +310,10 @@ def _train_test_split_no_unseen_old(X, test_size=100, seed=0, allow_duplication=
     return X[idx_train, :], X[idx_test, :]
 
 
-def train_test_split_no_unseen(X, test_size=100, seed=0, allow_duplication=False,
-                               filtered_test_predicates=None, backward_compatible=False):
+def train_test_split_no_unseen(
+        X, test_size=100, seed=0, allow_duplication=False,
+        filtered_test_predicates=None, backward_compatible=False
+        ):
     """Split into train and test sets.
 
      This function carves out a test set that contains only entities
@@ -446,35 +458,46 @@ def generate_corruptions_for_eval(X, entities_for_corruption, corrupt_side='s,o'
 
     if corrupt_side in ['s+o', 'o']:  # object is corrupted - so we need subjects as it is
         repeated_subjs = tf.keras.backend.repeat(
-            tf.slice(X,
-                     [0, 0],  # subj
-                     [tf.shape(X)[0], 1]),
-            tf.shape(entities_for_corruption)[0])
+            tf.slice(
+                X,
+                [0, 0],  # subj
+                [tf.shape(X)[0], 1]
+                ),
+            tf.shape(entities_for_corruption)[0]
+        )
         repeated_subjs = tf.squeeze(repeated_subjs, 2)
 
     logger.debug('Getting repeating object.')
     if corrupt_side in ['s+o', 's']:  # subject is corrupted - so we need objects as it is
         repeated_objs = tf.keras.backend.repeat(
-            tf.slice(X,
-                     [0, 2],  # Obj
-                     [tf.shape(X)[0], 1]),
-            tf.shape(entities_for_corruption)[0])
+            tf.slice(
+                X,
+                [0, 2],  # Obj
+                [tf.shape(X)[0], 1]
+                ),
+            tf.shape(entities_for_corruption)[0]
+        )
         repeated_objs = tf.squeeze(repeated_objs, 2)
 
     logger.debug('Getting repeating relationships.')
     repeated_relns = tf.keras.backend.repeat(
-        tf.slice(X,
-                 [0, 1],  # reln
-                 [tf.shape(X)[0], 1]),
-        tf.shape(entities_for_corruption)[0])
+        tf.slice(
+            X,
+            [0, 1],  # reln
+            [tf.shape(X)[0], 1]
+            ),
+        tf.shape(entities_for_corruption)[0]
+    )
     repeated_relns = tf.squeeze(repeated_relns, 2)
 
     rep_ent = tf.keras.backend.repeat(tf.expand_dims(entities_for_corruption, 0), tf.shape(X)[0])
     rep_ent = tf.squeeze(rep_ent, 0)
 
     if corrupt_side == 's+o':
-        stacked_out = tf.concat([tf.stack([repeated_subjs, repeated_relns, rep_ent], 1),
-                                 tf.stack([rep_ent, repeated_relns, repeated_objs], 1)], 0)
+        stacked_out = tf.concat(
+            [tf.stack([repeated_subjs, repeated_relns, rep_ent], 1),
+             tf.stack([rep_ent, repeated_relns, repeated_objs], 1)], 0
+            )
 
     elif corrupt_side == 'o':
         stacked_out = tf.stack([repeated_subjs, repeated_relns, rep_ent], 1)
@@ -571,24 +594,35 @@ def generate_corruptions_for_fit(X, entities_list=None, eta=1, corrupt_side='s,o
     else:
         if entities_list is None:
             # use entities in the batch
-            entities_list, _ = tf.unique(tf.squeeze(
-                tf.concat([tf.slice(X, [0, 0], [tf.shape(X)[0], 1]),
-                           tf.slice(X, [0, 2], [tf.shape(X)[0], 1])],
-                          0)))
+            entities_list, _ = tf.unique(
+                tf.squeeze(
+                    tf.concat(
+                        [tf.slice(X, [0, 0], [tf.shape(X)[0], 1]),
+                         tf.slice(X, [0, 2], [tf.shape(X)[0], 1])],
+                        0
+                        )
+                )
+            )
 
-        random_indices = tf.random.uniform(shape=(tf.shape(dataset)[0],),
-                                           maxval=tf.shape(entities_list)[0],
-                                           dtype=tf.int32,
-                                           seed=rnd)
+        random_indices = tf.random.uniform(
+            shape=(tf.shape(dataset)[0],),
+            maxval=tf.shape(entities_list)[0],
+            dtype=tf.int32,
+            seed=rnd
+            )
         replacements = tf.gather(entities_list, random_indices)
 
-    subjects = tf.math.add(tf.math.multiply(keep_subj_mask, dataset[:, 0]),
-                           tf.math.multiply(keep_obj_mask, replacements))
+    subjects = tf.math.add(
+        tf.math.multiply(keep_subj_mask, dataset[:, 0]),
+        tf.math.multiply(keep_obj_mask, replacements)
+        )
     logger.debug('Created corrupted subjects.')
     relationships = dataset[:, 1]
     logger.debug('Retained relationships.')
-    objects = tf.math.add(tf.math.multiply(keep_obj_mask, dataset[:, 2]),
-                          tf.math.multiply(keep_subj_mask, replacements))
+    objects = tf.math.add(
+        tf.math.multiply(keep_obj_mask, dataset[:, 2]),
+        tf.math.multiply(keep_subj_mask, replacements)
+        )
     logger.debug('Created corrupted objects.')
 
     out = tf.transpose(tf.stack([subjects, relationships, objects]))
@@ -657,8 +691,10 @@ def to_idx(X, ent_to_idx, rel_to_idx):
     return _convert_to_idx(X, ent_to_idx, rel_to_idx, ent_to_idx)
 
 
-def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_unseen=True, entities_subset=None,
-                         corrupt_side='s,o', ranking_strategy='worst', use_default_protocol=False):
+def evaluate_performance(
+        X, model, filter_triples=None, verbose=False, filter_unseen=True, entities_subset=None,
+        corrupt_side='s,o', ranking_strategy='worst', use_default_protocol=False
+        ):
     """Evaluate the performance of an embedding model.
 
     The evaluation protocol follows the procedure defined in :cite:`bordes2013translating` and can be summarised as:
@@ -798,8 +834,10 @@ def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_un
     # try-except block is mainly to handle clean up in case of exception or manual stop in jupyter notebook
     try:
         if use_default_protocol:
-            logger.warning('DeprecationWarning: use_default_protocol will be removed in future. '
-                           'Please use corrupt_side argument instead.')
+            logger.warning(
+                'DeprecationWarning: use_default_protocol will be removed in future. '
+                'Please use corrupt_side argument instead.'
+                )
             corrupt_side = 's,o'
 
         logger.debug('Evaluating the performance of the embedding model.')
@@ -809,8 +847,10 @@ def evaluate_performance(X, model, filter_triples=None, verbose=False, filter_un
             if filter_unseen:
                 X = filter_unseen_entities(X, model, verbose=verbose)
             else:
-                logger.warning("If your test set or filter triples contain unseen entities you may get a"
-                               "runtime error. You can filter them by setting filter_unseen=True")
+                logger.warning(
+                    "If your test set or filter triples contain unseen entities you may get a"
+                    "runtime error. You can filter them by setting filter_unseen=True"
+                    )
 
             if isinstance(model, ConvE):
                 dataset_handle = OneToNDatasetAdapter()
@@ -1178,10 +1218,12 @@ def _scalars_into_lists(param_grid):
             _scalars_into_lists(v)
 
 
-def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid, max_combinations=None,
-                              param_grid_random_seed=0, use_filter=True, early_stopping=False,
-                              early_stopping_params=None, use_test_for_selection=False, entities_subset=None,
-                              corrupt_side='s,o', use_default_protocol=False, retrain_best_model=False, verbose=False):
+def select_best_model_ranking(
+        model_class, X_train, X_valid, X_test, param_grid, max_combinations=None,
+        param_grid_random_seed=0, use_filter=True, early_stopping=False,
+        early_stopping_params=None, use_test_for_selection=False, entities_subset=None,
+        corrupt_side='s,o', use_default_protocol=False, retrain_best_model=False, verbose=False
+        ):
     """Model selection routine for embedding models via either grid search or random search.
 
     For grid search, pass a fixed ``param_grid`` and leave ``max_combinations`` as `None`
@@ -1361,8 +1403,10 @@ def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid,
 
     logger.debug('Starting gridsearch over hyperparameters. {}'.format(param_grid))
     if use_default_protocol:
-        logger.warning('DeprecationWarning: use_default_protocol will be removed in future. \
-                        Please use corrupt_side argument instead.')
+        logger.warning(
+            'DeprecationWarning: use_default_protocol will be removed in future. \
+                                    Please use corrupt_side argument instead.'
+            )
         corrupt_side = 's,o'
 
     if early_stopping_params is None:
@@ -1371,8 +1415,10 @@ def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid,
     # Verify missing parameters for the model class (default values will be used)
     undeclared_args = set(model_class.__init__.__code__.co_varnames[1:]) - set(param_grid.keys())
     if len(undeclared_args) != 0:
-        logger.debug("The following arguments were not defined in the parameter grid"
-                     " and thus the default values will be used: {}".format(', '.join(undeclared_args)))
+        logger.debug(
+            "The following arguments were not defined in the parameter grid"
+            " and thus the default values will be used: {}".format(', '.join(undeclared_args))
+            )
 
     param_grid["model_name"] = model_class.name
     _scalars_into_lists(param_grid)
@@ -1423,11 +1469,13 @@ def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid,
         try:
             model = model_class(**model_params)
             model.fit(X_train, early_stopping, early_stopping_params)
-            ranks = evaluate_performance(selection_dataset, model=model,
-                                         filter_triples=X_filter, verbose=verbose,
-                                         entities_subset=entities_subset,
-                                         use_default_protocol=use_default_protocol,
-                                         corrupt_side=corrupt_side)
+            ranks = evaluate_performance(
+                selection_dataset, model=model,
+                filter_triples=X_filter, verbose=verbose,
+                entities_subset=entities_subset,
+                use_default_protocol=use_default_protocol,
+                corrupt_side=corrupt_side
+                )
 
             curr_mrr, mr, hits_1, hits_3, hits_10 = evaluation(ranks)
 
@@ -1467,11 +1515,13 @@ def select_best_model_ranking(model_class, X_train, X_valid, X_test, param_grid,
         if retrain_best_model:
             best_model.fit(np.concatenate((X_train, X_valid)), early_stopping, early_stopping_params)
 
-        ranks_test = evaluate_performance(X_test, model=best_model,
-                                          filter_triples=X_filter, verbose=verbose,
-                                          entities_subset=entities_subset,
-                                          use_default_protocol=use_default_protocol,
-                                          corrupt_side=corrupt_side)
+        ranks_test = evaluate_performance(
+            X_test, model=best_model,
+            filter_triples=X_filter, verbose=verbose,
+            entities_subset=entities_subset,
+            use_default_protocol=use_default_protocol,
+            corrupt_side=corrupt_side
+            )
 
         test_mrr, test_mr, test_hits_1, test_hits_3, test_hits_10 = evaluation(ranks_test)
 

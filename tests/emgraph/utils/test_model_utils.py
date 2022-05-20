@@ -1,12 +1,13 @@
-import os
 import importlib
+import os
+
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
-from emgraph.utils import save_model, restore_model, create_tensorboard_visualizations, \
-    write_metadata_tsv, dataframe_to_triples
-from emgraph.models import TransE
+import pandas as pd
 import pytest
+
+from emgraph.models import TransE
+from emgraph.utils import create_tensorboard_visualizations, dataframe_to_triples, restore_model, save_model
 
 
 def test_save_and_restore_model():
@@ -19,17 +20,21 @@ def test_save_and_restore_model():
 
         class_ = getattr(module, model_name)
 
-        model = class_(batches_count=2, seed=555, epochs=20, k=10,
-                       optimizer='adagrad', optimizer_params={'lr': 0.1})
+        model = class_(
+            batches_count=2, seed=555, epochs=20, k=10,
+            optimizer='adagrad', optimizer_params={'lr': 0.1}
+            )
 
-        X = np.array([['a', 'y', 'b'],
-                      ['b', 'y', 'a'],
-                      ['a', 'y', 'c'],
-                      ['c', 'y', 'a'],
-                      ['a', 'y', 'd'],
-                      ['c', 'y', 'd'],
-                      ['b', 'y', 'c'],
-                      ['f', 'y', 'e']])
+        X = np.array(
+            [['a', 'y', 'b'],
+             ['b', 'y', 'a'],
+             ['a', 'y', 'c'],
+             ['c', 'y', 'a'],
+             ['a', 'y', 'd'],
+             ['c', 'y', 'd'],
+             ['b', 'y', 'c'],
+             ['f', 'y', 'e']]
+            )
 
         model.fit(X)
 
@@ -52,8 +57,10 @@ def test_save_and_restore_model():
         y_pred_after = loaded_model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
         npt.assert_array_equal(y_pred_after, y_pred_before)
 
-        npt.assert_array_equal(loaded_model.get_embeddings(['a', 'b'], embedding_type='entity'),
-                               model.get_embeddings(['a', 'b'], embedding_type='entity'))
+        npt.assert_array_equal(
+            loaded_model.get_embeddings(['a', 'b'], embedding_type='entity'),
+            model.get_embeddings(['a', 'b'], embedding_type='entity')
+            )
 
         os.remove(example_name)
 
@@ -66,16 +73,20 @@ def test_restore_model_errors():
 def test_create_tensorboard_visualizations():
     # test if tensorflow API are still operative
 
-    X = np.array([['a', 'y', 'b'],
-                  ['b', 'y', 'a'],
-                  ['a', 'y', 'c'],
-                  ['c', 'y', 'a'],
-                  ['a', 'y', 'd'],
-                  ['c', 'y', 'd'],
-                  ['b', 'y', 'c'],
-                  ['f', 'y', 'e']])
-    model = TransE(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
-                   loss_params={'margin': 5})
+    X = np.array(
+        [['a', 'y', 'b'],
+         ['b', 'y', 'a'],
+         ['a', 'y', 'c'],
+         ['c', 'y', 'a'],
+         ['a', 'y', 'd'],
+         ['c', 'y', 'd'],
+         ['b', 'y', 'c'],
+         ['f', 'y', 'e']]
+        )
+    model = TransE(
+        batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
+        loss_params={'margin': 5}
+        )
     model.fit(X)
     create_tensorboard_visualizations(model, 'tensorboard_files')
 
@@ -88,8 +99,10 @@ def test_write_metadata_tsv():
 def test_dataframe_to_triples():
     X = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
     schema = [('species', 'has_sepal_length', 'sepal_length')]
-    npt.assert_array_equal(dataframe_to_triples(X, schema)[0],
-                           np.array(['setosa', 'has_sepal_length', '5.1']))
+    npt.assert_array_equal(
+        dataframe_to_triples(X, schema)[0],
+        np.array(['setosa', 'has_sepal_length', '5.1'])
+        )
 
     schema = [('species', 'has_sepal_length', 'abc')]
     try:
