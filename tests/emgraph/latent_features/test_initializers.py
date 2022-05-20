@@ -77,16 +77,19 @@ def test_constant():
     ent_init = np.random.normal(1, 1, size=(300, 30))
     rel_init = np.random.normal(2, 2, size=(10, 30))
     runiform_obj = runiform_class({"entity": ent_init, "relation": rel_init})
-    tf_var1 = make_variable(
+    var1 = make_variable(
         shape=(300, 30),
         initializer=runiform_obj.get_entity_initializer(300, 30, init_type='tf'),
         name="ent_var"
         )
-    tf_var2 = make_variable(
+    var2 = make_variable(
         shape=(10, 30),
         initializer=runiform_obj.get_relation_initializer(10, 30, init_type='tf'),
         name="rel_var"
         )
+    tf_var1 = tf.convert_to_tensor(var1)
+    tf_var2 = tf.convert_to_tensor(var2)
+
     np_var1 = runiform_obj.get_entity_initializer(300, 30, init_type='np')
     np_var2 = runiform_obj.get_relation_initializer(10, 30, init_type='np')
     assert (np.round(np.mean(tf_var1), 0) == np.round(np.mean(np_var1), 0))
