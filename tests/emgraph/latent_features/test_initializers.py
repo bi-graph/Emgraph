@@ -84,13 +84,12 @@ def test_random_uniform():
 def test_constant():
     """Constant initializer test
     """
-    tf.random.set_seed(self.seed)
-    tf.random.set_random_seed(117)
+    tf.random.set_seed(117)
     runiform_class = INITIALIZER_REGISTRY['constant']
     ent_init = np.random.normal(1, 1, size=(300, 30))
     rel_init = np.random.normal(2, 2, size=(10, 30))
     runiform_obj = runiform_class({"entity": ent_init, "relation": rel_init})
-    tf_var1 = tf.get_variable(
+    tf_var1 = em.make_variable(
         shape=(300, 30),
         initializer=runiform_obj.get_entity_initializer(300, 30, init_type='tf'),
         name="ent_var"
