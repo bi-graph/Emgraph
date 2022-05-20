@@ -65,20 +65,16 @@ def test_xavier_uniform():
 def test_random_uniform():
     """Random uniform initializer test
     """
-    tf.reset_default_graph()
-    tf.random.set_random_seed(0)
+    tf.random.set_seed(0)
     runiform_class = INITIALIZER_REGISTRY['uniform']
     runiform_obj = runiform_class({"low": 0.1, "high": 0.4})
     tf_init = runiform_obj.get_entity_initializer(init_type='tf')
-    var1 = tf.get_variable(shape=(1000, 100), initializer=tf_init, name="var1")
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        tf_var = sess.run(var1)
-        np_var = runiform_obj.get_entity_initializer(1000, 100, init_type='np')
-        # print(np.min(np_var), np.max(np_var))
-        # print(np.min(tf_var), np.max(tf_var))
-        assert (np.round(np.min(np_var), 2) == np.round(np.min(tf_var), 2))
-        assert (np.round(np.max(np_var), 2) == np.round(np.max(tf_var), 2))
+    tf_var = em.make_variable(shape=(1000, 100), initializer=tf_init, name="var1")
+    np_var = runiform_obj.get_entity_initializer(1000, 100, init_type='np')
+    # print(np.min(np_var), np.max(np_var))
+    # print(np.min(tf_var), np.max(tf_var))
+    assert (np.round(np.min(np_var), 2) == np.round(np.min(tf_var), 2))
+    assert (np.round(np.max(np_var), 2) == np.round(np.max(tf_var), 2))
 
 
 def test_constant():
