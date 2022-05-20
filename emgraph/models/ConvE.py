@@ -1,25 +1,30 @@
+import logging
+import time
+from functools import partial
+
 import numpy as np
 import tensorflow as tf
-import logging
+import tensorflow.python.ops.variable_scope
 from sklearn.utils import check_random_state
 from tqdm import tqdm
-from functools import partial
-import time
-
-from .EmbeddingModel import EmbeddingModel, register_model, ENTITY_THRESHOLD
-from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFORM
-from emgraph.utils import constants as constants
 
 from emgraph.datasets import OneToNDatasetAdapter
-from emgraph.training.sgd import SGD
 from emgraph.evaluation import to_idx
+from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFORM
+from emgraph.training.sgd import SGD
+from emgraph.utils import constants as constants
+from .EmbeddingModel import ENTITY_THRESHOLD, EmbeddingModel, register_model
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+tf.device('/physical_device:GPU:0')  # todo: fix me
 
-@register_model('ConvE', ['conv_filters', 'conv_kernel_size', 'dropout_embed', 'dropout_conv',
-                          'dropout_dense', 'use_bias', 'use_batchnorm'], {})
+
+@register_model(
+    'ConvE', ['conv_filters', 'conv_kernel_size', 'dropout_embed', 'dropout_conv',
+              'dropout_dense', 'use_bias', 'use_batchnorm'], {}
+)
 class ConvE(EmbeddingModel):
     r""" Convolutional 2D KG Embeddings
 
@@ -59,30 +64,36 @@ class ConvE(EmbeddingModel):
     [0.42921206 0.38998795]
     """
 
-    def __init__(self,
-                 k=constants.DEFAULT_EMBEDDING_SIZE,
-                 eta=constants.DEFAULT_ETA,
-                 epochs=constants.DEFAULT_EPOCH,
-                 batches_count=constants.DEFAULT_BATCH_COUNT,
-                 seed=constants.DEFAULT_SEED,
-                 embedding_model_params={'conv_filters': constants.DEFAULT_CONVE_CONV_FILTERS,
-                                         'conv_kernel_size': constants.DEFAULT_CONVE_KERNEL_SIZE,
-                                         'dropout_embed': constants.DEFAULT_CONVE_DROPOUT_EMBED,
-                                         'dropout_conv': constants.DEFAULT_CONVE_DROPOUT_CONV,
-                                         'dropout_dense': constants.DEFAULT_CONVE_DROPOUT_DENSE,
-                                         'use_bias': constants.DEFAULT_CONVE_USE_BIAS,
-                                         'use_batchnorm': constants.DEFAULT_CONVE_USE_BATCHNORM},
-                 optimizer=constants.DEFAULT_OPTIM,
-                 optimizer_params={'lr': constants.DEFAULT_LR},
-                 loss='bce',
-                 loss_params={'label_weighting': False,
-                              'label_smoothing': 0.1},
-                 regularizer=constants.DEFAULT_REGULARIZER,
-                 regularizer_params={},
-                 initializer=constants.DEFAULT_INITIALIZER,
-                 initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
-                 low_memory=False,
-                 verbose=constants.DEFAULT_VERBOSE):
+    def __init__(
+            self,
+            k=constants.DEFAULT_EMBEDDING_SIZE,
+            eta=constants.DEFAULT_ETA,
+            epochs=constants.DEFAULT_EPOCH,
+            batches_count=constants.DEFAULT_BATCH_COUNT,
+            seed=constants.DEFAULT_SEED,
+            embedding_model_params={
+                'conv_filters': constants.DEFAULT_CONVE_CONV_FILTERS,
+                'conv_kernel_size': constants.DEFAULT_CONVE_KERNEL_SIZE,
+                'dropout_embed': constants.DEFAULT_CONVE_DROPOUT_EMBED,
+                'dropout_conv': constants.DEFAULT_CONVE_DROPOUT_CONV,
+                'dropout_dense': constants.DEFAULT_CONVE_DROPOUT_DENSE,
+                'use_bias': constants.DEFAULT_CONVE_USE_BIAS,
+                'use_batchnorm': constants.DEFAULT_CONVE_USE_BATCHNORM
+            },
+            optimizer=constants.DEFAULT_OPTIM,
+            optimizer_params={'lr': constants.DEFAULT_LR},
+            loss='bce',
+            loss_params={
+                'label_weighting': False,
+                'label_smoothing': 0.1
+            },
+            regularizer=constants.DEFAULT_REGULARIZER,
+            regularizer_params={},
+            initializer=constants.DEFAULT_INITIALIZER,
+            initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
+            low_memory=False,
+            verbose=constants.DEFAULT_VERBOSE
+    ):
         """Initialize a ConvE model
 
         :param k: Embedding space dimensionality.
@@ -165,13 +176,15 @@ class ConvE(EmbeddingModel):
         """
 
         # Add default values if not provided in embedding_model_params dict
-        default_embedding_model_params = {'conv_filters': constants.DEFAULT_CONVE_CONV_FILTERS,
-                                          'conv_kernel_size': constants.DEFAULT_CONVE_KERNEL_SIZE,
-                                          'dropout_embed': constants.DEFAULT_CONVE_DROPOUT_EMBED,
-                                          'dropout_conv': constants.DEFAULT_CONVE_DROPOUT_CONV,
-                                          'dropout_dense': constants.DEFAULT_CONVE_DROPOUT_DENSE,
-                                          'use_batchnorm': constants.DEFAULT_CONVE_USE_BATCHNORM,
-                                          'use_bias': constants.DEFAULT_CONVE_USE_BATCHNORM}
+        default_embedding_model_params = {
+            'conv_filters': constants.DEFAULT_CONVE_CONV_FILTERS,
+            'conv_kernel_size': constants.DEFAULT_CONVE_KERNEL_SIZE,
+            'dropout_embed': constants.DEFAULT_CONVE_DROPOUT_EMBED,
+            'dropout_conv': constants.DEFAULT_CONVE_DROPOUT_CONV,
+            'dropout_dense': constants.DEFAULT_CONVE_DROPOUT_DENSE,
+            'use_batchnorm': constants.DEFAULT_CONVE_USE_BATCHNORM,
+            'use_bias': constants.DEFAULT_CONVE_USE_BATCHNORM
+        }
 
         for key, val in default_embedding_model_params.items():
             if key not in embedding_model_params.keys():
@@ -205,14 +218,16 @@ class ConvE(EmbeddingModel):
 
         self.low_memory = low_memory
 
-        super().__init__(k=k, eta=eta, epochs=epochs,
-                         batches_count=batches_count, seed=seed,
-                         embedding_model_params=embedding_model_params,
-                         optimizer=optimizer, optimizer_params=optimizer_params,
-                         loss=loss, loss_params=loss_params,
-                         regularizer=regularizer, regularizer_params=regularizer_params,
-                         initializer=initializer, initializer_params=initializer_params,
-                         verbose=verbose)
+        super().__init__(
+            k=k, eta=eta, epochs=epochs,
+            batches_count=batches_count, seed=seed,
+            embedding_model_params=embedding_model_params,
+            optimizer=optimizer, optimizer_params=optimizer_params,
+            loss=loss, loss_params=loss_params,
+            regularizer=regularizer, regularizer_params=regularizer_params,
+            initializer=initializer, initializer_params=initializer_params,
+            verbose=verbose
+        )
 
     def make_variable(self, name=None, shape=None, initializer=tf.keras.initializers.Zeros, dtype=tf.float32):
         return tf.Variable(initializer(shape=shape, dtype=dtype), name=name)
@@ -240,15 +255,19 @@ class ConvE(EmbeddingModel):
             ksize = self.embedding_model_params['conv_kernel_size']
             dense_dim = self.embedding_model_params['dense_dim']
 
-            self.ent_emb = self.make_variable(name='ent_emb_{}'.format(timestamp),
-                                              shape=[len(self.ent_to_idx), self.internal_k],
-                                              initializer=self.initializer.get_entity_initializer(),
-                                              dtype=tf.float32)
+            self.ent_emb = self.make_variable(
+                name='ent_emb_{}'.format(timestamp),
+                shape=[len(self.ent_to_idx), self.internal_k],
+                initializer=self.initializer.get_entity_initializer(),
+                dtype=tf.float32
+            )
 
-            self.rel_emb = self.make_variable(name='rel_emb_{}'.format(timestamp),
-                                              shape=[len(self.rel_to_idx), self.k],
-                                              initializer=self.initializer.get_relation_initializer(),
-                                              dtype=tf.float32)
+            self.rel_emb = self.make_variable(
+                name='rel_emb_{}'.format(timestamp),
+                shape=[len(self.rel_to_idx), self.k],
+                initializer=self.initializer.get_relation_initializer(),
+                dtype=tf.float32
+            )
 
             # self.ent_emb = tf.get_variable('ent_emb_{}'.format(timestamp),
             #                                shape=[len(self.ent_to_idx), self.k],
@@ -262,42 +281,60 @@ class ConvE(EmbeddingModel):
             #                                    len(self.rel_to_idx), self.k),
             #                                dtype=tf.float32)
             print("[ksize, ksize, ninput, nfilters]: ", [ksize, ksize, ninput, nfilters])
-            self.conv2d_W = self.make_variable(name='conv2d_weights_{}'.format(timestamp),
-                                               shape=[ksize, ksize, ninput, nfilters],
-                                               initializer=tf.initializers.he_normal(seed=self.seed),
-                                               dtype=tf.float32)
-            self.conv2d_B = self.make_variable(name='conv2d_bias_{}'.format(timestamp),
-                                               shape=[nfilters],
-                                               initializer=tf.zeros_initializer(), dtype=tf.float32)
+            self.conv2d_W = self.make_variable(
+                name='conv2d_weights_{}'.format(timestamp),
+                shape=[ksize, ksize, ninput, nfilters],
+                initializer=tf.initializers.he_normal(seed=self.seed),
+                dtype=tf.float32
+            )
+            self.conv2d_B = self.make_variable(
+                name='conv2d_bias_{}'.format(timestamp),
+                shape=[nfilters],
+                initializer=tf.zeros_initializer(), dtype=tf.float32
+            )
 
-            self.dense_W = self.make_variable(name='dense_weights_{}'.format(timestamp),
-                                              shape=[dense_dim, self.k],
-                                              initializer=tf.initializers.he_normal(seed=self.seed),
-                                              dtype=tf.float32)
-            self.dense_B = self.make_variable(name='dense_bias_{}'.format(timestamp),
-                                              shape=[self.k],
-                                              initializer=tf.zeros_initializer(), dtype=tf.float32)
+            self.dense_W = self.make_variable(
+                name='dense_weights_{}'.format(timestamp),
+                shape=[dense_dim, self.k],
+                initializer=tf.initializers.he_normal(seed=self.seed),
+                dtype=tf.float32
+            )
+            self.dense_B = self.make_variable(
+                name='dense_bias_{}'.format(timestamp),
+                shape=[self.k],
+                initializer=tf.zeros_initializer(), dtype=tf.float32
+            )
 
             if self.embedding_model_params['use_batchnorm']:
                 emb_img_dim = self.embedding_model_params['embed_image_depth']
 
-                self.bn_vars = {'batchnorm_input': {'beta': np.zeros(shape=[emb_img_dim]),
-                                                    'gamma': np.ones(shape=[emb_img_dim]),
-                                                    'moving_mean': np.zeros(shape=[emb_img_dim]),
-                                                    'moving_variance': np.ones(shape=[emb_img_dim])},
-                                'batchnorm_conv': {'beta': np.zeros(shape=[nfilters]),
-                                                   'gamma': np.ones(shape=[nfilters]),
-                                                   'moving_mean': np.zeros(shape=[nfilters]),
-                                                   'moving_variance': np.ones(shape=[nfilters])},
-                                'batchnorm_dense': {'beta': np.zeros(shape=[1]),  # shape = [1] for batch norm
-                                                    'gamma': np.ones(shape=[1]),
-                                                    'moving_mean': np.zeros(shape=[1]),
-                                                    'moving_variance': np.ones(shape=[1])}}
+                self.bn_vars = {
+                    'batchnorm_input': {
+                        'beta': np.zeros(shape=[emb_img_dim]),
+                        'gamma': np.ones(shape=[emb_img_dim]),
+                        'moving_mean': np.zeros(shape=[emb_img_dim]),
+                        'moving_variance': np.ones(shape=[emb_img_dim])
+                    },
+                    'batchnorm_conv': {
+                        'beta': np.zeros(shape=[nfilters]),
+                        'gamma': np.ones(shape=[nfilters]),
+                        'moving_mean': np.zeros(shape=[nfilters]),
+                        'moving_variance': np.ones(shape=[nfilters])
+                    },
+                    'batchnorm_dense': {
+                        'beta': np.zeros(shape=[1]),  # shape = [1] for batch norm
+                        'gamma': np.ones(shape=[1]),
+                        'moving_mean': np.zeros(shape=[1]),
+                        'moving_variance': np.ones(shape=[1])
+                    }
+                }
 
             if self.embedding_model_params['use_bias']:
-                self.bias = self.make_variable(name='activation_bias_{}'.format(timestamp),
-                                               shape=[1, len(self.ent_to_idx)],
-                                               initializer=tf.zeros_initializer(), dtype=tf.float32)
+                self.bias = self.make_variable(
+                    name='activation_bias_{}'.format(timestamp),
+                    shape=[1, len(self.ent_to_idx)],
+                    initializer=tf.zeros_initializer(), dtype=tf.float32
+                )
 
                 # self.bias = tf.get_variable('activation_bias_{}'.format(timestamp),
                 #                                             shape=[1, len(self.ent_to_idx)],
@@ -361,10 +398,12 @@ class ConvE(EmbeddingModel):
                 variables = [x for x in variables if 'Adam' not in x.name]  # Filter out any Adam variables
 
                 var_dict = {x.name.split('/')[-1].split(':')[0]: x for x in variables}
-                bn_dict[scope] = {'beta': var_dict['beta'],
-                                  'gamma': var_dict['gamma'],
-                                  'moving_mean': var_dict['moving_mean'],
-                                  'moving_variance': var_dict['moving_variance']}
+                bn_dict[scope] = {
+                    'beta': var_dict['beta'],
+                    'gamma': var_dict['gamma'],
+                    'moving_mean': var_dict['moving_mean'],
+                    'moving_variance': var_dict['moving_variance']
+                }
 
             params_dict['bn_vars'] = bn_dict
 
@@ -387,10 +426,10 @@ class ConvE(EmbeddingModel):
         # Generate the batch size based on entity length and batch_count
         self.batch_size = int(np.ceil(len(self.ent_to_idx) / self.batches_count))
 
-        with tf.variable_scope('meta'):
+        with tf.compat.v1.variable_scope('meta'):
             self.tf_is_training = tf.Variable(False, trainable=False)
-            self.set_training_true = tf.assign(self.tf_is_training, True)
-            self.set_training_false = tf.assign(self.tf_is_training, False)
+            self.set_training_true = tf.compat.v1.assign(self.tf_is_training, True)
+            self.set_training_false = tf.compat.v1.assign(self.tf_is_training, False)
 
         self.ent_emb = tf.Variable(self.trained_model_params['ent_emb'], dtype=tf.float32)
         self.rel_emb = tf.Variable(self.trained_model_params['rel_emb'], dtype=tf.float32)
@@ -429,30 +468,40 @@ class ConvE(EmbeddingModel):
         """
 
         def _dropout(X, rate):
-            dropout_rate = tf.cond(self.tf_is_training, true_fn=lambda: tf.constant(rate),
-                                   false_fn=lambda: tf.constant(0, dtype=tf.float32))
+            dropout_rate = tf.cond(
+                self.tf_is_training, true_fn=lambda: tf.constant(rate),
+                false_fn=lambda: tf.constant(0, dtype=tf.float32)
+            )
             out = tf.nn.dropout(X, rate=dropout_rate)
             return out
 
         def _batchnorm(X, key, axis):
 
-            with tf.variable_scope(key, reuse=tf.AUTO_REUSE):
-                x = tf.compat.v1.layers.batch_normalization(X, training=self.tf_is_training, axis=axis,
-                                                            beta_initializer=tf.constant_initializer(
-                                                                self.bn_vars[key]['beta']),
-                                                            gamma_initializer=tf.constant_initializer(
-                                                                self.bn_vars[key]['gamma']),
-                                                            moving_mean_initializer=tf.constant_initializer(
-                                                                self.bn_vars[key]['moving_mean']),
-                                                            moving_variance_initializer=tf.constant_initializer(
-                                                                self.bn_vars[key]['moving_variance']))
+            with tf.compat.v1.variable_scope(key, reuse=tensorflow.raw_ops.Variable.AUTO_REUSE):
+                x = tf.compat.v1.layers.batch_normalization(
+                    X, training=self.tf_is_training, axis=axis,
+                    beta_initializer=tf.constant_initializer(
+                        self.bn_vars[key]['beta']
+                    ),
+                    gamma_initializer=tf.constant_initializer(
+                        self.bn_vars[key]['gamma']
+                    ),
+                    moving_mean_initializer=tf.constant_initializer(
+                        self.bn_vars[key]['moving_mean']
+                    ),
+                    moving_variance_initializer=tf.constant_initializer(
+                        self.bn_vars[key]['moving_variance']
+                    )
+                )
             return x
 
         # Inputs
         stacked_emb = tf.stack([e_s, e_p], axis=2)
-        self.inputs = tf.reshape(stacked_emb,
-                                 shape=[tf.shape(stacked_emb)[0], self.embedding_model_params['embed_image_height'],
-                                        self.embedding_model_params['embed_image_width'], 1])
+        self.inputs = tf.reshape(
+            stacked_emb,
+            shape=[tf.shape(stacked_emb)[0], self.embedding_model_params['embed_image_height'],
+                   self.embedding_model_params['embed_image_width'], 1]
+        )
 
         x = self.inputs
 
@@ -598,8 +647,10 @@ class ConvE(EmbeddingModel):
                 self.dealing_with_large_graphs = True
                 prefetch_batches = 0
 
-                logger.warning('Your graph has a large number of distinct entities. '
-                               'Found {} distinct entities'.format(len(self.ent_to_idx)))
+                logger.warning(
+                    'Your graph has a large number of distinct entities. '
+                    'Found {} distinct entities'.format(len(self.ent_to_idx))
+                )
 
                 logger.warning('Changing the variable initialization strategy.')
                 logger.warning('Changing the strategy to use lazy loading of variables...')
@@ -608,8 +659,10 @@ class ConvE(EmbeddingModel):
                     raise Exception('Early stopping not supported for large graphs')
 
                 if not isinstance(self.optimizer, SGD):
-                    raise Exception("This mode works well only with SGD optimizer with decay (read docs for details). "
-                                    "Kindly change the optimizer and restart the experiment")
+                    raise Exception(
+                        "This mode works well only with SGD optimizer with decay (read docs for details). "
+                        "Kindly change the optimizer and restart the experiment"
+                    )
 
                 raise NotImplementedError('ConvE not implemented when dealing with large graphs.')
 
@@ -636,15 +689,19 @@ class ConvE(EmbeddingModel):
             self.output_mapping = self.train_dataset_handle.generate_output_mapping(dataset_type='train')
             self.train_dataset_handle.set_output_mapping(self.output_mapping)
             self.train_dataset_handle.generate_outputs(dataset_type='train', unique_pairs=True)
-            train_iter = partial(self.train_dataset_handle.get_next_batch,
-                                 batches_count=self.batches_count,
-                                 dataset_type='train',
-                                 use_filter=False,
-                                 unique_pairs=True)
+            train_iter = partial(
+                self.train_dataset_handle.get_next_batch,
+                batches_count=self.batches_count,
+                dataset_type='train',
+                use_filter=False,
+                unique_pairs=True
+            )
 
-            dataset = tf.data.Dataset.from_generator(train_iter,
-                                                     output_types=(tf.int32, tf.float32),
-                                                     output_shapes=((None, 3), (None, len(self.ent_to_idx))))
+            dataset = tf.data.Dataset.from_generator(
+                train_iter,
+                output_types=(tf.int32, tf.float32),
+                output_shapes=((None, 3), (None, len(self.ent_to_idx)))
+            )
             prefetch_batches = 5
             dataset = dataset.repeat().prefetch(prefetch_batches)
             # dataset_iterator = dataset.make_one_shot_iterator()
@@ -709,8 +766,10 @@ class ConvE(EmbeddingModel):
                 if self.verbose:
                     msg = 'Average Loss: {:10f}'.format(sum(losses) / (batch_size * self.batches_count))
                     if early_stopping and self.early_stopping_best_value is not None:
-                        msg += ' — Best validation ({}): {:5f}'.format(self.early_stopping_criteria,
-                                                                       self.early_stopping_best_value)
+                        msg += ' — Best validation ({}): {:5f}'.format(
+                            self.early_stopping_criteria,
+                            self.early_stopping_best_value
+                        )
 
                     logger.debug(msg)
                     epoch_iterator_with_progress.set_description(msg)
@@ -740,15 +799,19 @@ class ConvE(EmbeddingModel):
 
         logger.debug('Initializing eval graph [mode: {}]'.format(mode))
 
-        test_generator = partial(self.eval_dataset_handle.get_next_batch,
-                                 batches_count=-1,
-                                 dataset_type=mode,
-                                 use_filter=self.is_filtered,
-                                 unique_pairs=False)
+        test_generator = partial(
+            self.eval_dataset_handle.get_next_batch,
+            batches_count=-1,
+            dataset_type=mode,
+            use_filter=self.is_filtered,
+            unique_pairs=False
+        )
 
-        dataset = tf.data.Dataset.from_generator(test_generator,
-                                                 output_types=(tf.int32, tf.float32),
-                                                 output_shapes=((None, 3), (None, len(self.ent_to_idx))))
+        dataset = tf.data.Dataset.from_generator(
+            test_generator,
+            output_types=(tf.int32, tf.float32),
+            output_shapes=((None, 3), (None, len(self.ent_to_idx)))
+        )
 
         dataset = dataset.repeat()
         dataset = dataset.prefetch(5)
@@ -819,16 +882,20 @@ class ConvE(EmbeddingModel):
             logger.error(msg)
             raise ValueError(msg)
 
-        self.early_stopping_criteria = self.early_stopping_params.get('criteria',
-                                                                      constants.DEFAULT_CRITERIA_EARLY_STOPPING)
+        self.early_stopping_criteria = self.early_stopping_params.get(
+            'criteria',
+            constants.DEFAULT_CRITERIA_EARLY_STOPPING
+        )
 
         if self.early_stopping_criteria not in ['hits10', 'hits1', 'hits3', 'mrr']:
             msg = 'Unsupported early stopping criteria.'
             logger.error(msg)
             raise ValueError(msg)
 
-        self.eval_config['corrupt_side'] = self.early_stopping_params.get('corrupt_side',
-                                                                          constants.DEFAULT_CORRUPT_SIDE_EVAL)
+        self.eval_config['corrupt_side'] = self.early_stopping_params.get(
+            'corrupt_side',
+            constants.DEFAULT_CORRUPT_SIDE_EVAL
+        )
 
         if 's' in self.eval_config['corrupt_side']:
             msg = "ConvE does not support subject corruptions in early stopping. Please change to: 'o'"
@@ -997,13 +1064,17 @@ class ConvE(EmbeddingModel):
 
         corruption_batch_size = constants.DEFAULT_SUBJECT_CORRUPTION_BATCH_SIZE
 
-        test_generator = partial(self.eval_dataset_handle.get_next_batch_subject_corruptions,
-                                 batch_size=corruption_batch_size,
-                                 dataset_type=mode)
+        test_generator = partial(
+            self.eval_dataset_handle.get_next_batch_subject_corruptions,
+            batch_size=corruption_batch_size,
+            dataset_type=mode
+        )
 
-        dataset = tf.data.Dataset.from_generator(test_generator,
-                                                 output_types=(tf.int32, tf.int32, tf.float32),
-                                                 output_shapes=((None, 3), (None, 3), (None, len(self.ent_to_idx))))
+        dataset = tf.data.Dataset.from_generator(
+            test_generator,
+            output_types=(tf.int32, tf.int32, tf.float32),
+            output_shapes=((None, 3), (None, 3), (None, len(self.ent_to_idx)))
+        )
 
         dataset = dataset.repeat()
         dataset = dataset.prefetch(5)

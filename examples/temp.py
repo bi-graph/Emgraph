@@ -16,7 +16,7 @@ model = TransE(
     batches_count=64, seed=0, epochs=0, k=100, eta=20,
     optimizer='adam', optimizer_params={'lr': 0.0001},
     loss='pairwise', verbose=True, large_graphs=False
-    )
+)
 
 # model = ConvE(batches_count=1, seed=22, epochs=5, k=100)
 

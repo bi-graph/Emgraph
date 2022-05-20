@@ -1,14 +1,14 @@
+import glob
+import importlib
+import logging
 import os
 import pickle
-import importlib
 from time import gmtime, strftime
-import glob
-import logging
 
-import tensorflow as tf
-from tensorboard.plugins import projector
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+from tensorboard.plugins import projector
 
 """This module contains utility functions for neural knowledge graph embedding models.
 """
@@ -71,8 +71,10 @@ def save_model(model, model_name_path=None, protocol=pickle.HIGHEST_PROTOCOL):
 
     model.get_embedding_model_params(obj)
 
-    logger.debug('Saving hyperparams:{}\n\tis_fitted: \
-                 {}'.format(model.all_params, model.is_fitted))
+    logger.debug(
+        'Saving hyperparams:{}\n\tis_fitted: \
+                         {}'.format(model.all_params, model.is_fitted)
+        )
 
     if model_name_path is None:
         model_name_path = DEFAULT_MODEL_NAMES.format(strftime("%Y_%m_%d-%H_%M_%S", gmtime()))
@@ -105,17 +107,23 @@ def restore_model(model_name_path=None):
     """
 
     if model_name_path is None:
-        logger.warning("There is no model name specified. \
-                        We will try to lookup \
-                        the latest default saved model...")
+        logger.warning(
+            "There is no model name specified. \
+                                    We will try to lookup \
+                                    the latest default saved model..."
+            )
         default_models = glob.glob("*.model.pkl")
         if len(default_models) == 0:
-            raise Exception("No default model found. Please specify \
-                             model_name_path...")
+            raise Exception(
+                "No default model found. Please specify \
+                                             model_name_path..."
+                )
         else:
             model_name_path = default_models[len(default_models) - 1]
-            logger.info("Will will load the model: {0} in your \
-                         current dir...".format(model_name_path))
+            logger.info(
+                "Will will load the model: {0} in your \
+                                         current dir...".format(model_name_path)
+                )
 
     model = None
     logger.info('Will load model {}.'.format(model_name_path))

@@ -1,9 +1,9 @@
 import numpy as np
 import tensorflow as tf
 
-from emgraph.regularizers._regularizer_constants import logger, DEFAULT_LAMBDA, DEFAULT_NORM
-from emgraph.regularizers.utils import export_emgraph_regularizer
+from emgraph.regularizers._regularizer_constants import DEFAULT_LAMBDA, DEFAULT_NORM, logger
 from emgraph.regularizers.regularizer import Regularizer
+from emgraph.regularizers.utils import export_emgraph_regularizer
 
 
 @export_emgraph_regularizer("LP", ['p', 'lambda'])
@@ -67,7 +67,8 @@ class LPRegularizer(Regularizer):
         self._regularizer_parameters['p'] = hyperparam_dict.get('p', DEFAULT_NORM)
         if not isinstance(self._regularizer_parameters['p'], (int, np.integer)):
             msg = 'Invalid value for regularizer parameter p:{}. Supported type int, np.int32 or np.int64'.format(
-                self._regularizer_parameters['p'])
+                self._regularizer_parameters['p']
+            )
             logger.error(msg)
             raise Exception(msg)
 
@@ -84,16 +85,19 @@ class LPRegularizer(Regularizer):
         if np.isscalar(self._regularizer_parameters['lambda']):
             self._regularizer_parameters['lambda'] = [self._regularizer_parameters['lambda']] * len(trainable_params)
         elif isinstance(self._regularizer_parameters['lambda'], list) and len(
-                self._regularizer_parameters['lambda']) == len(trainable_params):
+                self._regularizer_parameters['lambda']
+        ) == len(trainable_params):
             pass
         else:
             logger.error('Regularizer weight must be a scalar or a list with length equal to number of params passes')
             raise ValueError(
-                "Regularizer weight must be a scalar or a list with length equal to number of params passes")
+                "Regularizer weight must be a scalar or a list with length equal to number of params passes"
+            )
 
         loss_reg = 0
         for i in range(len(trainable_params)):
             loss_reg += (self._regularizer_parameters['lambda'][i] * tf.reduce_sum(
-                tf.pow(tf.abs(trainable_params[i]), self._regularizer_parameters['p'])))
+                tf.pow(tf.abs(trainable_params[i]), self._regularizer_parameters['p'])
+            ))
 
         return loss_reg

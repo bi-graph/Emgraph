@@ -1,11 +1,16 @@
-from .EmbeddingModel import EmbeddingModel, register_model
-from emgraph.utils import constants as constants
-from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFORM
 import tensorflow as tf
 
+from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFORM
+from emgraph.utils import constants as constants
+from .EmbeddingModel import EmbeddingModel, register_model
 
-@register_model("DistMult",
-                ["normalize_ent_emb", "negative_corruption_entities"])
+tf.device('/physical_device:GPU:0')  # todo: fix me
+
+
+@register_model(
+    "DistMult",
+    ["normalize_ent_emb", "negative_corruption_entities"]
+)
 class DistMult(EmbeddingModel):
     r"""The DistMult model :cite:`yang2014embedding`.
 
@@ -45,24 +50,28 @@ class DistMult(EmbeddingModel):
 
     """
 
-    def __init__(self,
-                 k=constants.DEFAULT_EMBEDDING_SIZE,
-                 eta=constants.DEFAULT_ETA,
-                 epochs=constants.DEFAULT_EPOCH,
-                 batches_count=constants.DEFAULT_BATCH_COUNT,
-                 seed=constants.DEFAULT_SEED,
-                 embedding_model_params={'normalize_ent_emb': constants.DEFAULT_NORMALIZE_EMBEDDINGS,
-                                         'negative_corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
-                                         'corrupt_sides': constants.DEFAULT_CORRUPT_SIDE_TRAIN},
-                 optimizer=constants.DEFAULT_OPTIM,
-                 optimizer_params={'lr': constants.DEFAULT_LR},
-                 loss=constants.DEFAULT_LOSS,
-                 loss_params={},
-                 regularizer=constants.DEFAULT_REGULARIZER,
-                 regularizer_params={},
-                 initializer=constants.DEFAULT_INITIALIZER,
-                 initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
-                 verbose=constants.DEFAULT_VERBOSE):
+    def __init__(
+            self,
+            k=constants.DEFAULT_EMBEDDING_SIZE,
+            eta=constants.DEFAULT_ETA,
+            epochs=constants.DEFAULT_EPOCH,
+            batches_count=constants.DEFAULT_BATCH_COUNT,
+            seed=constants.DEFAULT_SEED,
+            embedding_model_params={
+                'normalize_ent_emb': constants.DEFAULT_NORMALIZE_EMBEDDINGS,
+                'negative_corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
+                'corrupt_sides': constants.DEFAULT_CORRUPT_SIDE_TRAIN
+            },
+            optimizer=constants.DEFAULT_OPTIM,
+            optimizer_params={'lr': constants.DEFAULT_LR},
+            loss=constants.DEFAULT_LOSS,
+            loss_params={},
+            regularizer=constants.DEFAULT_REGULARIZER,
+            regularizer_params={},
+            initializer=constants.DEFAULT_INITIALIZER,
+            initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
+            verbose=constants.DEFAULT_VERBOSE
+    ):
         """Initialize an DistMult
 
         :param k: Embedding space dimensionality
@@ -154,13 +163,15 @@ class DistMult(EmbeddingModel):
         :type verbose: bool
         """
 
-        super().__init__(k=k, eta=eta, epochs=epochs, batches_count=batches_count, seed=seed,
-                         embedding_model_params=embedding_model_params,
-                         optimizer=optimizer, optimizer_params=optimizer_params,
-                         loss=loss, loss_params=loss_params,
-                         regularizer=regularizer, regularizer_params=regularizer_params,
-                         initializer=initializer, initializer_params=initializer_params,
-                         verbose=verbose)
+        super().__init__(
+            k=k, eta=eta, epochs=epochs, batches_count=batches_count, seed=seed,
+            embedding_model_params=embedding_model_params,
+            optimizer=optimizer, optimizer_params=optimizer_params,
+            loss=loss, loss_params=loss_params,
+            regularizer=regularizer, regularizer_params=regularizer_params,
+            initializer=initializer, initializer_params=initializer_params,
+            verbose=verbose
+        )
 
     def _fn(self, e_s, e_p, e_o):
         r"""The scoring function of the DistMult.
@@ -184,8 +195,10 @@ class DistMult(EmbeddingModel):
 
         return tf.reduce_sum(e_s * e_p * e_o, axis=1)
 
-    def fit(self, X, early_stopping=False, early_stopping_params={},
-            focusE_numeric_edge_values=None, tensorboard_logs_path=None):
+    def fit(
+            self, X, early_stopping=False, early_stopping_params={},
+            focusE_numeric_edge_values=None, tensorboard_logs_path=None
+    ):
         """Train an EmbeddingModel (with optional early stopping).
 
         The model is trained on a training set X using the training protocol
@@ -298,8 +311,10 @@ class DistMult(EmbeddingModel):
         :rtype:
         """
 
-        super().fit(X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-                    tensorboard_logs_path=tensorboard_logs_path)
+        super().fit(
+            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path
+        )
 
     def predict(self, X, from_idx=False):
         """Predict the scores of triples using a trained embedding model.

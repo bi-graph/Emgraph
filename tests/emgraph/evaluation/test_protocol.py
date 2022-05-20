@@ -62,8 +62,15 @@ def test_evaluate_performance_filter_without_xtest():
 def test_evaluate_performance_ranking_against_specified_entities():
     X = load_wn18()
     model = ComplEx(
-        batches_count=10, seed=0, epochs=1, k=20, eta=10, loss='nll',
-        regularizer=None, optimizer='adam', optimizer_params={'lr': 0.01}, verbose=True
+        batches_count=10,
+        seed=0,
+        epochs=1,
+        k=20,
+        eta=10,
+        loss='nll',
+        optimizer='adam',
+        optimizer_params={'lr': 0.01},
+        verbose=True,
     )
     model.fit(X['train'])
 
@@ -71,7 +78,11 @@ def test_evaluate_performance_ranking_against_specified_entities():
     entities_subset = np.concatenate([X['test'][::1000, 0], X['test'][::1000, 2]], 0)
 
     ranks = evaluate_performance(
-        X['test'][::1000], model, X_filter, verbose=True, corrupt_side='s,o',
+        X['test'][::1000],
+        model=model,
+        filter_triples=X_filter,
+        corrupt_side='s+o',
+        verbose=True,
         entities_subset=entities_subset
     )
     ranks = ranks.reshape(-1)
@@ -85,8 +96,15 @@ def test_evaluate_performance_ranking_against_shuffled_all_entities():
     import random
     X = load_wn18()
     model = ComplEx(
-        batches_count=10, seed=0, epochs=1, k=20, eta=10, loss='nll',
-        regularizer=None, optimizer='adam', optimizer_params={'lr': 0.01}, verbose=True
+        batches_count=10,
+        seed=0,
+        epochs=1,
+        k=20,
+        eta=10,
+        loss='nll',
+        optimizer='adam',
+        optimizer_params={'lr': 0.01},
+        verbose=True
     )
     model.fit(X['train'])
 
@@ -97,8 +115,12 @@ def test_evaluate_performance_ranking_against_shuffled_all_entities():
     ranks_all = evaluate_performance(X['test'][::1000], model, X_filter, verbose=True, corrupt_side='s,o')
 
     ranks_suffled_ent = evaluate_performance(
-        X['test'][::1000], model, X_filter, verbose=True, corrupt_side='s,o',
-        entities_subset=entities_subset
+        X['test'][::1000],
+        model,
+        X_filter,
+        verbose=True,
+        corrupt_side='s,o',
+        entities_subset=entities_subset,
     )
     assert (mrr_score(ranks_all) == mrr_score(ranks_suffled_ent))
 
@@ -107,12 +129,16 @@ def test_evaluate_performance_default_protocol_without_filter():
     wn18 = load_wn18()
 
     model = TransE(
-        batches_count=10, seed=0, epochs=1,
-        k=50, eta=10, verbose=True,
+        batches_count=10,
+        seed=0,
+        epochs=1,
+        k=50,
+        eta=10,
+        verbose=True,
         embedding_model_params={'normalize_ent_emb': False, 'norm': 1},
         loss='self_adversarial', loss_params={'margin': 1, 'alpha': 0.5},
         optimizer='adam',
-        optimizer_params={'lr': 0.0005}
+        optimizer_params={'lr': 0.0005},
     )
 
     model.fit(wn18['train'])
@@ -159,10 +185,15 @@ def test_evaluate_performance_default_protocol_with_filter():
     X_filter = np.concatenate((wn18['train'], wn18['valid'], wn18['test']))
 
     model = TransE(
-        batches_count=10, seed=0, epochs=1,
-        k=50, eta=10, verbose=True,
+        batches_count=10,
+        seed=0,
+        epochs=1,
+        k=50,
+        eta=10,
+        verbose=True,
         embedding_model_params={'normalize_ent_emb': False, 'norm': 1},
-        loss='self_adversarial', loss_params={'margin': 1, 'alpha': 0.5},
+        loss='self_adversarial',
+        loss_params={'margin': 1, 'alpha': 0.5},
         optimizer='adam',
         optimizer_params={'lr': 0.0005}
     )
@@ -208,8 +239,15 @@ def test_evaluate_performance_default_protocol_with_filter():
 def test_evaluate_performance_so_side_corruptions_with_filter():
     X = load_wn18()
     model = ComplEx(
-        batches_count=10, seed=0, epochs=5, k=200, eta=10, loss='nll',
-        regularizer=None, optimizer='adam', optimizer_params={'lr': 0.01}, verbose=True
+        batches_count=10,
+        seed=0,
+        epochs=5,
+        k=200,
+        eta=10,
+        loss='nll',
+        optimizer='adam',
+        optimizer_params={'lr': 0.01},
+        verbose=True,
     )
     model.fit(X['train'])
 
@@ -226,8 +264,15 @@ def test_evaluate_performance_so_side_corruptions_with_filter():
 def test_evaluate_performance_so_side_corruptions_without_filter():
     X = load_wn18()
     model = ComplEx(
-        batches_count=10, seed=0, epochs=5, k=200, eta=10, loss='nll',
-        regularizer=None, optimizer='adam', optimizer_params={'lr': 0.01}, verbose=True
+        batches_count=10,
+        seed=0,
+        epochs=5,
+        k=200,
+        eta=10,
+        loss='nll',
+        optimizer='adam',
+        optimizer_params={'lr': 0.01},
+        verbose=True
     )
     model.fit(X['train'])
 
@@ -245,8 +290,15 @@ def test_evaluate_performance_so_side_corruptions_without_filter():
 def test_evaluate_performance_nll_complex():
     X = load_wn18()
     model = ComplEx(
-        batches_count=10, seed=0, epochs=10, k=150, optimizer_params={'lr': 0.1}, eta=10, loss='nll',
-        optimizer='adagrad', verbose=True
+        batches_count=10,
+        seed=0,
+        epochs=10,
+        k=150,
+        optimizer_params={'lr': 0.1},
+        eta=10,
+        loss='nll',
+        optimizer='adagrad',
+        verbose=True,
     )
     model.fit(np.concatenate((X['train'], X['valid'])))
 
@@ -264,8 +316,15 @@ def test_evaluate_performance_nll_complex():
 def test_evaluate_performance_TransE():
     X = load_wn18()
     model = TransE(
-        batches_count=10, seed=0, epochs=100, k=100, eta=5, optimizer_params={'lr': 0.1},
-        loss='pairwise', loss_params={'margin': 5}, optimizer='adagrad'
+        batches_count=10,
+        seed=0,
+        epochs=100,
+        k=100,
+        eta=5,
+        optimizer_params={'lr': 0.1},
+        loss='pairwise',
+        loss_params={'margin': 5},
+        optimizer='adagrad',
     )
     model.fit(np.concatenate((X['train'], X['valid'])))
 
@@ -295,7 +354,7 @@ def test_generate_corruptions_for_eval():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
 
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         all_ent = tf.constant(list(ent_to_idx.values()), dtype=tf.int64)
         x = tf.constant(np.array([X[0]]), dtype=tf.int64)
         x_n_actual = sess.run(generate_corruptions_for_eval(x, all_ent))
@@ -401,7 +460,7 @@ def test_filter_unseen_entities():
 
 # @pytest.mark.skip(reason="excluded to try out jenkins.")   # TODO: re-enable this
 def test_generate_corruptions_for_fit_corrupt_side_so():
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
     X = np.array(
         [['a', 'x', 'b'],
          ['c', 'x', 'd'],
@@ -412,7 +471,7 @@ def test_generate_corruptions_for_fit_corrupt_side_so():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
     eta = 1
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
         dataset = tf.constant(X, dtype=tf.int32)
         X_corr = sess.run(
@@ -431,7 +490,7 @@ def test_generate_corruptions_for_fit_corrupt_side_so():
 
 
 def test_generate_corruptions_for_fit_curropt_side_s():
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
     X = np.array(
         [['a', 'x', 'b'],
          ['c', 'x', 'd'],
@@ -442,7 +501,7 @@ def test_generate_corruptions_for_fit_curropt_side_s():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
     eta = 1
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
         dataset = tf.constant(X, dtype=tf.int32)
         X_corr = sess.run(generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='s', entities_size=len(X), rnd=0))
@@ -460,7 +519,7 @@ def test_generate_corruptions_for_fit_curropt_side_s():
 
 
 def test_generate_corruptions_for_fit_curropt_side_o():
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
     X = np.array(
         [['a', 'x', 'b'],
          ['c', 'x', 'd'],
@@ -471,7 +530,7 @@ def test_generate_corruptions_for_fit_curropt_side_o():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
     eta = 1
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
         dataset = tf.constant(X, dtype=tf.int32)
         X_corr = sess.run(generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='o', entities_size=len(X), rnd=0))

@@ -1,6 +1,6 @@
-from .ComplEx import ComplEx, register_model
-from emgraph.utils import constants as constants
 from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFORM
+from emgraph.utils import constants as constants
+from .ComplEx import ComplEx, register_model
 
 
 @register_model("HolE", ["negative_corruption_entities"])
@@ -34,23 +34,27 @@ class HolE(ComplEx):
     [[0.009254738], [0.00023370088]]
    """
 
-    def __init__(self,
-                 k=constants.DEFAULT_EMBEDDING_SIZE,
-                 eta=constants.DEFAULT_ETA,
-                 epochs=constants.DEFAULT_EPOCH,
-                 batches_count=constants.DEFAULT_BATCH_COUNT,
-                 seed=constants.DEFAULT_SEED,
-                 embedding_model_params={'negative_corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
-                                         'corrupt_sides': constants.DEFAULT_CORRUPT_SIDE_TRAIN},
-                 optimizer=constants.DEFAULT_OPTIM,
-                 optimizer_params={'lr': constants.DEFAULT_LR},
-                 loss=constants.DEFAULT_LOSS,
-                 loss_params={},
-                 regularizer=constants.DEFAULT_REGULARIZER,
-                 regularizer_params={},
-                 initializer=constants.DEFAULT_INITIALIZER,
-                 initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
-                 verbose=constants.DEFAULT_VERBOSE):
+    def __init__(
+            self,
+            k=constants.DEFAULT_EMBEDDING_SIZE,
+            eta=constants.DEFAULT_ETA,
+            epochs=constants.DEFAULT_EPOCH,
+            batches_count=constants.DEFAULT_BATCH_COUNT,
+            seed=constants.DEFAULT_SEED,
+            embedding_model_params={
+                'negative_corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
+                'corrupt_sides': constants.DEFAULT_CORRUPT_SIDE_TRAIN
+            },
+            optimizer=constants.DEFAULT_OPTIM,
+            optimizer_params={'lr': constants.DEFAULT_LR},
+            loss=constants.DEFAULT_LOSS,
+            loss_params={},
+            regularizer=constants.DEFAULT_REGULARIZER,
+            regularizer_params={},
+            initializer=constants.DEFAULT_INITIALIZER,
+            initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
+            verbose=constants.DEFAULT_VERBOSE
+    ):
         """
 
         :param k: Embedding space dimensionality.
@@ -143,13 +147,15 @@ class HolE(ComplEx):
         :type verbose: bool
         """
 
-        super().__init__(k=k, eta=eta, epochs=epochs, batches_count=batches_count, seed=seed,
-                         embedding_model_params=embedding_model_params,
-                         optimizer=optimizer, optimizer_params=optimizer_params,
-                         loss=loss, loss_params=loss_params,
-                         regularizer=regularizer, regularizer_params=regularizer_params,
-                         initializer=initializer, initializer_params=initializer_params,
-                         verbose=verbose)
+        super().__init__(
+            k=k, eta=eta, epochs=epochs, batches_count=batches_count, seed=seed,
+            embedding_model_params=embedding_model_params,
+            optimizer=optimizer, optimizer_params=optimizer_params,
+            loss=loss, loss_params=loss_params,
+            regularizer=regularizer, regularizer_params=regularizer_params,
+            initializer=initializer, initializer_params=initializer_params,
+            verbose=verbose
+        )
         self.internal_k = self.k * 2
 
     def _fn(self, e_s, e_p, e_o):
@@ -174,8 +180,10 @@ class HolE(ComplEx):
         """
         return (2 / self.k) * (super()._fn(e_s, e_p, e_o))
 
-    def fit(self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None):
+    def fit(
+            self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
+            tensorboard_logs_path=None
+    ):
         """Train a HolE model.
 
         The model is trained on a training set X using the training protocol
@@ -246,5 +254,7 @@ class HolE(ComplEx):
             files there. To then view the loss in the terminal run: ``tensorboard --logdir <tensorboard_logs_path>``.
 
         """
-        super().fit(X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-                    tensorboard_logs_path=tensorboard_logs_path)
+        super().fit(
+            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path
+        )

@@ -1497,7 +1497,7 @@ class EmbeddingModel(abc.ABC):
             test_dependency.append(init_ent_emb_batch)
 
             # Add a dependency to create lookup tables(for remapping the entity indices to the order of variables on GPU
-            self.sparse_mappings = tf.contrib.lookup.MutableDenseHashTable(
+            self.sparse_mappings = tf.compat.v1.raw_ops.MutableDenseHashTable(
                 key_dtype=tf.int32,
                 value_dtype=tf.int32,
                 default_value=-1,
@@ -1519,7 +1519,7 @@ class EmbeddingModel(abc.ABC):
                 # Since the number of entities are low when entities_subset is used, the size of the array
                 # which stores the scores would be len(entities_subset).
                 # Hence while storing, the corruption entity id needs to be mapped to array index
-                rankings_mappings = tf.contrib.lookup.MutableDenseHashTable(
+                rankings_mappings = tf.compat.v1.raw_ops.MutableDenseHashTable(
                     key_dtype=tf.int32,
                     value_dtype=tf.int32,
                     default_value=-1,

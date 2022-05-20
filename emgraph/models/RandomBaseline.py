@@ -1,7 +1,9 @@
 import tensorflow as tf
 
-from .EmbeddingModel import EmbeddingModel, register_model
 from emgraph.utils import constants as constants
+from .EmbeddingModel import EmbeddingModel, register_model
+
+tf.device('/physical_device:GPU:0')  # todo: fix me
 
 
 @register_model("RandomBaseline")
@@ -72,8 +74,10 @@ class RandomBaseline(EmbeddingModel):
         else:
             return tf.random.uniform((tf.size(e_s),), minval=0, maxval=1)
 
-    def fit(self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None):
+    def fit(
+            self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
+            tensorboard_logs_path=None
+    ):
         """Train an EmbeddingModel (with optional early stopping).
         There is no actual training involved in practice and the early stopping parameters won't have any effect.
 
@@ -143,8 +147,10 @@ class RandomBaseline(EmbeddingModel):
         :rtype:
         """
 
-        super().fit(X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-                    tensorboard_logs_path=tensorboard_logs_path)
+        super().fit(
+            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path
+        )
 
     def predict(self, X, from_idx=False):
         """Predict the scores of triples using a trained embedding model.
@@ -271,8 +277,8 @@ class RandomBaseline(EmbeddingModel):
         Positive and negative calibration: 0.20434617882733366
         Positive only calibration: 0.22597599585144656
         """
-        __doc__ = super().calibrate.__doc__  # NOQA
-        super().calibrate(X_pos, X_neg, positive_base_rate, batches_count, epochs)
+        __doc__ = super()._calibrate.__doc__  # NOQA
+        super()._calibrate(X_pos, X_neg, positive_base_rate, batches_count, epochs)
 
     def _predict_proba(self, X):
         """Predicts probabilities using the Platt scaling model (after calibration).
@@ -284,5 +290,5 @@ class RandomBaseline(EmbeddingModel):
         :return: Probability of each triple to be true according to the Platt scaling calibration.
         :rtype: ndarray, shape [n, 3]
         """
-        __doc__ = super().calibrate.__doc__  # NOQA
-        return super().predict_proba(X)
+        __doc__ = super()._predict_proba.__doc__  # NOQA
+        return super()._predict_proba(X)

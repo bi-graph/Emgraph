@@ -1,5 +1,6 @@
-import numpy as np
 import logging
+
+import numpy as np
 
 SUBJECT = 0
 PREDICATE = 1

@@ -39,7 +39,7 @@ def test_load_wn18():
     distinct_rel = np.union1d(
         np.union1d(np.unique(wn18["train"][:, 1]), np.unique(wn18["train"][:, 1])),
         np.unique(wn18["train"][:, 1])
-        )
+    )
 
     assert len(distinct_ent) == 40943
     assert len(distinct_rel) == 18
@@ -121,7 +121,7 @@ def test_wn18rr():
     distinct_rel = np.union1d(
         np.union1d(np.unique(wn18rr["train"][:, 1]), np.unique(wn18rr["train"][:, 1])),
         np.unique(wn18rr["train"][:, 1])
-        )
+    )
 
     assert len(wn18rr['train']) == 86835
 
@@ -238,29 +238,29 @@ def test_oneton_adapter():
          ['c', 'p', 'd'],
          ['c', 'p', 'e'],
          ['c', 'p', 'f']]
-        )
+    )
 
     #              a, b, c, d, e, f
     O = np.array(
         [[0, 1, 0, 1, 0, 0],  # (a, p)
          [0, 0, 0, 1, 1, 1]]
-        )  # (c, p)
+    )  # (c, p)
 
     # Test
     T = np.array(
         [['a', 'p', 'c'],
          ['c', 'p', 'b']]
-        )
+    )
 
     #               a, b, c, d, e, f
     OT1 = np.array(
         [[0, 1, 0, 1, 0, 0],  # (a, p)     # test set onehots when output mapping is from train set
          [0, 0, 0, 1, 1, 1]]
-        ),  # (c, p)
+    ),  # (c, p)
     OT2 = np.array(
         [[0, 0, 1, 0, 0, 0],  # (a, p)     # test set onehots when output mapping is from test set
          [0, 1, 0, 0, 0, 0]]
-        ),  # (c, p)
+    ),  # (c, p)
 
     # Filter
     filter = np.concatenate((X, T))
@@ -268,7 +268,7 @@ def test_oneton_adapter():
     OF = np.array(
         [[0, 1, 1, 1, 0, 0],  # (a, p)   # train set onehots when output mapping is from filter
          [0, 1, 0, 1, 1, 1]]
-        )  # (c, p)
+    )  # (c, p)
 
     # Expected input tuple to filtered outputs
     OF_map = {
@@ -367,7 +367,7 @@ def test_oneton_adapter():
     batch_size = 3
     batch_iter = adapter.get_next_batch_subject_corruptions(
         batch_size=batch_size, dataset_type='train', use_filter=True
-        )
+    )
     triples, out, out_onehot = next(batch_iter)
 
     assert np.all(X == triples)  # only 1 relation in X, so triples should be the same (ignores batch_size)

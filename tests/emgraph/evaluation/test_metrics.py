@@ -14,7 +14,7 @@ def test_mrr_score():
     y_pred_true = np.array(
         [[[0, 1, 0], [.32, .84, .73]],
          [[0, 1, 0], [.66, .11, .33]]]
-        )
+    )
 
     rankings = []
     for y_pred_true_k in y_pred_true:
@@ -27,7 +27,7 @@ def test_hits_at_n_score():
     y_pred_true = np.array(
         [[[0, 1, 0], [.32, .84, .73]],
          [[0, 1, 0], [.66, .11, .33]]]
-        )
+    )
     rankings = []
     for y_pred_true_k in y_pred_true:
         rankings.append(rank_score(y_pred_true_k[0], y_pred_true_k[1]))

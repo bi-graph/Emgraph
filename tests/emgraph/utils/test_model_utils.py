@@ -23,7 +23,7 @@ def test_save_and_restore_model():
         model = class_(
             batches_count=2, seed=555, epochs=20, k=10,
             optimizer='adagrad', optimizer_params={'lr': 0.1}
-            )
+        )
 
         X = np.array(
             [['a', 'y', 'b'],
@@ -34,7 +34,7 @@ def test_save_and_restore_model():
              ['c', 'y', 'd'],
              ['b', 'y', 'c'],
              ['f', 'y', 'e']]
-            )
+        )
 
         model.fit(X)
 
@@ -60,7 +60,7 @@ def test_save_and_restore_model():
         npt.assert_array_equal(
             loaded_model.get_embeddings(['a', 'b'], embedding_type='entity'),
             model.get_embeddings(['a', 'b'], embedding_type='entity')
-            )
+        )
 
         os.remove(example_name)
 
@@ -82,11 +82,11 @@ def test_create_tensorboard_visualizations():
          ['c', 'y', 'd'],
          ['b', 'y', 'c'],
          ['f', 'y', 'e']]
-        )
+    )
     model = TransE(
         batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
         loss_params={'margin': 5}
-        )
+    )
     model.fit(X)
     create_tensorboard_visualizations(model, 'tensorboard_files')
 
@@ -102,7 +102,7 @@ def test_dataframe_to_triples():
     npt.assert_array_equal(
         dataframe_to_triples(X, schema)[0],
         np.array(['setosa', 'has_sepal_length', '5.1'])
-        )
+    )
 
     schema = [('species', 'has_sepal_length', 'abc')]
     try:

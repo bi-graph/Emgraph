@@ -1,14 +1,17 @@
+import logging
+import time
+
 import numpy as np
 import tensorflow as tf
-import logging
 
-from .EmbeddingModel import EmbeddingModel, register_model, ENTITY_THRESHOLD
 from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFORM
 from emgraph.utils import constants as constants
-import time
+from .EmbeddingModel import ENTITY_THRESHOLD, EmbeddingModel, register_model
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+tf.device('/physical_device:GPU:0')  # todo: fix me
 
 
 @register_model("ConvKB", {'num_filters': 32, 'filter_sizes': [1], 'dropout': 0.1})
@@ -52,25 +55,29 @@ class ConvKB(EmbeddingModel):
     [[0.2803744], [0.0866661], [0.012815937], [-0.004235901], [-0.010947697]]
     """
 
-    def __init__(self,
-                 k=constants.DEFAULT_EMBEDDING_SIZE,
-                 eta=constants.DEFAULT_ETA,
-                 epochs=constants.DEFAULT_EPOCH,
-                 batches_count=constants.DEFAULT_BATCH_COUNT,
-                 seed=constants.DEFAULT_SEED,
-                 embedding_model_params={'num_filters': 32,
-                                         'filter_sizes': [1],
-                                         'dropout': 0.1},
-                 optimizer=constants.DEFAULT_OPTIM,
-                 optimizer_params={'lr': constants.DEFAULT_LR},
-                 loss=constants.DEFAULT_LOSS,
-                 loss_params={},
-                 regularizer=constants.DEFAULT_REGULARIZER,
-                 regularizer_params={},
-                 initializer=constants.DEFAULT_INITIALIZER,
-                 initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
-                 large_graphs=False,
-                 verbose=constants.DEFAULT_VERBOSE):
+    def __init__(
+            self,
+            k=constants.DEFAULT_EMBEDDING_SIZE,
+            eta=constants.DEFAULT_ETA,
+            epochs=constants.DEFAULT_EPOCH,
+            batches_count=constants.DEFAULT_BATCH_COUNT,
+            seed=constants.DEFAULT_SEED,
+            embedding_model_params={
+                'num_filters': 32,
+                'filter_sizes': [1],
+                'dropout': 0.1
+            },
+            optimizer=constants.DEFAULT_OPTIM,
+            optimizer_params={'lr': constants.DEFAULT_LR},
+            loss=constants.DEFAULT_LOSS,
+            loss_params={},
+            regularizer=constants.DEFAULT_REGULARIZER,
+            regularizer_params={},
+            initializer=constants.DEFAULT_INITIALIZER,
+            initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
+            large_graphs=False,
+            verbose=constants.DEFAULT_VERBOSE
+    ):
         """Initialize ConvKB class.
 
         :param k: Embedding space dimensionality.
@@ -159,14 +166,16 @@ class ConvKB(EmbeddingModel):
         embedding_model_params['dense_dim'] = dense_dim
         embedding_model_params['filter_sizes'] = filter_sizes
 
-        super().__init__(k=k, eta=eta, epochs=epochs,
-                         batches_count=batches_count, seed=seed,
-                         embedding_model_params=embedding_model_params,
-                         optimizer=optimizer, optimizer_params=optimizer_params,
-                         loss=loss, loss_params=loss_params,
-                         regularizer=regularizer, regularizer_params=regularizer_params,
-                         initializer=initializer, initializer_params=initializer_params,
-                         large_graphs=large_graphs, verbose=verbose)
+        super().__init__(
+            k=k, eta=eta, epochs=epochs,
+            batches_count=batches_count, seed=seed,
+            embedding_model_params=embedding_model_params,
+            optimizer=optimizer, optimizer_params=optimizer_params,
+            loss=loss, loss_params=loss_params,
+            regularizer=regularizer, regularizer_params=regularizer_params,
+            initializer=initializer, initializer_params=initializer_params,
+            large_graphs=large_graphs, verbose=verbose
+        )
 
     def _initialize_parameters(self):
         """Initialize parameters of the model.
@@ -187,25 +196,36 @@ class ConvKB(EmbeddingModel):
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
 
-            self.ent_emb = self.make_variable('ent_emb_{}'.format(timestamp),
-                                              shape=[len(self.ent_to_idx), self.k],
-                                              initializer=self.initializer.get_entity_initializer(
-                                                  len(self.ent_to_idx), self.k), dtype=tf.float32)
-            self.rel_emb = self.make_variable('rel_emb_{}'.format(timestamp),
-                                              shape=[len(self.rel_to_idx), self.k],
-                                              initializer=self.initializer.get_relation_initializer(
-                                                  len(self.rel_to_idx), self.k), dtype=tf.float32)
+            self.ent_emb = self.make_variable(
+                'ent_emb_{}'.format(timestamp),
+                shape=[len(self.ent_to_idx), self.k],
+                initializer=self.initializer.get_entity_initializer(
+                    len(self.ent_to_idx), self.k
+                ), dtype=tf.float32
+            )
+            self.rel_emb = self.make_variable(
+                'rel_emb_{}'.format(timestamp),
+                shape=[len(self.rel_to_idx), self.k],
+                initializer=self.initializer.get_relation_initializer(
+                    len(self.rel_to_idx), self.k
+                ), dtype=tf.float32
+            )
 
         else:
 
-            self.ent_emb = self.make_variable('ent_emb_{}'.format(timestamp),
-                                              shape=[self.batch_size * 2, self.internal_k],
-                                              initializer=tf.zeros_initializer(), dtype=tf.float32)
+            self.ent_emb = self.make_variable(
+                'ent_emb_{}'.format(timestamp),
+                shape=[self.batch_size * 2, self.internal_k],
+                initializer=tf.zeros_initializer(), dtype=tf.float32
+            )
 
-            self.rel_emb = self.make_variable('rel_emb_{}'.format(timestamp),
-                                              shape=[len(self.rel_to_idx), self.internal_k],
-                                              initializer=self.initializer.get_relation_initializer(
-                                                  len(self.rel_to_idx), self.internal_k), dtype=tf.float32)
+            self.rel_emb = self.make_variable(
+                'rel_emb_{}'.format(timestamp),
+                shape=[len(self.rel_to_idx), self.internal_k],
+                initializer=self.initializer.get_relation_initializer(
+                    len(self.rel_to_idx), self.internal_k
+                ), dtype=tf.float32
+            )
 
         num_filters = self.embedding_model_params['num_filters']
         filter_sizes = self.embedding_model_params['filter_sizes']
@@ -218,22 +238,32 @@ class ConvKB(EmbeddingModel):
             conv_name = 'conv-maxpool-{}'.format(filter_size)
 
             # weights_init = tf.random.truncated_normal(seed=self.seed)
-            self.conv_weights[conv_name] = {'weights': self.make_variable('{}_W_{}'.format(conv_name, timestamp),
-                                                                          shape=conv_shape,
-                                                                          trainable=True, dtype=tf.float32,
-                                                                          initializer=tf.random.truncated_normal),
-                                            'biases': self.make_variable('{}_B_{}'.format(conv_name, timestamp),
-                                                                         shape=[num_filters],
-                                                                         trainable=True, dtype=tf.float32,
-                                                                         initializer=tf.zeros_initializer())}
+            self.conv_weights[conv_name] = {
+                'weights': self.make_variable(
+                    '{}_W_{}'.format(conv_name, timestamp),
+                    shape=conv_shape,
+                    trainable=True, dtype=tf.float32,
+                    initializer=tf.random.truncated_normal
+                ),
+                'biases': self.make_variable(
+                    '{}_B_{}'.format(conv_name, timestamp),
+                    shape=[num_filters],
+                    trainable=True, dtype=tf.float32,
+                    initializer=tf.zeros_initializer()
+                )
+            }
 
-        self.dense_W = self.make_variable('dense_weights_{}'.format(timestamp),
-                                          shape=[dense_dim, num_outputs], trainable=True,
-                                          initializer=tf.keras.initializers.he_normal(seed=self.seed),
-                                          dtype=tf.float32)
-        self.dense_B = self.make_variable('dense_bias_{}'.format(timestamp),
-                                          shape=[num_outputs], trainable=False,
-                                          initializer=tf.zeros_initializer(), dtype=tf.float32)
+        self.dense_W = self.make_variable(
+            'dense_weights_{}'.format(timestamp),
+            shape=[dense_dim, num_outputs], trainable=True,
+            initializer=tf.keras.initializers.he_normal(seed=self.seed),
+            dtype=tf.float32
+        )
+        self.dense_B = self.make_variable(
+            'dense_bias_{}'.format(timestamp),
+            shape=[num_outputs], trainable=False,
+            initializer=tf.zeros_initializer(), dtype=tf.float32
+        )
 
     def get_embeddings(self, entities, embedding_type='entity'):
         """Get the embeddings of entities or relations.
@@ -287,8 +317,10 @@ class ConvKB(EmbeddingModel):
 
         params_dict['conv_weights'] = {}
         for name in self.conv_weights.keys():
-            params_dict['conv_weights'][name] = {'weights': self.conv_weights[name]['weights'],
-                                                 'biases': self.conv_weights[name]['biases']}
+            params_dict['conv_weights'][name] = {
+                'weights': self.conv_weights[name]['weights'],
+                'biases': self.conv_weights[name]['biases']
+            }
 
         params_dict['dense_W'] = self.dense_W
         params_dict['dense_B'] = self.dense_B
@@ -309,8 +341,10 @@ class ConvKB(EmbeddingModel):
         if len(self.ent_to_idx) > ENTITY_THRESHOLD:
             self.dealing_with_large_graphs = True
 
-            logger.warning('Your graph has a large number of distinct entities. '
-                           'Found {} distinct entities'.format(len(self.ent_to_idx)))
+            logger.warning(
+                'Your graph has a large number of distinct entities. '
+                'Found {} distinct entities'.format(len(self.ent_to_idx))
+            )
 
             logger.warning('Changing the variable loading strategy to use lazy loading of variables...')
             logger.warning('Evaluation would take longer than usual.')
@@ -323,17 +357,19 @@ class ConvKB(EmbeddingModel):
 
         self.rel_emb = tf.Variable(self.trained_model_params['rel_emb'], dtype=tf.float32)
 
-        with tf.variable_scope('meta'):
+        with tf.compat.v1.variable_scope('meta'):
             self.tf_is_training = tf.Variable(False, trainable=False)
-            self.set_training_true = tf.assign(self.tf_is_training, True)
-            self.set_training_false = tf.assign(self.tf_is_training, False)
+            self.set_training_true = tf.compat.v1.assign(self.tf_is_training, True)
+            self.set_training_false = tf.compat.v1.assign(self.tf_is_training, False)
 
         self.conv_weights = {}
         for name in self.trained_model_params['conv_weights'].keys():
             W = self.trained_model_params['conv_weights'][name]['weights']
             B = self.trained_model_params['conv_weights'][name]['biases']
-            self.conv_weights[name] = {'weights': tf.Variable(W, dtype=tf.float32),
-                                       'biases': tf.Variable(B, dtype=tf.float32)}
+            self.conv_weights[name] = {
+                'weights': tf.Variable(W, dtype=tf.float32),
+                'biases': tf.Variable(B, dtype=tf.float32)
+            }
 
         self.dense_W = tf.Variable(self.trained_model_params['dense_W'], dtype=tf.float32)
         self.dense_B = tf.Variable(self.trained_model_params['dense_B'], dtype=tf.float32)
@@ -376,18 +412,22 @@ class ConvKB(EmbeddingModel):
         x = tf.concat(pooled_outputs, 2)
         x = tf.reshape(x, [-1, self.embedding_model_params['dense_dim']])
 
-        dropout_rate = tf.cond(self.tf_is_training,
-                               true_fn=lambda: tf.constant(self.embedding_model_params['dropout']),
-                               false_fn=lambda: tf.constant(0, dtype=tf.float32))
+        dropout_rate = tf.cond(
+            self.tf_is_training,
+            true_fn=lambda: tf.constant(self.embedding_model_params['dropout']),
+            false_fn=lambda: tf.constant(0, dtype=tf.float32)
+        )
         x = tf.nn.dropout(x, rate=dropout_rate)
 
         # fixme: what does this mean? find it on the main paper
-        self.scores = tf.nn.xw_plus_b(x, self.dense_W, self.dense_B)
+        self.scores = tf.compat.v1.nn.xw_plus_b(x, self.dense_W, self.dense_B)
 
         return tf.squeeze(self.scores)
 
-    def fit(self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None):
+    def fit(
+            self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
+            tensorboard_logs_path=None
+    ):
         """
 
         :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
@@ -462,5 +502,7 @@ class ConvKB(EmbeddingModel):
         :rtype:
         """
 
-        super().fit(X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-                    tensorboard_logs_path=tensorboard_logs_path)
+        super().fit(
+            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path
+        )
