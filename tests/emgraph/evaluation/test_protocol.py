@@ -395,7 +395,7 @@ def test_generate_corruptions_for_eval_filtered():
     np.testing.assert_array_equal(np.sort(x_n_actual, axis=0), np.sort(x_n_expected, axis=0))
 
 
-@pytest.mark.skip(reason="Needs to change to account for prime-product evaluation strategy")
+# @pytest.mark.skip(reason="Needs to change to account for prime-product evaluation strategy")
 def test_generate_corruptions_for_eval_filtered_object():
     x = np.array([0, 0, 1])
     idx_entities = np.array([0, 1, 2, 3])

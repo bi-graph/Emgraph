@@ -778,14 +778,14 @@ class ConvE(EmbeddingModel):
 
                     self.set_training_false
                     if self._perform_early_stopping_test(epoch):
-                        self._end_training()
+                        self._after_training()
                         return
                     self.set_training_true
 
             self._save_trained_params()
-            self._end_training()
+            self._after_training()
         except BaseException as e:
-            self._end_training()
+            self._after_training()
             raise e
 
     def _initialize_eval_graph(self, mode='test'):

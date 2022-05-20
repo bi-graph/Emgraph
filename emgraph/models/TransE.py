@@ -209,7 +209,7 @@ class TransE(EmbeddingModel):
             self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
             tensorboard_logs_path=None
     ):
-        """Train an Translating Embeddings model.
+        """Train a Translating Embeddings model.
 
         The model is trained on a training set X using the training protocol
         described in :cite:`trouillon2016complex`.

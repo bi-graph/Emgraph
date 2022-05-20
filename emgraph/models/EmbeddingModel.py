@@ -949,7 +949,7 @@ class EmbeddingModel(abc.ABC):
 
         return False
 
-    def _end_training(self):
+    def _after_training(self):
         """Performs clean up tasks after training.
         """
         # Reset this variable as it is reused during evaluation phase
@@ -1335,7 +1335,7 @@ class EmbeddingModel(abc.ABC):
                         if self.tensorboard_logs_path is not None:
                             self.writer.flush()
                             self.writer.close()
-                        self._end_training()
+                        self._after_training()
                         return
 
                     try:
@@ -1347,9 +1347,9 @@ class EmbeddingModel(abc.ABC):
                 self.writer.close()
 
             self._save_trained_params()
-            self._end_training()
+            self._after_training()
         except BaseException as e:
-            self._end_training()
+            self._after_training()
             raise e
 
     def set_filter_for_eval(self):

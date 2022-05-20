@@ -1,5 +1,5 @@
-# Copyright (C) 2017-2022 Emgraph developers
-# Author: Soran Ghadri
+# Copyright (C) 2019-2022 Emgraph developers
+# Author: Soran Ghaderi
 # Contact: soran.gdr.cs@gmail.com
 
 """Emgraph is a Python toolkit for graph embedding and link prediction."""

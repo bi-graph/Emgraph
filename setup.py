@@ -18,7 +18,7 @@ DESCRIPTION = "Emgraph is a Python toolkit for graph embedding."
 PLATFORMS = ["Linux", "Mac OSX", "Windows", "Unix"]
 VERSION = get_version()
 AUTHORS = {
-    "Soran": ("Soran Ghadri", "soran.gdr.cs@gmail.com"),
+    "Soran": ("Soran Ghaderi", "soran.gdr.cs@gmail.com"),
     "Taleb": ("Taleb Zarhesh", "taleb.zarhesh@gmail.com"),
 }
 
