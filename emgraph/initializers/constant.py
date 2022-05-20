@@ -43,8 +43,10 @@ class Constant(Initializer):
             self._initializer_params['entity'] = hyperparam_dict['entity']
             self._initializer_params['relation'] = hyperparam_dict['relation']
         except KeyError:
-            raise Exception('Initial values of both entity and relation embeddings need to '
-                            'be passed to the initializer!')
+            raise Exception(
+                'Initial values of both entity and relation embeddings need to '
+                'be passed to the initializer!'
+                )
         if self.verbose:
             self._display_params()
 

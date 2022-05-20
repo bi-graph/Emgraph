@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+
 from emgraph.initializers._initializer_constants import INITIALIZER_REGISTRY
 
 
@@ -88,12 +89,16 @@ def test_constant():
     ent_init = np.random.normal(1, 1, size=(300, 30))
     rel_init = np.random.normal(2, 2, size=(10, 30))
     runiform_obj = runiform_class({"entity": ent_init, "relation": rel_init})
-    var1 = tf.get_variable(shape=(300, 30),
-                           initializer=runiform_obj.get_entity_initializer(300, 30, init_type='tf'),
-                           name="ent_var")
-    var2 = tf.get_variable(shape=(10, 30),
-                           initializer=runiform_obj.get_relation_initializer(10, 30, init_type='tf'),
-                           name="rel_var")
+    var1 = tf.get_variable(
+        shape=(300, 30),
+        initializer=runiform_obj.get_entity_initializer(300, 30, init_type='tf'),
+        name="ent_var"
+        )
+    var2 = tf.get_variable(
+        shape=(10, 30),
+        initializer=runiform_obj.get_relation_initializer(10, 30, init_type='tf'),
+        name="rel_var"
+        )
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         tf_var1, tf_var2 = sess.run([var1, var2])

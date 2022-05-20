@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 from emgraph.losses._loss_constants import DEFAULT_MARGIN
-from emgraph.losses.utils import export_emgraph_loss
 from emgraph.losses.loss import Loss
+from emgraph.losses.utils import export_emgraph_loss
 
 
 @export_emgraph_loss("pairwise", ['margin'])

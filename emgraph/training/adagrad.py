@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from emgraph.training.utils import export_emgraph_optimizer
 from emgraph.training.optimizer import Optimizer
+from emgraph.training.utils import export_emgraph_optimizer
 
 
 @export_emgraph_optimizer("adagrad", ['lr'])

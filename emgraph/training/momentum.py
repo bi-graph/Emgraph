@@ -1,8 +1,8 @@
 import tensorflow as tf
 
-from emgraph.training.utils import export_emgraph_optimizer
 from emgraph.training._optimizer_constants import DEFAULT_LR, DEFAULT_MOMENTUM
 from emgraph.training.optimizer import Optimizer
+from emgraph.training.utils import export_emgraph_optimizer
 
 
 @export_emgraph_optimizer(name="momentum", external_params=['lr', 'momentum'])
@@ -58,8 +58,10 @@ class Momentum(Optimizer):
         :rtype: tf.Operation
         """
 
-        self.optimizer = tf.optimizers.SGD(learning_rate=self._optimizer_params['lr'],
-                                           momentum=self._optimizer_params['momentum'])
+        self.optimizer = tf.optimizers.SGD(
+            learning_rate=self._optimizer_params['lr'],
+            momentum=self._optimizer_params['momentum']
+            )
 
         train = self.optimizer.minimize(loss, var_list)
         return train

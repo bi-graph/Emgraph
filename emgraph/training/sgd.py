@@ -2,10 +2,12 @@ import math
 
 import tensorflow as tf
 
-from emgraph.training.utils import export_emgraph_optimizer
-from emgraph.training._optimizer_constants import DEFAULT_LR, DEFAULT_DECAY_CYCLE, DEFAULT_DECAY_CYCLE_MULTIPLE, \
-    DEFAULT_LR_DECAY_FACTOR, DEFAULT_END_LR, DEFAULT_SINE
+from emgraph.training._optimizer_constants import (
+    DEFAULT_DECAY_CYCLE, DEFAULT_DECAY_CYCLE_MULTIPLE, DEFAULT_END_LR,
+    DEFAULT_LR, DEFAULT_LR_DECAY_FACTOR, DEFAULT_SINE,
+)
 from emgraph.training.optimizer import Optimizer
+from emgraph.training.utils import export_emgraph_optimizer
 
 
 @export_emgraph_optimizer("sgd", ['lr', 'decay_cycle', 'end_lr', 'sine_decay', 'expand_factor', 'decay_lr_rate'])
@@ -77,8 +79,10 @@ class SGD(Optimizer):
 
         # create the optimizer with the placeholder
         # self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.lr_placeholder)
-        self.optimizer = tf.optimizers.SGD(learning_rate=self._optimizer_params['lr'],
-                                           momentum=self._optimizer_params['momentum'])
+        self.optimizer = tf.optimizers.SGD(
+            learning_rate=self._optimizer_params['lr'],
+            momentum=self._optimizer_params['momentum']
+            )
 
         # load the hyperparameters that would be used while generating the learning rate per batch
         # start learning rate

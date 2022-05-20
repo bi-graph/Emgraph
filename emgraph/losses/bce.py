@@ -1,8 +1,8 @@
 import tensorflow as tf
 
-from emgraph.losses._loss_constants import logger, DEFAULT_LABEL_SMOOTHING, DEFAULT_LABEL_WEIGHTING
-from emgraph.losses.utils import export_emgraph_loss
+from emgraph.losses._loss_constants import DEFAULT_LABEL_SMOOTHING, DEFAULT_LABEL_WEIGHTING, logger
 from emgraph.losses.loss import Loss
+from emgraph.losses.utils import export_emgraph_loss
 
 
 @export_emgraph_loss('bce', ['label_smoothing', 'label_weighting'], {'require_same_size_pos_neg': False})
@@ -50,8 +50,12 @@ class BCELoss(Loss):
 
         self._dependencies = []
         logger.debug('Dependencies found: \n\tRequired same size y_true and y_pred. ')
-        self._dependencies.append(tf.Assert(tf.equal(tf.shape(y_pred)[0], tf.shape(y_true)[0]),
-                                            [tf.shape(y_pred)[0], tf.shape(y_true)[0]]))
+        self._dependencies.append(
+            tf.Assert(
+                tf.equal(tf.shape(y_pred)[0], tf.shape(y_true)[0]),
+                [tf.shape(y_pred)[0], tf.shape(y_true)[0]]
+                )
+            )
 
         if self._loss_parameters['label_smoothing'] is not None:
             if 'num_entities' not in self._loss_parameters.keys():
@@ -127,15 +131,19 @@ class BCELoss(Loss):
         """
 
         if self._loss_parameters['label_smoothing'] is not None:
-            y_true = tf.add((1 - self._loss_parameters['label_smoothing']) * y_true,
-                            (self._loss_parameters['label_smoothing']) / self._loss_parameters['num_entities'])
+            y_true = tf.add(
+                (1 - self._loss_parameters['label_smoothing']) * y_true,
+                (self._loss_parameters['label_smoothing']) / self._loss_parameters['num_entities']
+                )
 
         if self._loss_parameters['label_weighting']:
 
             eps = 1e-6
             wt = tf.reduce_mean(y_true)
-            loss = -tf.reduce_sum((1 - wt) * y_true * tf.math.log_sigmoid(y_pred)
-                                  + wt * (1 - y_true) * tf.math.log(1 - tf.sigmoid(y_pred) + eps))
+            loss = -tf.reduce_sum(
+                (1 - wt) * y_true * tf.math.log_sigmoid(y_pred)
+                + wt * (1 - y_true) * tf.math.log(1 - tf.sigmoid(y_pred) + eps)
+                )
 
         else:
             loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=y_pred))

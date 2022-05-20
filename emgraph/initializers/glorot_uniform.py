@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
-from emgraph.initializers.initializer import Initializer
 from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFORM
+from emgraph.initializers.initializer import Initializer
 from emgraph.initializers.utils import export_emgraph_initializer
 
 

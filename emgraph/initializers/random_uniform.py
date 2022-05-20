@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
+from emgraph.initializers._initializer_constants import DEFAULT_UNIFORM_HIGH, DEFAULT_UNIFORM_LOW
 from emgraph.initializers.initializer import Initializer
-from emgraph.initializers._initializer_constants import DEFAULT_UNIFORM_LOW, DEFAULT_UNIFORM_HIGH
 from emgraph.initializers.utils import export_emgraph_initializer
 
 
@@ -64,9 +64,11 @@ class RandomUniform(Initializer):
         :rtype: Initializer
         """
 
-        return tf.random_uniform_initializer(minval=self._initializer_params['low'],
-                                             maxval=self._initializer_params['high'],
-                                             dtype=tf.float32)
+        return tf.random_uniform_initializer(
+            minval=self._initializer_params['low'],
+            maxval=self._initializer_params['high'],
+            dtype=tf.float32
+        )
 
     def _get_np_initializer(self, in_shape, out_shape, concept='e'):
         """
@@ -82,6 +84,8 @@ class RandomUniform(Initializer):
         :rtype: nd-array
         """
 
-        return self.random_generator.uniform(self._initializer_params['low'],
-                                             self._initializer_params['high'],
-                                             size=(in_shape, out_shape)).astype(np.float32)
+        return self.random_generator.uniform(
+            self._initializer_params['low'],
+            self._initializer_params['high'],
+            size=(in_shape, out_shape)
+        ).astype(np.float32)

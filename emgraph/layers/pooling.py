@@ -1,5 +1,6 @@
-import tensorflow as tf
 import logging
+
+import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

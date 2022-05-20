@@ -13,7 +13,7 @@ def test_get_entity_triples():
 
          ['e', 'y', 'f'],
          ['f', 'y', 'c']]
-        )
+    )
 
     # Entity of interest
     u = 'c'
@@ -23,7 +23,7 @@ def test_get_entity_triples():
         [['a', 'y', 'c'],
          ['c', 'y', 'a'],
          ['f', 'y', 'c']]
-        )
+    )
 
     # Call function
     N = get_entity_triples(u, X)

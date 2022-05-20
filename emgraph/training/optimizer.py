@@ -1,6 +1,6 @@
 import abc
 
-from emgraph.training._optimizer_constants import logger, DEFAULT_LR
+from emgraph.training._optimizer_constants import DEFAULT_LR, logger
 
 
 class Optimizer(abc.ABC):

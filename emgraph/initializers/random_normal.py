@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
-from emgraph.initializers.initializer import Initializer
 from emgraph.initializers._initializer_constants import DEFAULT_NORMAL_MEAN, DEFAULT_NORMAL_STD
+from emgraph.initializers.initializer import Initializer
 from emgraph.initializers.utils import export_emgraph_initializer
 
 
@@ -66,9 +66,11 @@ class RandomNormal(Initializer):
         :rtype: Initializer
         """
 
-        return tf.random_normal_initializer(mean=self._initializer_params['mean'],
-                                            stddev=self._initializer_params['std'],
-                                            dtype=tf.float32)
+        return tf.random_normal_initializer(
+            mean=self._initializer_params['mean'],
+            stddev=self._initializer_params['std'],
+            dtype=tf.float32
+            )
 
     def _get_np_initializer(self, in_shape=None, out_shape=None, concept='e'):
         """
@@ -91,6 +93,8 @@ class RandomNormal(Initializer):
         :rtype: ndarray or scalar
         """
 
-        return self.random_generator.normal(self._initializer_params['mean'],
-                                self._initializer_params['std'],
-                                size=(in_shape, out_shape)).astype(np.float32)
+        return self.random_generator.normal(
+            self._initializer_params['mean'],
+            self._initializer_params['std'],
+            size=(in_shape, out_shape)
+            ).astype(np.float32)

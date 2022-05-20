@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from emgraph.losses.utils import export_emgraph_loss, clip_before_exp
 from emgraph.losses.loss import Loss
+from emgraph.losses.utils import clip_before_exp, export_emgraph_loss
 
 
 @export_emgraph_loss("nll")

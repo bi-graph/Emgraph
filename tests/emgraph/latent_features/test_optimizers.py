@@ -35,7 +35,7 @@ def test_sgd_optimizer_fixed_decay():
             'cosine_decay': False,
             'decay_cycle': 10
         }, 10
-        )
+    )
     train = sgd_optimizer.minimize(loss)
     with tf.compat.v1.Session() as sess:
         for epoch in range(1, 11):
@@ -64,7 +64,7 @@ def test_sgd_optimizer_cosine_decay():
             'cosine_decay': True,
             'decay_cycle': 10
         }, 10
-        )
+    )
     train = sgd_optimizer.minimize(loss)
 
     with tf.compat.v1.Session() as sess:

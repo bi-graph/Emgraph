@@ -90,8 +90,12 @@ class Loss(abc.ABC):
         self._dependencies = []
         if LOSS_REGISTRY[self.name].class_params['require_same_size_pos_neg'] and self._loss_parameters['eta'] != 1:
             logger.debug('Dependencies found: \n\tRequired same size positive and negative. \n\tEta is not 1.')
-            self._dependencies.append(tf.Assert(tf.equal(tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]),
-                                                [tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]]))
+            self._dependencies.append(
+                tf.Assert(
+                    tf.equal(tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]),
+                    [tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]]
+                    )
+                )
 
     def _apply(self, scores_pos, scores_neg):
         """

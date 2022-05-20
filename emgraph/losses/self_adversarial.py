@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 from emgraph.losses._loss_constants import DEFAULT_ALPHA_ADVERSARIAL, DEFAULT_MARGIN_ADVERSARIAL
-from emgraph.losses.utils import export_emgraph_loss
 from emgraph.losses.loss import Loss
+from emgraph.losses.utils import export_emgraph_loss
 
 
 @export_emgraph_loss("self_adversarial", ['margin', 'alpha'], {'require_same_size_pos_neg': False})
@@ -84,6 +84,7 @@ class SelfAdversarialLoss(Loss):
 
         # Compute Loss based on eg 5
         loss = tf.reduce_sum(-tf.math.log_sigmoid(margin - tf.negative(scores_pos))) - tf.reduce_sum(
-            tf.multiply(p_neg, tf.math.log_sigmoid(tf.negative(scores_neg_reshaped) - margin)))
+            tf.multiply(p_neg, tf.math.log_sigmoid(tf.negative(scores_neg_reshaped) - margin))
+        )
 
         return loss
