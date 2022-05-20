@@ -68,8 +68,7 @@ class RandomNormal(Initializer):
 
         return tf.random_normal_initializer(
             mean=self._initializer_params['mean'],
-            stddev=self._initializer_params['std'],
-            dtype=tf.float32
+            stddev=self._initializer_params['std']
             )
 
     def _get_np_initializer(self, in_shape=None, out_shape=None, concept='e'):

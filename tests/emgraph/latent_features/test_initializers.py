@@ -1,27 +1,24 @@
+import os
+
 import numpy as np
 import tensorflow as tf
 
 from emgraph.initializers._initializer_constants import INITIALIZER_REGISTRY
-from emgraph.models.EmbeddingModel import EmbeddingModel as em
-
+from emgraph.utils.misc import make_variable
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 def test_random_normal():
     """Random normal initializer test
     """
-    tf.reset_default_graph()
-    tf.random.set_random_seed(0)
+    tf.random.set_seed(0)
     rnormal_class = INITIALIZER_REGISTRY['normal']
     rnormal_obj = rnormal_class({"mean": 0.5, "std": 0.1})
     tf_init = rnormal_obj.get_entity_initializer(init_type='tf')
-    var1 = tf.get_variable(shape=(1000, 100), initializer=tf_init, name="var1")
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        tf_var = sess.run(var1)
-        np_var = rnormal_obj.get_entity_initializer(1000, 100, init_type='np')
-        # print(np.mean(np_var), np.std(np_var))
-        # print(np.mean(tf_var), np.std(tf_var))
-        assert (np.round(np.mean(np_var), 1) == np.round(np.mean(tf_var), 1))
-        assert (np.round(np.std(np_var), 1) == np.round(np.std(tf_var), 1))
+    tf_var = make_variable(shape=(100, 10), initializer=tf_init, name="var1")
+    np_var = rnormal_obj.get_entity_initializer(100, 10, init_type='np')
+    tf_var = tf.convert_to_tensor(tf_var)
+    assert (np.round(np.mean(np_var), 1) == np.round(np.mean(tf_var), 1))
+    assert (np.round(np.std(np_var), 1) == np.round(np.std(tf_var), 1))
 
 
 def test_xavier_normal():
@@ -46,20 +43,16 @@ def test_xavier_normal():
 def test_xavier_uniform():
     """GlorotUniform uniform initializer test
     """
-    tf.reset_default_graph()
-    tf.random.set_random_seed(0)
+    tf.random.set_seed(0)
     xuniform_class = INITIALIZER_REGISTRY['xavier']
     xuniform_obj = xuniform_class({"uniform": True})
     tf_init = xuniform_obj.get_entity_initializer(init_type='tf')
-    var1 = tf.get_variable(shape=(200, 1000), initializer=tf_init, name="var1")
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        tf_var = sess.run(var1)
-        np_var = xuniform_obj.get_entity_initializer(200, 1000, init_type='np')
-        # print(np.min(np_var), np.max(np_var))
-        # print(np.min(tf_var), np.max(tf_var))
-        assert (np.round(np.min(np_var), 2) == np.round(np.min(tf_var), 2))
-        assert (np.round(np.max(np_var), 2) == np.round(np.max(tf_var), 2))
+    tf_var = make_variable(shape=(200, 1000), initializer=tf_init, name="var1")
+    np_var = xuniform_obj.get_entity_initializer(200, 1000, init_type='np')
+    # print(np.min(np_var), np.max(np_var))
+    # print(np.min(tf_var), np.max(tf_var))
+    assert (np.round(np.min(np_var), 2) == np.round(np.min(tf_var), 2))
+    assert (np.round(np.max(np_var), 2) == np.round(np.max(tf_var), 2))
 
 
 def test_random_uniform():
@@ -69,7 +62,7 @@ def test_random_uniform():
     runiform_class = INITIALIZER_REGISTRY['uniform']
     runiform_obj = runiform_class({"low": 0.1, "high": 0.4})
     tf_init = runiform_obj.get_entity_initializer(init_type='tf')
-    tf_var = em.make_variable(shape=(1000, 100), initializer=tf_init, name="var1")
+    tf_var = make_variable(shape=(1000, 100), initializer=tf_init, name="var1")
     np_var = runiform_obj.get_entity_initializer(1000, 100, init_type='np')
     # print(np.min(np_var), np.max(np_var))
     # print(np.min(tf_var), np.max(tf_var))
@@ -85,12 +78,12 @@ def test_constant():
     ent_init = np.random.normal(1, 1, size=(300, 30))
     rel_init = np.random.normal(2, 2, size=(10, 30))
     runiform_obj = runiform_class({"entity": ent_init, "relation": rel_init})
-    tf_var1 = em.make_variable(
+    tf_var1 = make_variable(
         shape=(300, 30),
         initializer=runiform_obj.get_entity_initializer(300, 30, init_type='tf'),
         name="ent_var"
         )
-    tf_var2 = em.make_variable(
+    tf_var2 = make_variable(
         shape=(10, 30),
         initializer=runiform_obj.get_relation_initializer(10, 30, init_type='tf'),
         name="rel_var"

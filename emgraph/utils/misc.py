@@ -1,5 +1,6 @@
 import logging
 
+import tensorflow as tf
 import numpy as np
 
 SUBJECT = 0
@@ -10,6 +11,11 @@ DEBUG = True
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+def make_variable(
+        name=None, shape=None, initializer=tf.keras.initializers.Zeros, dtype=tf.float32,
+        trainable=True
+):
+    return tf.Variable(initializer(shape=shape, dtype=dtype), name=name, trainable=trainable)
 
 def get_entity_triples(entity, graph):
     """

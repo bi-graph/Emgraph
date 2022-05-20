@@ -21,6 +21,7 @@ from emgraph.regularizers._regularizer_constants import REGULARIZER_REGISTRY
 from emgraph.training._optimizer_constants import OPTIMIZER_REGISTRY
 from emgraph.training.sgd import SGD
 from emgraph.utils import constants as constants
+from emgraph.utils.misc import make_variable
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -541,14 +542,14 @@ class EmbeddingModel(abc.ABC):
         if not self.dealing_with_large_graphs:
             print("shape: ", (len(self.ent_to_idx), self.internal_k))
 
-            self.ent_emb = self.make_variable(
+            self.ent_emb = make_variable(
                 name='ent_emb_{}'.format(timestamp),
                 shape=[len(self.ent_to_idx), self.internal_k],
                 initializer=self.initializer.get_entity_initializer(),
                 dtype=tf.float32
             )
 
-            self.rel_emb = self.make_variable(
+            self.rel_emb = make_variable(
                 name='rel_emb_{}'.format(timestamp),
                 shape=[len(self.rel_to_idx), self.internal_k],
                 initializer=self.initializer.get_relation_initializer(),
@@ -571,14 +572,14 @@ class EmbeddingModel(abc.ABC):
         else:
             # initialize entity embeddings to zero (these are reinitialized every batch by batch embeddings)
 
-            self.ent_emb = self.make_variable(
+            self.ent_emb = make_variable(
                 name='rel_emb_{}'.format(timestamp),
                 shape=[self.batch_size * 2, self.internal_k],
                 initializer=tf.zeros_initializer(),
                 dtype=tf.float32
             )
 
-            self.rel_emb = self.make_variable(
+            self.rel_emb = make_variable(
                 name='rel_emb_{}'.format(timestamp),
                 shape=[len(self.rel_to_idx), self.internal_k],
                 initializer=self.initializer.get_relation_initializer(),
@@ -2250,7 +2251,7 @@ class EmbeddingModel(abc.ABC):
             #                     dtype=tf.float32)
 
             # w = tf.Variable(tf.constant_initializer(0.0, shape=[scores_tf.shape]), name='w', dtype=tf.float32)
-            w = self.make_variable(
+            w = make_variable(
                 name='w',
                 shape=scores_tf.shape,
                 initializer=tf.zeros_initializer(),
@@ -2261,7 +2262,7 @@ class EmbeddingModel(abc.ABC):
                 "np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32): ",
                 tf.constant_initializer(np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32))
             )
-            b = self.make_variable(
+            b = make_variable(
                 name='b',
                 shape=scores_tf.shape,
                 initializer=tf.constant_initializer(np.log((n_neg + 1.0) / (n_pos + 1.0)).astype(np.float32)),
