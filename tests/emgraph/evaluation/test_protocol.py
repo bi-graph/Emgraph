@@ -354,28 +354,27 @@ def test_generate_corruptions_for_eval():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
 
-    with tf.compat.v1.Session() as sess:
-        all_ent = tf.constant(list(ent_to_idx.values()), dtype=tf.int64)
-        x = tf.constant(np.array([X[0]]), dtype=tf.int64)
-        x_n_actual = sess.run(generate_corruptions_for_eval(x, all_ent))
-        x_n_expected = np.array(
-            [[0, 0, 0],
-             [0, 0, 1],
-             [0, 0, 2],
-             [0, 0, 3],
-             [0, 0, 4],
-             [0, 0, 5],
-             [0, 0, 6],
-             [0, 0, 7],
-             [0, 0, 1],
-             [1, 0, 1],
-             [2, 0, 1],
-             [3, 0, 1],
-             [4, 0, 1],
-             [5, 0, 1],
-             [6, 0, 1],
-             [7, 0, 1]]
-        )
+    all_ent = tf.constant(list(ent_to_idx.values()), dtype=tf.int64)
+    x = tf.constant(np.array([X[0]]), dtype=tf.int64)
+    x_n_actual = generate_corruptions_for_eval(x, all_ent)
+    x_n_expected = np.array(
+        [[0, 0, 0],
+         [0, 0, 1],
+         [0, 0, 2],
+         [0, 0, 3],
+         [0, 0, 4],
+         [0, 0, 5],
+         [0, 0, 6],
+         [0, 0, 7],
+         [0, 0, 1],
+         [1, 0, 1],
+         [2, 0, 1],
+         [3, 0, 1],
+         [4, 0, 1],
+         [5, 0, 1],
+         [6, 0, 1],
+         [7, 0, 1]]
+    )
     np.testing.assert_array_equal(x_n_actual, x_n_expected)
 
 
@@ -460,7 +459,6 @@ def test_filter_unseen_entities():
 
 # @pytest.mark.skip(reason="excluded to try out jenkins.")   # TODO: re-enable this
 def test_generate_corruptions_for_fit_corrupt_side_so():
-    tf.compat.v1.reset_default_graph()
     X = np.array(
         [['a', 'x', 'b'],
          ['c', 'x', 'd'],
@@ -471,13 +469,10 @@ def test_generate_corruptions_for_fit_corrupt_side_so():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
     eta = 1
-    with tf.compat.v1.Session() as sess:
-        all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
-        dataset = tf.constant(X, dtype=tf.int32)
-        X_corr = sess.run(
-            generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='s,o', entities_size=len(X), rnd=0)
-        )
-        print(X_corr)
+    all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
+    dataset = tf.constant(X, dtype=tf.int32)
+    X_corr = generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='s,o', entities_size=len(X), rnd=0)
+    print(X_corr)
     # these values occur when seed=0
 
     X_corr_exp = [[0, 0, 1],
@@ -490,7 +485,6 @@ def test_generate_corruptions_for_fit_corrupt_side_so():
 
 
 def test_generate_corruptions_for_fit_curropt_side_s():
-    tf.compat.v1.reset_default_graph()
     X = np.array(
         [['a', 'x', 'b'],
          ['c', 'x', 'd'],
@@ -501,11 +495,10 @@ def test_generate_corruptions_for_fit_curropt_side_s():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
     eta = 1
-    with tf.compat.v1.Session() as sess:
-        all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
-        dataset = tf.constant(X, dtype=tf.int32)
-        X_corr = sess.run(generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='s', entities_size=len(X), rnd=0))
-        print(X_corr)
+    all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
+    dataset = tf.constant(X, dtype=tf.int32)
+    X_corr = generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='s', entities_size=len(X), rnd=0)
+    print(X_corr)
 
     # these values occur when seed=0
 
@@ -519,7 +512,6 @@ def test_generate_corruptions_for_fit_curropt_side_s():
 
 
 def test_generate_corruptions_for_fit_curropt_side_o():
-    tf.compat.v1.reset_default_graph()
     X = np.array(
         [['a', 'x', 'b'],
          ['c', 'x', 'd'],
@@ -530,11 +522,10 @@ def test_generate_corruptions_for_fit_curropt_side_o():
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx=ent_to_idx, rel_to_idx=rel_to_idx)
     eta = 1
-    with tf.compat.v1.Session() as sess:
-        all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
-        dataset = tf.constant(X, dtype=tf.int32)
-        X_corr = sess.run(generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='o', entities_size=len(X), rnd=0))
-        print(X_corr)
+    all_ent = tf.squeeze(tf.constant(list(ent_to_idx.values()), dtype=tf.int32))
+    dataset = tf.constant(X, dtype=tf.int32)
+    X_corr = generate_corruptions_for_fit(dataset, eta=eta, corrupt_side='o', entities_size=len(X), rnd=0)
+    print(X_corr)
     # these values occur when seed=0
 
     X_corr_exp = [[0, 0, 1],
