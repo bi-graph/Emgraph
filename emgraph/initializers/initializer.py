@@ -39,10 +39,10 @@ class Initializer(abc.ABC):
         Display the parameter values.
 
         """
-        logger.info('\n------ Initializer -----')
-        logger.info('Name : {}'.format(self.name))
+        logger.info("\n------ Initializer -----")
+        logger.info("Name : {}".format(self.name))
         for key, value in self._initializer_params.items():
-            logger.info('{} : {}'.format(key, value))
+            logger.info("{} : {}".format(key, value))
 
     def _init_hyperparams(self, hyperparam_dict):
         """
@@ -51,9 +51,9 @@ class Initializer(abc.ABC):
         :param hyperparam_dict: Key-value dictionary for hyperparameters.
         :type hyperparam_dict: dict
         """
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
-    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
+    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept="e"):
         """
         Generate an initialized Tensorflow node for the initializer.
 
@@ -66,9 +66,9 @@ class Initializer(abc.ABC):
         :return: Initializer instance
         :rtype: Initializer
         """
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
-    def _get_np_initializer(self, in_shape=None, out_shape=None, concept='e'):
+    def _get_np_initializer(self, in_shape=None, out_shape=None, concept="e"):
         """
         Generate an initialized Numpy array for the initializer.
 
@@ -81,9 +81,9 @@ class Initializer(abc.ABC):
         :return: Initialized weights
         :rtype: nd-array
         """
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
-    def get_entity_initializer(self, in_shape=None, out_shape=None, init_type='tf'):
+    def get_entity_initializer(self, in_shape=None, out_shape=None, init_type="tf"):
         """
         Entity embedding initializer.
 
@@ -97,13 +97,13 @@ class Initializer(abc.ABC):
         :rtype: tf.Op / nd-array /
         """
 
-        assert init_type in ['tf', 'np'], 'Invalid initializer type!'
-        if init_type == 'tf':
-            return self._get_tf_initializer(in_shape, out_shape, 'e')
+        assert init_type in ["tf", "np"], "Invalid initializer type!"
+        if init_type == "tf":
+            return self._get_tf_initializer(in_shape, out_shape, "e")
         else:
-            return self._get_np_initializer(in_shape, out_shape, 'e')
+            return self._get_np_initializer(in_shape, out_shape, "e")
 
-    def get_relation_initializer(self, in_shape=None, out_shape=None, init_type='tf'):
+    def get_relation_initializer(self, in_shape=None, out_shape=None, init_type="tf"):
         """
         Relation embeddings' initializer.
 
@@ -116,8 +116,8 @@ class Initializer(abc.ABC):
         :return: Weights initializer
         :rtype: tf.Op / nd-array
         """
-        assert init_type in ['tf', 'np'], 'Invalid initializer type!'
-        if init_type == 'tf':
-            return self._get_tf_initializer(in_shape, out_shape, 'r')
+        assert init_type in ["tf", "np"], "Invalid initializer type!"
+        if init_type == "tf":
+            return self._get_tf_initializer(in_shape, out_shape, "r")
         else:
-            return self._get_np_initializer(in_shape, out_shape, 'r')
+            return self._get_np_initializer(in_shape, out_shape, "r")

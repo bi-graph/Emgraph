@@ -1,11 +1,17 @@
 import tensorflow as tf
 
-from emgraph.losses._loss_constants import DEFAULT_LABEL_SMOOTHING, DEFAULT_LABEL_WEIGHTING, logger
+from emgraph.losses._loss_constants import (
+    DEFAULT_LABEL_SMOOTHING,
+    DEFAULT_LABEL_WEIGHTING,
+    logger,
+)
 from emgraph.losses.loss import Loss
 from emgraph.losses.utils import export_emgraph_loss
 
 
-@export_emgraph_loss('bce', ['label_smoothing', 'label_weighting'], {'require_same_size_pos_neg': False})
+@export_emgraph_loss(
+    "bce", ["label_smoothing", "label_weighting"], {"require_same_size_pos_neg": False}
+)
 class BCELoss(Loss):
     r"""
     Binary Cross Entropy Loss.
@@ -46,21 +52,23 @@ class BCELoss(Loss):
         :rtype: -
         """
 
-        logger.debug('Creating dependencies before loss computations.')
+        logger.debug("Creating dependencies before loss computations.")
 
         self._dependencies = []
-        logger.debug('Dependencies found: \n\tRequired same size y_true and y_pred. ')
+        logger.debug("Dependencies found: \n\tRequired same size y_true and y_pred. ")
         self._dependencies.append(
             tf.Assert(
                 tf.equal(tf.shape(y_pred)[0], tf.shape(y_true)[0]),
-                [tf.shape(y_pred)[0], tf.shape(y_true)[0]]
-                )
+                [tf.shape(y_pred)[0], tf.shape(y_true)[0]],
             )
+        )
 
-        if self._loss_parameters['label_smoothing'] is not None:
-            if 'num_entities' not in self._loss_parameters.keys():
-                msg = "To apply label smooth-ing the number of entities must be known. " \
-                      "Set using '_set_hyperparams('num_entities', value)'."
+        if self._loss_parameters["label_smoothing"] is not None:
+            if "num_entities" not in self._loss_parameters.keys():
+                msg = (
+                    "To apply label smooth-ing the number of entities must be known. "
+                    "Set using '_set_hyperparams('num_entities', value)'."
+                )
                 logger.error(msg)
                 raise Exception(msg)
 
@@ -79,8 +87,12 @@ class BCELoss(Loss):
         :rtype: -
         """
 
-        self._loss_parameters['label_smoothing'] = hyperparam_dict.get('label_smoothing', DEFAULT_LABEL_SMOOTHING)
-        self._loss_parameters['label_weighting'] = hyperparam_dict.get('label_weighting', DEFAULT_LABEL_WEIGHTING)
+        self._loss_parameters["label_smoothing"] = hyperparam_dict.get(
+            "label_smoothing", DEFAULT_LABEL_SMOOTHING
+        )
+        self._loss_parameters["label_weighting"] = hyperparam_dict.get(
+            "label_weighting", DEFAULT_LABEL_WEIGHTING
+        )
 
     def _set_hyperparams(self, key, value):
         """
@@ -95,8 +107,12 @@ class BCELoss(Loss):
         """
 
         if key in self._loss_parameters.keys():
-            msg = '{} already exists in loss hyperparameters dict with value {} \n' \
-                  'Overriding with value {}.'.format(key, self._loss_parameters[key], value)
+            msg = (
+                "{} already exists in loss hyperparameters dict with value {} \n"
+                "Overriding with value {}.".format(
+                    key, self._loss_parameters[key], value
+                )
+            )
             logger.info(msg)
 
         self._loss_parameters[key] = value
@@ -130,22 +146,25 @@ class BCELoss(Loss):
         :rtype: float
         """
 
-        if self._loss_parameters['label_smoothing'] is not None:
+        if self._loss_parameters["label_smoothing"] is not None:
             y_true = tf.add(
-                (1 - self._loss_parameters['label_smoothing']) * y_true,
-                (self._loss_parameters['label_smoothing']) / self._loss_parameters['num_entities']
-                )
+                (1 - self._loss_parameters["label_smoothing"]) * y_true,
+                (self._loss_parameters["label_smoothing"])
+                / self._loss_parameters["num_entities"],
+            )
 
-        if self._loss_parameters['label_weighting']:
+        if self._loss_parameters["label_weighting"]:
 
             eps = 1e-6
             wt = tf.reduce_mean(y_true)
             loss = -tf.reduce_sum(
                 (1 - wt) * y_true * tf.math.log_sigmoid(y_pred)
                 + wt * (1 - y_true) * tf.math.log(1 - tf.sigmoid(y_pred) + eps)
-                )
+            )
 
         else:
-            loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=y_pred))
+            loss = tf.reduce_sum(
+                tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=y_pred)
+            )
 
         return loss

@@ -49,12 +49,14 @@ class GlorotUniform(Initializer):
         :param hyperparam_dict: Key-value pairs. The initializer gets the params from the keys
         :type hyperparam_dict: dict
         """
-        self._initializer_params['uniform'] = hyperparam_dict.get('uniform', DEFAULT_GLOROT_IS_UNIFORM)
+        self._initializer_params["uniform"] = hyperparam_dict.get(
+            "uniform", DEFAULT_GLOROT_IS_UNIFORM
+        )
 
         if self.verbose:
             self._display_params()
 
-    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
+    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept="e"):
         """
         Generate an initialized Tensorflow node for the initializer.
 
@@ -71,7 +73,7 @@ class GlorotUniform(Initializer):
         # return tf.initializers.glorot_uniform()
         return tf.initializers.GlorotUniform()
 
-    def _get_np_initializer(self, in_shape, out_shape, concept='e'):
+    def _get_np_initializer(self, in_shape, out_shape, concept="e"):
         """
         Generate an initialized Numpy array for the initializer.
 
@@ -85,9 +87,13 @@ class GlorotUniform(Initializer):
         :rtype: nd-array
         """
 
-        if self._initializer_params['uniform']:
+        if self._initializer_params["uniform"]:
             limit = np.sqrt(6 / (in_shape + out_shape))
-            return self.random_generator.uniform(-limit, limit, size=(in_shape, out_shape)).astype(np.float32)
+            return self.random_generator.uniform(
+                -limit, limit, size=(in_shape, out_shape)
+            ).astype(np.float32)
         else:
             std = np.sqrt(2 / (in_shape + out_shape))
-            return self.random_generator.normal(0, std, size=(in_shape, out_shape)).astype(np.float32)
+            return self.random_generator.normal(
+                0, std, size=(in_shape, out_shape)
+            ).astype(np.float32)

@@ -35,10 +35,10 @@ class Optimizer(abc.ABC):
         Display the parameter values.
 
         """
-        logger.info('\n------ Optimizer -----')
-        logger.info('Name : {}'.format(self.name))
+        logger.info("\n------ Optimizer -----")
+        logger.info("Name : {}".format(self.name))
         for key, value in self._optimizer_params.items():
-            logger.info('{} : {}'.format(key, value))
+            logger.info("{} : {}".format(key, value))
 
     def _init_hyperparams(self, hyperparam_dict):
         """
@@ -50,7 +50,7 @@ class Optimizer(abc.ABC):
         :rtype: -
         """
 
-        self._optimizer_params['lr'] = hyperparam_dict.get('lr', DEFAULT_LR)
+        self._optimizer_params["lr"] = hyperparam_dict.get("lr", DEFAULT_LR)
         if self.verbose:
             self._display_params()
 
@@ -66,7 +66,7 @@ class Optimizer(abc.ABC):
         :rtype: tf.Operation
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def update_feed_dict(self, feed_dict, batch_num, epoch_num):
         """
@@ -82,4 +82,4 @@ class Optimizer(abc.ABC):
         :rtype: -
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")

@@ -8,4 +8,4 @@ from .momentum import Momentum
 from .optimizer import Optimizer
 from .sgd import SGD
 
-__all__ = ['Adam', 'Adagrad', 'Momentum', 'SGD', 'Optimizer', 'OPTIMIZER_REGISTRY']
+__all__ = ["Adam", "Adagrad", "Momentum", "SGD", "Optimizer", "OPTIMIZER_REGISTRY"]

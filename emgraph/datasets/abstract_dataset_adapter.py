@@ -66,7 +66,7 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def get_size(self, dataset_type="train"):
         """Return the size of the dataset
@@ -78,7 +78,7 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def data_exists(self, dataset_type="train"):
         """Check if the provided dataset type (train, test, valid, etc.) exists.
@@ -90,7 +90,7 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def set_data(self, dataset, dataset_type=None, mapped_status=False):
         """Set the dataset based on the specified dataset_type.
@@ -104,7 +104,7 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def map_data(self, remap=False):
         """Map the data to the ent_to_idx and rel_to_idx mappings.
@@ -114,7 +114,7 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def set_filter(self, filter_triples):
         """Set filters while generating evaluation batches.
@@ -124,7 +124,7 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def get_next_batch(self, batches_count=-1, dataset_type="train", use_filter=False):
         """Generate the next batch of data.
@@ -143,7 +143,7 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")
 
     def cleanup(self):
         """Clean up the internal state.
@@ -151,4 +151,4 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         :raises: NotImplementedError if the method is not overridden
         """
 
-        raise NotImplementedError('Abstract Method not implemented!')
+        raise NotImplementedError("Abstract Method not implemented!")

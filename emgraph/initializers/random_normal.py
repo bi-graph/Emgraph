@@ -1,7 +1,10 @@
 import numpy as np
 import tensorflow as tf
 
-from emgraph.initializers._initializer_constants import DEFAULT_NORMAL_MEAN, DEFAULT_NORMAL_STD
+from emgraph.initializers._initializer_constants import (
+    DEFAULT_NORMAL_MEAN,
+    DEFAULT_NORMAL_STD,
+)
 from emgraph.initializers.initializer import Initializer
 from emgraph.initializers.utils import export_emgraph_initializer
 
@@ -44,13 +47,15 @@ class RandomNormal(Initializer):
         :type hyperparam_dict: dict
         """
 
-        self._initializer_params['mean'] = hyperparam_dict.get('mean', DEFAULT_NORMAL_MEAN)
-        self._initializer_params['std'] = hyperparam_dict.get('std', DEFAULT_NORMAL_STD)
+        self._initializer_params["mean"] = hyperparam_dict.get(
+            "mean", DEFAULT_NORMAL_MEAN
+        )
+        self._initializer_params["std"] = hyperparam_dict.get("std", DEFAULT_NORMAL_STD)
 
         if self.verbose:
             self._display_params()
 
-    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
+    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept="e"):
         """
         Initializer that generates tensors with a normal distribution.
         Initializers allow you to pre-specify an initialization strategy, encoded in the Initializer object, without
@@ -67,12 +72,12 @@ class RandomNormal(Initializer):
         """
 
         return tf.random_normal_initializer(
-            mean=self._initializer_params['mean'],
-            stddev=self._initializer_params['std'],
-            dtype=tf.float32
-            )
+            mean=self._initializer_params["mean"],
+            stddev=self._initializer_params["std"],
+            dtype=tf.float32,
+        )
 
-    def _get_np_initializer(self, in_shape=None, out_shape=None, concept='e'):
+    def _get_np_initializer(self, in_shape=None, out_shape=None, concept="e"):
         """
         Draw random samples from a normal (Gaussian) distribution.
 
@@ -94,7 +99,7 @@ class RandomNormal(Initializer):
         """
 
         return self.random_generator.normal(
-            self._initializer_params['mean'],
-            self._initializer_params['std'],
-            size=(in_shape, out_shape)
-            ).astype(np.float32)
+            self._initializer_params["mean"],
+            self._initializer_params["std"],
+            size=(in_shape, out_shape),
+        ).astype(np.float32)

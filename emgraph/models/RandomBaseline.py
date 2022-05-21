@@ -3,7 +3,7 @@ import tensorflow as tf
 from emgraph.utils import constants as constants
 from .EmbeddingModel import EmbeddingModel, register_model
 
-tf.device('/physical_device:GPU:0')  # todo: fix me
+tf.device("/physical_device:GPU:0")  # todo: fix me
 
 
 @register_model("RandomBaseline")
@@ -46,12 +46,10 @@ class RandomBaseline(EmbeddingModel):
         :type verbose: bool
         """
 
-        super().__init__(k=1, eta=1, epochs=1, batches_count=1, seed=seed, verbose=verbose)
-        self.all_params = \
-            {
-                'seed': seed,
-                'verbose': verbose
-            }
+        super().__init__(
+            k=1, eta=1, epochs=1, batches_count=1, seed=seed, verbose=verbose
+        )
+        self.all_params = {"seed": seed, "verbose": verbose}
 
     def _fn(self, e_s, e_p, e_o):
         """Random baseline scoring function: random number between 0 and 1.
@@ -69,14 +67,20 @@ class RandomBaseline(EmbeddingModel):
         # During training TensorFlow requires that gradients with respect to the trainable variables exist
         if self.train_dataset_handle is not None:
             # Sigmoid reaches 1 quite quickly, so the `useless` variable below is 0 for all practical purposes
-            useless = tf.sigmoid(tf.reduce_mean(tf.clip_by_value(e_s, 1e10, 1e11))) - 1.0
+            useless = (
+                tf.sigmoid(tf.reduce_mean(tf.clip_by_value(e_s, 1e10, 1e11))) - 1.0
+            )
             return tf.random.uniform((tf.size(e_s),), minval=0, maxval=1) + useless
         else:
             return tf.random.uniform((tf.size(e_s),), minval=0, maxval=1)
 
     def fit(
-            self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None
+        self,
+        X,
+        early_stopping=False,
+        early_stopping_params={},
+        focusE_numeric_edge_values=None,
+        tensorboard_logs_path=None,
     ):
         """Train an EmbeddingModel (with optional early stopping).
         There is no actual training involved in practice and the early stopping parameters won't have any effect.
@@ -148,8 +152,11 @@ class RandomBaseline(EmbeddingModel):
         """
 
         super().fit(
-            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-            tensorboard_logs_path=tensorboard_logs_path
+            X,
+            early_stopping,
+            early_stopping_params,
+            focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path,
         )
 
     def predict(self, X, from_idx=False):
@@ -171,7 +178,9 @@ class RandomBaseline(EmbeddingModel):
         __doc__ = super().predict.__doc__  # NOQA
         return super().predict(X, from_idx=from_idx)
 
-    def _calibrate(self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50):
+    def _calibrate(
+        self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50
+    ):
         """Calibrate predictions
 
         The method implements the heuristics described in :cite:`calibration`,

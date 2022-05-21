@@ -5,7 +5,7 @@ from emgraph.losses.loss import Loss
 from emgraph.losses.utils import export_emgraph_loss
 
 
-@export_emgraph_loss("pairwise", ['margin'])
+@export_emgraph_loss("pairwise", ["margin"])
 class PairwiseLoss(Loss):
     r"""
     Pairwise, max-margin loss. :cite:`bordes2013translating`.
@@ -36,7 +36,7 @@ class PairwiseLoss(Loss):
         """
 
         if hyperparam_dict is None:
-            hyperparam_dict = {'margin': DEFAULT_MARGIN}
+            hyperparam_dict = {"margin": DEFAULT_MARGIN}
         super().__init__(eta, hyperparam_dict, verbose)
 
     def _init_hyperparams(self, hyperparam_dict):
@@ -48,7 +48,7 @@ class PairwiseLoss(Loss):
         :type hyperparam_dict: dict
         """
 
-        self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN)
+        self._loss_parameters["margin"] = hyperparam_dict.get("margin", DEFAULT_MARGIN)
 
     # TODO: rename this to call or something else
     def _apply(self, scores_pos, scores_neg):
@@ -63,6 +63,8 @@ class PairwiseLoss(Loss):
         :rtype: float
         """
 
-        margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
+        margin = tf.constant(
+            self._loss_parameters["margin"], dtype=tf.float32, name="margin"
+        )
         loss = tf.reduce_sum(tf.maximum(margin - scores_pos + scores_neg, 0))
         return loss

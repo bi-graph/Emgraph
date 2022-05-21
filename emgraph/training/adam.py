@@ -4,7 +4,7 @@ from emgraph.training.optimizer import Optimizer
 from emgraph.training.utils import export_emgraph_optimizer
 
 
-@export_emgraph_optimizer(name="adam", external_params=['lr'])
+@export_emgraph_optimizer(name="adam", external_params=["lr"])
 class Adam(Optimizer):
     """
     Adam Optimizer.
@@ -42,7 +42,7 @@ class Adam(Optimizer):
 
         # self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self._optimizer_params['lr'])
         # self.optimizer = tf.optimizers.Adam(learning_rate=self._optimizer_params['lr'])
-        self.optimizer = tf.optimizers.Adam(learning_rate=self._optimizer_params['lr'])
+        self.optimizer = tf.optimizers.Adam(learning_rate=self._optimizer_params["lr"])
         train = self.optimizer.minimize(loss, var_list)
 
         return train

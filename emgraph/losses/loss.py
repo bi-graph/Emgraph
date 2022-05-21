@@ -32,15 +32,17 @@ class Loss(abc.ABC):
 
         # perform check to see if all the required external hyperparams are passed
         try:
-            self._loss_parameters['eta'] = eta
+            self._loss_parameters["eta"] = eta
             self._init_hyperparams(hyperparam_dict)
             if verbose:
-                logger.info('\n--------- Loss ---------')
-                logger.info('Name : {}'.format(self.name))
+                logger.info("\n--------- Loss ---------")
+                logger.info("Name : {}".format(self.name))
                 for key, value in self._loss_parameters.items():
-                    logger.info('{} : {}'.format(key, value))
+                    logger.info("{} : {}".format(key, value))
         except KeyError as e:
-            msg = 'Some of the hyperparams for loss are not passed to the loss function.\n{}'.format(e)
+            msg = "Some of the hyperparams for loss are not passed to the loss function.\n{}".format(
+                e
+            )
             logger.error(msg)
             raise Exception(msg)
 
@@ -54,7 +56,7 @@ class Loss(abc.ABC):
         :rtype:
         """
 
-        msg = 'This function is a placeholder in an abstract class'
+        msg = "This function is a placeholder in an abstract class"
         logger.error(msg)
         NotImplementedError(msg)
 
@@ -72,7 +74,7 @@ class Loss(abc.ABC):
             param_value = LOSS_REGISTRY[self.name].class_params.get(param_name)
             return param_value
         except KeyError as e:
-            msg = 'Invalid Key.\n{}'.format(e)
+            msg = "Invalid Key.\n{}".format(e)
             logger.error(msg)
             raise Exception(msg)
 
@@ -86,16 +88,21 @@ class Loss(abc.ABC):
         :type scores_neg: tf.Tensor
         """
 
-        logger.debug('Creating dependencies before loss computations.')
+        logger.debug("Creating dependencies before loss computations.")
         self._dependencies = []
-        if LOSS_REGISTRY[self.name].class_params['require_same_size_pos_neg'] and self._loss_parameters['eta'] != 1:
-            logger.debug('Dependencies found: \n\tRequired same size positive and negative. \n\tEta is not 1.')
+        if (
+            LOSS_REGISTRY[self.name].class_params["require_same_size_pos_neg"]
+            and self._loss_parameters["eta"] != 1
+        ):
+            logger.debug(
+                "Dependencies found: \n\tRequired same size positive and negative. \n\tEta is not 1."
+            )
             self._dependencies.append(
                 tf.Assert(
                     tf.equal(tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]),
-                    [tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]]
-                    )
+                    [tf.shape(scores_pos)[0], tf.shape(scores_neg)[0]],
                 )
+            )
 
     def _apply(self, scores_pos, scores_neg):
         """
@@ -109,7 +116,7 @@ class Loss(abc.ABC):
         :rtype: float
         """
 
-        msg = 'This function is a placeholder in an abstract class.'
+        msg = "This function is a placeholder in an abstract class."
         logger.error(msg)
         NotImplementedError(msg)
 

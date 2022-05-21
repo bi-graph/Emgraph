@@ -23,7 +23,11 @@ def get_entity_triples(entity, graph):
     :rtype: np.ndarray, shape [n, 3]
     """
 
-    logger.debug('Return a list of all triples where {} appears as subject or object.'.format(entity))
+    logger.debug(
+        "Return a list of all triples where {} appears as subject or object.".format(
+            entity
+        )
+    )
     # NOTE: The current implementation is slightly faster (~15%) than the more readable one-liner:
     #           rows, _ = np.where((entity == graph[:,[SUBJECT,OBJECT]]))
 

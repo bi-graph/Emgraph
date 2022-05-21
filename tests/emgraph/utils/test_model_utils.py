@@ -7,38 +7,49 @@ import pandas as pd
 import pytest
 
 from emgraph.models import TransE
-from emgraph.utils import create_tensorboard_visualizations, dataframe_to_triples, restore_model, save_model
+from emgraph.utils import (
+    create_tensorboard_visualizations,
+    dataframe_to_triples,
+    restore_model,
+    save_model,
+)
 
 
 def test_save_and_restore_model():
-    models = ('ComplEx', 'TransE', 'DistMult')
+    models = ("ComplEx", "TransE", "DistMult")
 
     for model_name in models:
         module = importlib.import_module("emgraph.models.models")
 
-        print('Doing save/restore testing for model class: ', model_name)
+        print("Doing save/restore testing for model class: ", model_name)
 
         class_ = getattr(module, model_name)
 
         model = class_(
-            batches_count=2, seed=555, epochs=20, k=10,
-            optimizer='adagrad', optimizer_params={'lr': 0.1}
+            batches_count=2,
+            seed=555,
+            epochs=20,
+            k=10,
+            optimizer="adagrad",
+            optimizer_params={"lr": 0.1},
         )
 
         X = np.array(
-            [['a', 'y', 'b'],
-             ['b', 'y', 'a'],
-             ['a', 'y', 'c'],
-             ['c', 'y', 'a'],
-             ['a', 'y', 'd'],
-             ['c', 'y', 'd'],
-             ['b', 'y', 'c'],
-             ['f', 'y', 'e']]
+            [
+                ["a", "y", "b"],
+                ["b", "y", "a"],
+                ["a", "y", "c"],
+                ["c", "y", "a"],
+                ["a", "y", "d"],
+                ["c", "y", "d"],
+                ["b", "y", "c"],
+                ["f", "y", "e"],
+            ]
         )
 
         model.fit(X)
 
-        example_name = 'helloworld.pkl'
+        example_name = "helloworld.pkl"
 
         save_model(model, model_name_path=example_name)
 
@@ -51,15 +62,19 @@ def test_save_and_restore_model():
         assert loaded_model.rel_to_idx == model.rel_to_idx
 
         for i in range(len(loaded_model.trained_model_params)):
-            npt.assert_array_equal(loaded_model.trained_model_params[i], model.trained_model_params[i])
+            npt.assert_array_equal(
+                loaded_model.trained_model_params[i], model.trained_model_params[i]
+            )
 
-        y_pred_before = model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
-        y_pred_after = loaded_model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
+        y_pred_before = model.predict(np.array([["f", "y", "e"], ["b", "y", "d"]]))
+        y_pred_after = loaded_model.predict(
+            np.array([["f", "y", "e"], ["b", "y", "d"]])
+        )
         npt.assert_array_equal(y_pred_after, y_pred_before)
 
         npt.assert_array_equal(
-            loaded_model.get_embeddings(['a', 'b'], embedding_type='entity'),
-            model.get_embeddings(['a', 'b'], embedding_type='entity')
+            loaded_model.get_embeddings(["a", "b"], embedding_type="entity"),
+            model.get_embeddings(["a", "b"], embedding_type="entity"),
         )
 
         os.remove(example_name)
@@ -67,28 +82,34 @@ def test_save_and_restore_model():
 
 def test_restore_model_errors():
     with pytest.raises(FileNotFoundError):
-        model = restore_model(model_name_path='filenotfound.model')
+        model = restore_model(model_name_path="filenotfound.model")
 
 
 def test_create_tensorboard_visualizations():
     # test if tensorflow API are still operative
 
     X = np.array(
-        [['a', 'y', 'b'],
-         ['b', 'y', 'a'],
-         ['a', 'y', 'c'],
-         ['c', 'y', 'a'],
-         ['a', 'y', 'd'],
-         ['c', 'y', 'd'],
-         ['b', 'y', 'c'],
-         ['f', 'y', 'e']]
+        [
+            ["a", "y", "b"],
+            ["b", "y", "a"],
+            ["a", "y", "c"],
+            ["c", "y", "a"],
+            ["a", "y", "d"],
+            ["c", "y", "d"],
+            ["b", "y", "c"],
+            ["f", "y", "e"],
+        ]
     )
     model = TransE(
-        batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
-        loss_params={'margin': 5}
+        batches_count=1,
+        seed=555,
+        epochs=20,
+        k=10,
+        loss="pairwise",
+        loss_params={"margin": 5},
     )
     model.fit(X)
-    create_tensorboard_visualizations(model, 'tensorboard_files')
+    create_tensorboard_visualizations(model, "tensorboard_files")
 
 
 def test_write_metadata_tsv():
@@ -97,20 +118,22 @@ def test_write_metadata_tsv():
 
 
 def test_dataframe_to_triples():
-    X = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
-    schema = [('species', 'has_sepal_length', 'sepal_length')]
+    X = pd.read_csv(
+        "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
+    )
+    schema = [("species", "has_sepal_length", "sepal_length")]
     npt.assert_array_equal(
         dataframe_to_triples(X, schema)[0],
-        np.array(['setosa', 'has_sepal_length', '5.1'])
+        np.array(["setosa", "has_sepal_length", "5.1"]),
     )
 
-    schema = [('species', 'has_sepal_length', 'abc')]
+    schema = [("species", "has_sepal_length", "abc")]
     try:
         dataframe_to_triples(X, schema)
     except:
         assert True
 
-    schema = [('species', 'has_sepal_length', 'sepal_length')]
+    schema = [("species", "has_sepal_length", "sepal_length")]
     try:
         dataframe_to_triples(X, schema)
     except:

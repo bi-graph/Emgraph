@@ -3,14 +3,21 @@ import math
 import tensorflow as tf
 
 from emgraph.training._optimizer_constants import (
-    DEFAULT_DECAY_CYCLE, DEFAULT_DECAY_CYCLE_MULTIPLE, DEFAULT_END_LR,
-    DEFAULT_LR, DEFAULT_LR_DECAY_FACTOR, DEFAULT_SINE,
+    DEFAULT_DECAY_CYCLE,
+    DEFAULT_DECAY_CYCLE_MULTIPLE,
+    DEFAULT_END_LR,
+    DEFAULT_LR,
+    DEFAULT_LR_DECAY_FACTOR,
+    DEFAULT_SINE,
 )
 from emgraph.training.optimizer import Optimizer
 from emgraph.training.utils import export_emgraph_optimizer
 
 
-@export_emgraph_optimizer("sgd", ['lr', 'decay_cycle', 'end_lr', 'sine_decay', 'expand_factor', 'decay_lr_rate'])
+@export_emgraph_optimizer(
+    "sgd",
+    ["lr", "decay_cycle", "end_lr", "sine_decay", "expand_factor", "decay_lr_rate"],
+)
 class SGD(Optimizer):
     """
     SGD Optimizer.
@@ -51,12 +58,20 @@ class SGD(Optimizer):
         :rtype: -
         """
 
-        self._optimizer_params['lr'] = hyperparam_dict.get('lr', DEFAULT_LR)
-        self._optimizer_params['decay_cycle'] = hyperparam_dict.get('decay_cycle', DEFAULT_DECAY_CYCLE)
-        self._optimizer_params['cosine_decay'] = hyperparam_dict.get('cosine_decay', DEFAULT_SINE)
-        self._optimizer_params['expand_factor'] = hyperparam_dict.get('expand_factor', DEFAULT_DECAY_CYCLE_MULTIPLE)
-        self._optimizer_params['decay_lr_rate'] = hyperparam_dict.get('decay_lr_rate', DEFAULT_LR_DECAY_FACTOR)
-        self._optimizer_params['end_lr'] = hyperparam_dict.get('end_lr', DEFAULT_END_LR)
+        self._optimizer_params["lr"] = hyperparam_dict.get("lr", DEFAULT_LR)
+        self._optimizer_params["decay_cycle"] = hyperparam_dict.get(
+            "decay_cycle", DEFAULT_DECAY_CYCLE
+        )
+        self._optimizer_params["cosine_decay"] = hyperparam_dict.get(
+            "cosine_decay", DEFAULT_SINE
+        )
+        self._optimizer_params["expand_factor"] = hyperparam_dict.get(
+            "expand_factor", DEFAULT_DECAY_CYCLE_MULTIPLE
+        )
+        self._optimizer_params["decay_lr_rate"] = hyperparam_dict.get(
+            "decay_lr_rate", DEFAULT_LR_DECAY_FACTOR
+        )
+        self._optimizer_params["end_lr"] = hyperparam_dict.get("end_lr", DEFAULT_END_LR)
 
         if self.verbose:
             self._display_params()
@@ -80,28 +95,28 @@ class SGD(Optimizer):
         # create the optimizer with the placeholder
         # self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.lr_placeholder)
         self.optimizer = tf.optimizers.SGD(
-            learning_rate=self._optimizer_params['lr'],
-            momentum=self._optimizer_params['momentum']
-            )
+            learning_rate=self._optimizer_params["lr"],
+            momentum=self._optimizer_params["momentum"],
+        )
 
         # load the hyperparameters that would be used while generating the learning rate per batch
         # start learning rate
-        self.start_lr = self._optimizer_params['lr']
+        self.start_lr = self._optimizer_params["lr"]
         self.current_lr = self.start_lr
 
         # cycle rate for learning rate decay
-        self.decay_cycle_rate = self._optimizer_params['decay_cycle']
-        self.end_lr = self._optimizer_params['end_lr']
+        self.decay_cycle_rate = self._optimizer_params["decay_cycle"]
+        self.end_lr = self._optimizer_params["end_lr"]
 
         # check if it is a sinudoidal decay or constant decay
-        self.is_cosine_decay = self._optimizer_params['cosine_decay']
+        self.is_cosine_decay = self._optimizer_params["cosine_decay"]
         self.next_cycle_epoch = self.decay_cycle_rate + 1
 
         # Get the cycle expand factor
-        self.decay_cycle_expand_factor = self._optimizer_params['expand_factor']
+        self.decay_cycle_expand_factor = self._optimizer_params["expand_factor"]
 
         # Get the LR decay factor at the start of each cycle
-        self.decay_lr_rate = self._optimizer_params['decay_lr_rate']
+        self.decay_lr_rate = self._optimizer_params["decay_lr_rate"]
         self.curr_cycle_length = self.decay_cycle_rate
         self.curr_start = 0
 
@@ -126,16 +141,22 @@ class SGD(Optimizer):
         # Sinusoidal Decay
         if self.is_cosine_decay:
             # compute the cycle number
-            current_cycle_num = \
-                ((epoch_num - 1 - self.curr_start) * self.batches_count + (batch_num - 1)) / \
-                (self.curr_cycle_length * self.batches_count)
+            current_cycle_num = (
+                (epoch_num - 1 - self.curr_start) * self.batches_count + (batch_num - 1)
+            ) / (self.curr_cycle_length * self.batches_count)
             # compute a learning rate for the current batch/epoch
-            self.current_lr = \
-                self.end_lr + (self.start_lr - self.end_lr) * 0.5 * (1 + math.cos(math.pi * current_cycle_num))
+            self.current_lr = self.end_lr + (self.start_lr - self.end_lr) * 0.5 * (
+                1 + math.cos(math.pi * current_cycle_num)
+            )
 
             # Start the next cycle and Expand the cycle/Decay the learning rate
-            if epoch_num % (self.next_cycle_epoch - 1) == 0 and batch_num == self.batches_count:
-                self.curr_cycle_length = self.curr_cycle_length * self.decay_cycle_expand_factor
+            if (
+                epoch_num % (self.next_cycle_epoch - 1) == 0
+                and batch_num == self.batches_count
+            ):
+                self.curr_cycle_length = (
+                    self.curr_cycle_length * self.decay_cycle_expand_factor
+                )
                 self.next_cycle_epoch = self.next_cycle_epoch + self.curr_cycle_length
                 self.curr_start = epoch_num
                 self.start_lr = self.start_lr / self.decay_lr_rate
@@ -147,8 +168,11 @@ class SGD(Optimizer):
         elif self.decay_cycle_rate > 0:
             if epoch_num % (self.next_cycle_epoch) == 0 and batch_num == 1:
                 if self.current_lr > self.end_lr:
-                    self.next_cycle_epoch = self.decay_cycle_rate + \
-                                            ((self.next_cycle_epoch - 1) * self.decay_cycle_expand_factor) + 1
+                    self.next_cycle_epoch = (
+                        self.decay_cycle_rate
+                        + ((self.next_cycle_epoch - 1) * self.decay_cycle_expand_factor)
+                        + 1
+                    )
                     self.current_lr = self.current_lr / self.decay_lr_rate
 
                     if self.current_lr < self.end_lr:

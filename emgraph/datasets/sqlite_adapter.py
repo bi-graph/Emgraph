@@ -13,8 +13,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
-    '''SQLLite adapter
-    '''
+    """SQLLite adapter"""
 
     def __init__(self, existing_db_name=None, ent_to_idx=None, rel_to_idx=None):
         """
@@ -38,28 +37,30 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         self.temp_dir = None
         if self.dbname is not None:
             # If we are using existing db then the mappings need to be passed
-            assert (self.rel_to_idx is not None)
-            assert (self.ent_to_idx is not None)
+            assert self.rel_to_idx is not None
+            assert self.ent_to_idx is not None
 
             self.using_existing_db = True
             self.rel_to_idx = rel_to_idx
             self.ent_to_idx = ent_to_idx
 
     def get_db_name(self):
-        """Returns the db name
-        """
+        """Returns the db name"""
         return self.dbname
 
     def _create_schema(self):
-        """Create the database schema
-        """
+        """Create the database schema"""
         if self.using_existing_db:
             return
         if self.dbname is not None:
             self.cleanup()
 
-        self.temp_dir = tempfile.TemporaryDirectory(suffix=None, prefix='emgraph_', dir=None)
-        self.dbname = os.path.join(self.temp_dir.name, 'emgraph_{}.db'.format(int(time.time())))
+        self.temp_dir = tempfile.TemporaryDirectory(
+            suffix=None, prefix="emgraph_", dir=None
+        )
+        self.dbname = os.path.join(
+            self.temp_dir.name, "emgraph_{}.db".format(int(time.time()))
+        )
 
         conn = sqlite3.connect("{}".format(self.dbname))
         cur = conn.cursor()
@@ -72,15 +73,21 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
                                                                 foreign key (object) references entity_table(entity_type), \
                                                                 foreign key (subject) references entity_table(entity_type) \
                                                                 );"
-            )
+        )
 
-        cur.execute("CREATE INDEX triples_table_sp_idx ON triples_table (subject, predicate);")
-        cur.execute("CREATE INDEX triples_table_po_idx ON triples_table (predicate, object);")
-        cur.execute("CREATE INDEX triples_table_type_idx ON triples_table (dataset_type);")
+        cur.execute(
+            "CREATE INDEX triples_table_sp_idx ON triples_table (subject, predicate);"
+        )
+        cur.execute(
+            "CREATE INDEX triples_table_po_idx ON triples_table (predicate, object);"
+        )
+        cur.execute(
+            "CREATE INDEX triples_table_type_idx ON triples_table (dataset_type);"
+        )
 
         cur.execute("CREATE TABLE integrity_check (validity integer primary key);")
 
-        cur.execute('INSERT INTO integrity_check VALUES (0)')
+        cur.execute("INSERT INTO integrity_check VALUES (0)")
         conn.commit()
         cur.close()
         conn.close()
@@ -99,31 +106,38 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         :rtype: dict, dict
         """
 
-        if (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0 or (regenerate is True)) \
-                and (not self.using_existing_db):
+        if (
+            len(self.rel_to_idx) == 0
+            or len(self.ent_to_idx) == 0
+            or (regenerate is True)
+        ) and (not self.using_existing_db):
             from ..evaluation import create_mappings
+
             self._create_schema()
             if use_all:
                 complete_dataset = []
                 for key in self.dataset.keys():
                     complete_dataset.append(self.dataset[key])
-                self.rel_to_idx, self.ent_to_idx = create_mappings(np.concatenate(complete_dataset, axis=0))
+                self.rel_to_idx, self.ent_to_idx = create_mappings(
+                    np.concatenate(complete_dataset, axis=0)
+                )
 
             else:
-                self.rel_to_idx, self.ent_to_idx = create_mappings(self.dataset["train"])
+                self.rel_to_idx, self.ent_to_idx = create_mappings(
+                    self.dataset["train"]
+                )
 
             self._insert_entities_in_db()
         return self.rel_to_idx, self.ent_to_idx
 
     def _insert_entities_in_db(self):
-        """Insert entities in the database
-        """
+        """Insert entities in the database"""
         # TODO: can change it to just use the values of the dictionary
         pg_entity_values = np.arange(len(self.ent_to_idx)).reshape(-1, 1).tolist()
         conn = sqlite3.connect("{}".format(self.dbname))
         cur = conn.cursor()
         try:
-            cur.executemany('INSERT INTO entity_table VALUES (?)', pg_entity_values)
+            cur.executemany("INSERT INTO entity_table VALUES (?)", pg_entity_values)
             conn.commit()
         except sqlite3.Error:
             conn.rollback()
@@ -131,11 +145,10 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         conn.close()
 
     def use_mappings(self, rel_to_idx, ent_to_idx):
-        """Use an existing mapping with the datasource.
-        """
+        """Use an existing mapping with the datasource."""
         # cannot change mappings for an existing database.
         if self.using_existing_db:
-            raise Exception('Cannot change the mappings for an existing DB')
+            raise Exception("Cannot change the mappings for an existing DB")
         super().use_mappings(rel_to_idx, ent_to_idx)
         self._create_schema()
 
@@ -199,7 +212,10 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
             cur1.close()
             if use_filter:
                 # get the filter values
-                participating_objects, participating_subjects = self.get_participating_entities(out)
+                (
+                    participating_objects,
+                    participating_subjects,
+                ) = self.get_participating_entities(out)
                 yield out, participating_objects, participating_subjects
             else:
                 yield out
@@ -218,16 +234,16 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         conn = sqlite3.connect("{}".format(self.dbname))
         key = np.array([[key]])
         for j in range(int(np.ceil(triples.shape[0] / 500000.0))):
-            pg_triple_values = triples[j * 500000:(j + 1) * 500000]
+            pg_triple_values = triples[j * 500000 : (j + 1) * 500000]
             pg_triple_values = np.concatenate(
-                (pg_triple_values, np.repeat(
-                    key,
-                    pg_triple_values.shape[0], axis=0
-                    )), axis=1
-                )
+                (pg_triple_values, np.repeat(key, pg_triple_values.shape[0], axis=0)),
+                axis=1,
+            )
             pg_triple_values = pg_triple_values.tolist()
             cur = conn.cursor()
-            cur.executemany('INSERT INTO triples_table VALUES (?,?,?,?)', pg_triple_values)
+            cur.executemany(
+                "INSERT INTO triples_table VALUES (?,?,?,?)", pg_triple_values
+            )
             conn.commit()
             cur.close()
 
@@ -246,6 +262,7 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
             # since the assumption is that the persisted data is already mapped for an existing db
             return
         from ..evaluation import to_idx
+
         if len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0:
             self.generate_mappings()
 
@@ -255,8 +272,8 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
                     self.dataset[key] = to_idx(
                         self.dataset[key],
                         ent_to_idx=self.ent_to_idx,
-                        rel_to_idx=self.rel_to_idx
-                        )
+                        rel_to_idx=self.rel_to_idx,
+                    )
                     self.mapped_status[key] = True
                 if not self.persistance_status[key]:
                     self._insert_triples(self.dataset[key], key)
@@ -265,64 +282,64 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         conn = sqlite3.connect("{}".format(self.dbname))
         cur = conn.cursor()
         # to maintain integrity of data
-        cur.execute('Update integrity_check set validity=1 where validity=0')
+        cur.execute("Update integrity_check set validity=1 where validity=0")
         conn.commit()
 
         cur.execute(
-            '''CREATE TRIGGER IF NOT EXISTS triples_table_ins_integrity_check_trigger
+            """CREATE TRIGGER IF NOT EXISTS triples_table_ins_integrity_check_trigger
                                     AFTER INSERT ON triples_table
                                     BEGIN
                                         Update integrity_check set validity=0 where validity=1;
                                     END
                                         ;
-                                '''
-            )
+                                """
+        )
         cur.execute(
-            '''CREATE TRIGGER IF NOT EXISTS triples_table_upd_integrity_check_trigger
+            """CREATE TRIGGER IF NOT EXISTS triples_table_upd_integrity_check_trigger
                                     AFTER UPDATE ON triples_table
                                     BEGIN
                                         Update integrity_check set validity=0 where validity=1;
                                     END
                                         ;
-                                '''
-            )
+                                """
+        )
         cur.execute(
-            '''CREATE TRIGGER IF NOT EXISTS triples_table_del_integrity_check_trigger
+            """CREATE TRIGGER IF NOT EXISTS triples_table_del_integrity_check_trigger
                                     AFTER DELETE ON triples_table
                                     BEGIN
                                         Update integrity_check set validity=0 where validity=1;
                                     END
                                         ;
-                                '''
-            )
+                                """
+        )
 
         cur.execute(
-            '''CREATE TRIGGER IF NOT EXISTS entity_table_upd_integrity_check_trigger
+            """CREATE TRIGGER IF NOT EXISTS entity_table_upd_integrity_check_trigger
                                     AFTER UPDATE ON entity_table
                                     BEGIN
                                         Update integrity_check set validity=0 where validity=1;
                                     END
                                     ;
-                                '''
-            )
+                                """
+        )
         cur.execute(
-            '''CREATE TRIGGER IF NOT EXISTS entity_table_ins_integrity_check_trigger
+            """CREATE TRIGGER IF NOT EXISTS entity_table_ins_integrity_check_trigger
                                     AFTER INSERT ON entity_table
                                     BEGIN
                                         Update integrity_check set validity=0 where validity=1;
                                     END
                                     ;
-                                '''
-            )
+                                """
+        )
         cur.execute(
-            '''CREATE TRIGGER IF NOT EXISTS entity_table_del_integrity_check_trigger
+            """CREATE TRIGGER IF NOT EXISTS entity_table_del_integrity_check_trigger
                                     AFTER DELETE ON entity_table
                                     BEGIN
                                         Update integrity_check set validity=0 where validity=1;
                                     END
                                     ;
-                                '''
-            )
+                                """
+        )
         cur.close()
         conn.close()
 
@@ -336,14 +353,20 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         """
 
         if type(data) != np.ndarray:
-            msg = 'Invalid type for input data. Expected ndarray, got {}'.format(type(data))
+            msg = "Invalid type for input data. Expected ndarray, got {}".format(
+                type(data)
+            )
             raise ValueError(msg)
 
         if (np.shape(data)[1]) != 3:
-            msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
+            msg = "Invalid size for input data. Expected number of column 3, got {}".format(
+                np.shape(data)[1]
+            )
             raise ValueError(msg)
 
-    def set_data(self, dataset, dataset_type=None, mapped_status=False, persistence_status=False):
+    def set_data(
+        self, dataset, dataset_type=None, mapped_status=False, persistence_status=False
+    ):
         """set the dataset based on the type.
             Note: If you pass the same dataset type it will be appended
 
@@ -372,7 +395,7 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
             #create the model
             model = ComplEx(batches_count=10000, seed=0, epochs=10, k=50, eta=10)
             model.fit(adapt)
-        
+
         :param dataset: Dataset of triples
         :type dataset: dict or nd-array
         :param dataset_type: If dataset == nd-array then indicates the type of the data
@@ -386,7 +409,7 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         """
 
         if self.using_existing_db:
-            raise Exception('Cannot change the existing DB')
+            raise Exception("Cannot change the existing DB")
 
         if isinstance(dataset, dict):
             for key in dataset.keys():
@@ -400,7 +423,9 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
             self.mapped_status[dataset_type] = mapped_status
             self.persistance_status[dataset_type] = persistence_status
         else:
-            raise Exception("Incorrect usage. Expected a dictionary or a combination of dataset and it's type.")
+            raise Exception(
+                "Incorrect usage. Expected a dictionary or a combination of dataset and it's type."
+            )
 
         if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
             self.map_data()
@@ -423,25 +448,41 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         cur_integrity.execute("SELECT * FROM integrity_check")
 
         if cur_integrity.fetchone()[0] == 0:
-            raise Exception('Data integrity is corrupted. The tables have been modified.')
+            raise Exception(
+                "Data integrity is corrupted. The tables have been modified."
+            )
 
-        query1 = "select " + str(x_triple[2]) + " union select distinct object from triples_table INDEXED BY \
-                    triples_table_sp_idx  where subject=" + str(x_triple[0]) + " and predicate=" + str(x_triple[1])
-        query2 = "select  " + str(x_triple[0]) + " union select distinct subject from triples_table INDEXED BY \
-                    triples_table_po_idx where predicate=" + str(x_triple[1]) + " and object=" + str(x_triple[2])
+        query1 = (
+            "select "
+            + str(x_triple[2])
+            + " union select distinct object from triples_table INDEXED BY \
+                    triples_table_sp_idx  where subject="
+            + str(x_triple[0])
+            + " and predicate="
+            + str(x_triple[1])
+        )
+        query2 = (
+            "select  "
+            + str(x_triple[0])
+            + " union select distinct subject from triples_table INDEXED BY \
+                    triples_table_po_idx where predicate="
+            + str(x_triple[1])
+            + " and object="
+            + str(x_triple[2])
+        )
 
         cur1.execute(query1)
         cur2.execute(query2)
 
         ent_participating_as_objects = np.array(cur1.fetchall())
         ent_participating_as_subjects = np.array(cur2.fetchall())
-        '''
+        """
         if ent_participating_as_objects.ndim>=1:
             ent_participating_as_objects = np.squeeze(ent_participating_as_objects)
 
         if ent_participating_as_subjects.ndim>=1:
             ent_participating_as_subjects = np.squeeze(ent_participating_as_subjects)
-        '''
+        """
         cur1.close()
         cur2.close()
         cur_integrity.close()
@@ -450,8 +491,7 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         return ent_participating_as_objects, ent_participating_as_subjects
 
     def cleanup(self):
-        """Clean up the database
-        """
+        """Clean up the database"""
 
         if self.using_existing_db:
             # if using an existing db then dont remove
@@ -463,13 +503,25 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         if self.dbname is not None:
             conn = sqlite3.connect("{}".format(self.dbname))
             cur = conn.cursor()
-            cur.execute("drop trigger IF EXISTS entity_table_del_integrity_check_trigger")
-            cur.execute("drop trigger IF EXISTS entity_table_ins_integrity_check_trigger")
-            cur.execute("drop trigger IF EXISTS entity_table_upd_integrity_check_trigger")
+            cur.execute(
+                "drop trigger IF EXISTS entity_table_del_integrity_check_trigger"
+            )
+            cur.execute(
+                "drop trigger IF EXISTS entity_table_ins_integrity_check_trigger"
+            )
+            cur.execute(
+                "drop trigger IF EXISTS entity_table_upd_integrity_check_trigger"
+            )
 
-            cur.execute("drop trigger IF EXISTS triples_table_del_integrity_check_trigger")
-            cur.execute("drop trigger IF EXISTS triples_table_upd_integrity_check_trigger")
-            cur.execute("drop trigger IF EXISTS triples_table_ins_integrity_check_trigger")
+            cur.execute(
+                "drop trigger IF EXISTS triples_table_del_integrity_check_trigger"
+            )
+            cur.execute(
+                "drop trigger IF EXISTS triples_table_upd_integrity_check_trigger"
+            )
+            cur.execute(
+                "drop trigger IF EXISTS triples_table_ins_integrity_check_trigger"
+            )
             cur.execute("drop table IF EXISTS integrity_check")
             cur.execute("drop index IF EXISTS triples_table_po_idx")
             cur.execute("drop index IF EXISTS triples_table_sp_idx")
@@ -482,7 +534,7 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
                 if self.temp_dir is not None:
                     self.temp_dir.cleanup()
             except OSError:
-                logger.warning('Unable to remove the created temperory files.')
-                logger.warning('Filename:{}'.format(self.dbname))
+                logger.warning("Unable to remove the created temperory files.")
+                logger.warning("Filename:{}".format(self.dbname))
 
             self.dbname = None

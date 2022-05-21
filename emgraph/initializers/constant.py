@@ -40,17 +40,17 @@ class Constant(Initializer):
         """
 
         try:
-            self._initializer_params['entity'] = hyperparam_dict['entity']
-            self._initializer_params['relation'] = hyperparam_dict['relation']
+            self._initializer_params["entity"] = hyperparam_dict["entity"]
+            self._initializer_params["relation"] = hyperparam_dict["relation"]
         except KeyError:
             raise Exception(
-                'Initial values of both entity and relation embeddings need to '
-                'be passed to the initializer!'
-                )
+                "Initial values of both entity and relation embeddings need to "
+                "be passed to the initializer!"
+            )
         if self.verbose:
             self._display_params()
 
-    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
+    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept="e"):
         """
         Generate an initialized Tensorflow node for the initializer.
 
@@ -64,19 +64,25 @@ class Constant(Initializer):
         :rtype: Initializer
         """
 
-        if concept == 'e':
-            assert self._initializer_params['entity'].shape[0] == in_shape and \
-                   self._initializer_params['entity'].shape[1] == out_shape, \
-                "Invalid shape for entity initializer!"
-            return tf.constant_initializer(self._initializer_params['entity'], dtype=tf.float32)
+        if concept == "e":
+            assert (
+                self._initializer_params["entity"].shape[0] == in_shape
+                and self._initializer_params["entity"].shape[1] == out_shape
+            ), "Invalid shape for entity initializer!"
+            return tf.constant_initializer(
+                self._initializer_params["entity"], dtype=tf.float32
+            )
         else:
-            assert self._initializer_params['relation'].shape[0] == in_shape and \
-                   self._initializer_params['relation'].shape[1] == out_shape, \
-                "Invalid shape for relation initializer!"
+            assert (
+                self._initializer_params["relation"].shape[0] == in_shape
+                and self._initializer_params["relation"].shape[1] == out_shape
+            ), "Invalid shape for relation initializer!"
 
-            return tf.constant_initializer(self._initializer_params['relation'], dtype=tf.float32)
+            return tf.constant_initializer(
+                self._initializer_params["relation"], dtype=tf.float32
+            )
 
-    def _get_np_initializer(self, in_shape, out_shape, concept='e'):
+    def _get_np_initializer(self, in_shape, out_shape, concept="e"):
         """
         Generate an initialized Numpy array for the initializer.
 
@@ -90,15 +96,17 @@ class Constant(Initializer):
         :rtype: nd-array
         """
 
-        if concept == 'e':
-            assert self._initializer_params['entity'].shape[0] == in_shape and \
-                   self._initializer_params['entity'].shape[1] == out_shape, \
-                "Invalid shape for entity initializer!"
+        if concept == "e":
+            assert (
+                self._initializer_params["entity"].shape[0] == in_shape
+                and self._initializer_params["entity"].shape[1] == out_shape
+            ), "Invalid shape for entity initializer!"
 
-            return self._initializer_params['entity']
+            return self._initializer_params["entity"]
         else:
-            assert self._initializer_params['relation'].shape[0] == in_shape and \
-                   self._initializer_params['relation'].shape[1] == out_shape, \
-                "Invalid shape for relation initializer!"
+            assert (
+                self._initializer_params["relation"].shape[0] == in_shape
+                and self._initializer_params["relation"].shape[1] == out_shape
+            ), "Invalid shape for relation initializer!"
 
-            return self._initializer_params['relation']
+            return self._initializer_params["relation"]

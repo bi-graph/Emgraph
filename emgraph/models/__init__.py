@@ -8,5 +8,15 @@ from .HolE import HolE
 from .RandomBaseline import RandomBaseline
 from .TransE import TransE
 
-__all__ = ['EmbeddingModel', 'TransE', 'DistMult', 'ComplEx', 'HolE', 'ConvKB', 'ConvE', 'RandomBaseline',
-           'set_entity_threshold', 'reset_entity_threshold']
+__all__ = [
+    "EmbeddingModel",
+    "TransE",
+    "DistMult",
+    "ComplEx",
+    "HolE",
+    "ConvKB",
+    "ConvE",
+    "RandomBaseline",
+    "set_entity_threshold",
+    "reset_entity_threshold",
+]
