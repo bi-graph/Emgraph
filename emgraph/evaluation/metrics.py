@@ -59,9 +59,9 @@ def hits_at_n_score(ranks, n):
     0.5
     """
 
-    logger.debug('Calculating hits-at-n.')
+    logger.debug("Calculating hits-at-n.")
     if isinstance(ranks, list):
-        logger.debug('Converting ranks to numpy array.')
+        logger.debug("Converting ranks to numpy array.")
         ranks = np.asarray(ranks)
     ranks = ranks.reshape(-1)
     return np.sum(ranks <= n) / len(ranks)
@@ -122,9 +122,9 @@ def mrr_score(ranks):
 
     """
 
-    logger.debug('Calculating the Mean Reciprocal Rank.')
+    logger.debug("Calculating the Mean Reciprocal Rank.")
     if isinstance(ranks, list):
-        logger.debug('Converting ranks to numpy array.')
+        logger.debug("Converting ranks to numpy array.")
         ranks = np.asarray(ranks)
     ranks = ranks.reshape(-1)
     return np.sum(1 / ranks) / len(ranks)
@@ -157,7 +157,7 @@ def rank_score(y_true, y_pred, pos_lab=1):
     4
     """
 
-    logger.debug('Calculating the Rank Score.')
+    logger.debug("Calculating the Rank Score.")
     idx = np.argsort(y_pred)[::-1]
     y_ord = y_true[idx]
     rank = np.where(y_ord == pos_lab)[0][0] + 1
@@ -215,9 +215,9 @@ def mr_score(ranks):
     4.6
     """
 
-    logger.debug('Calculating the Mean Average Rank score.')
+    logger.debug("Calculating the Mean Average Rank score.")
     if isinstance(ranks, list):
-        logger.debug('Converting ranks to numpy array.')
+        logger.debug("Converting ranks to numpy array.")
         ranks = np.asarray(ranks)
     ranks = ranks.reshape(-1)
     return np.sum(ranks) / len(ranks)

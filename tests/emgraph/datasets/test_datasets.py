@@ -4,41 +4,64 @@ import numpy as np
 import pytest
 
 from emgraph.datasets import (
-    OneToNDatasetAdapter, load_cn15k, load_fb13, load_fb15k, load_fb15k_237,
-    load_from_ntriples, load_nl27k, load_onet20k, load_ppi5k, load_wn11, load_wn18, load_wn18rr, load_yago3_10,
+    OneToNDatasetAdapter,
+    load_cn15k,
+    load_fb13,
+    load_fb15k,
+    load_fb15k_237,
+    load_from_ntriples,
+    load_nl27k,
+    load_onet20k,
+    load_ppi5k,
+    load_wn11,
+    load_wn18,
+    load_wn18rr,
+    load_yago3_10,
 )
 from emgraph.datasets.datasets import _clean_data
 
 
 def test_clean_data():
     X = {
-        'train': np.array([['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i'], ['j', 'k', 'l']]),
-        'valid': np.array([['a', 'b', 'c'], ['x', 'e', 'f'], ['g', 'a', 'i'], ['j', 'k', 'y']]),
-        'test': np.array([['a', 'b', 'c'], ['d', 'e', 'x'], ['g', 'b', 'i'], ['y', 'k', 'l']]),
+        "train": np.array(
+            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"], ["j", "k", "l"]]
+        ),
+        "valid": np.array(
+            [["a", "b", "c"], ["x", "e", "f"], ["g", "a", "i"], ["j", "k", "y"]]
+        ),
+        "test": np.array(
+            [["a", "b", "c"], ["d", "e", "x"], ["g", "b", "i"], ["y", "k", "l"]]
+        ),
     }
 
     clean_X, valid_idx, test_idx = _clean_data(X, return_idx=True)
 
-    np.testing.assert_array_equal(clean_X['train'], X['train'])
-    np.testing.assert_array_equal(clean_X['valid'], np.array([['a', 'b', 'c']]))
-    np.testing.assert_array_equal(clean_X['test'], np.array([['a', 'b', 'c'], ['g', 'b', 'i']]))
+    np.testing.assert_array_equal(clean_X["train"], X["train"])
+    np.testing.assert_array_equal(clean_X["valid"], np.array([["a", "b", "c"]]))
+    np.testing.assert_array_equal(
+        clean_X["test"], np.array([["a", "b", "c"], ["g", "b", "i"]])
+    )
     np.testing.assert_array_equal(valid_idx, np.array([True, False, False, False]))
     np.testing.assert_array_equal(test_idx, np.array([True, False, True, False]))
 
 
 def test_load_wn18():
     wn18 = load_wn18()
-    assert len(wn18['train']) == 141442
-    assert len(wn18['valid']) == 5000
-    assert len(wn18['test']) == 5000
+    assert len(wn18["train"]) == 141442
+    assert len(wn18["valid"]) == 5000
+    assert len(wn18["test"]) == 5000
 
-    ent_train = np.union1d(np.unique(wn18["train"][:, 0]), np.unique(wn18["train"][:, 2]))
-    ent_valid = np.union1d(np.unique(wn18["valid"][:, 0]), np.unique(wn18["valid"][:, 2]))
+    ent_train = np.union1d(
+        np.unique(wn18["train"][:, 0]), np.unique(wn18["train"][:, 2])
+    )
+    ent_valid = np.union1d(
+        np.unique(wn18["valid"][:, 0]), np.unique(wn18["valid"][:, 2])
+    )
     ent_test = np.union1d(np.unique(wn18["test"][:, 0]), np.unique(wn18["test"][:, 2]))
     distinct_ent = np.union1d(np.union1d(ent_train, ent_valid), ent_test)
     distinct_rel = np.union1d(
         np.union1d(np.unique(wn18["train"][:, 1]), np.unique(wn18["train"][:, 1])),
-        np.unique(wn18["train"][:, 1])
+        np.unique(wn18["train"][:, 1]),
     )
 
     assert len(distinct_ent) == 40943
@@ -46,27 +69,26 @@ def test_load_wn18():
 
 
 def test_reciprocals():
-    """Test for reciprocal relations
-    """
+    """Test for reciprocal relations"""
     # Create dataset with reciprocal relations and test if the are added
     fb15k = load_fb15k(add_reciprocal_rels=True)
-    train_reciprocal = fb15k['train']
+    train_reciprocal = fb15k["train"]
     triple = train_reciprocal[0]
     reciprocal_triple = train_reciprocal[train_reciprocal.shape[0] // 2]
-    assert (triple[0] == reciprocal_triple[2])
-    assert (triple[2] == reciprocal_triple[0])
-    assert (triple[1] + '_reciprocal' == reciprocal_triple[1])
+    assert triple[0] == reciprocal_triple[2]
+    assert triple[2] == reciprocal_triple[0]
+    assert triple[1] + "_reciprocal" == reciprocal_triple[1]
 
     # create the same dataset without reciprocals. Now the number of triples should be half of prev
     fb15k = load_fb15k(add_reciprocal_rels=False)
-    assert (fb15k['train'].shape[0] == train_reciprocal.shape[0] // 2)
+    assert fb15k["train"].shape[0] == train_reciprocal.shape[0] // 2
 
 
 def test_load_fb15k():
     fb15k = load_fb15k()
-    assert len(fb15k['train']) == 483142
-    assert len(fb15k['valid']) == 50000
-    assert len(fb15k['test']) == 59071
+    assert len(fb15k["train"]) == 483142
+    assert len(fb15k["valid"]) == 50000
+    assert len(fb15k["test"]) == 59071
 
     # ent_train = np.union1d(np.unique(fb15k["train"][:,0]), np.unique(fb15k["train"][:,2]))
     # ent_valid = np.union1d(np.unique(fb15k["valid"][:,0]), np.unique(fb15k["valid"][:,2]))
@@ -81,20 +103,20 @@ def test_load_fb15k():
 
 def test_load_fb15k_237():
     fb15k_237 = load_fb15k_237()
-    assert len(fb15k_237['train']) == 272115
+    assert len(fb15k_237["train"]) == 272115
 
     # - 9 because 9 triples containing unseen entities are removed
-    assert len(fb15k_237['valid']) == 17535 - 9
+    assert len(fb15k_237["valid"]) == 17535 - 9
 
     # - 28 because 28 triples containing unseen entities are removed
-    assert len(fb15k_237['test']) == 20466 - 28
+    assert len(fb15k_237["test"]) == 20466 - 28
 
 
 def test_yago_3_10():
     yago_3_10 = load_yago3_10()
-    assert len(yago_3_10['train']) == 1079040
-    assert len(yago_3_10['valid']) == 5000 - 22
-    assert len(yago_3_10['test']) == 5000 - 18
+    assert len(yago_3_10["train"]) == 1079040
+    assert len(yago_3_10["valid"]) == 5000 - 22
+    assert len(yago_3_10["test"]) == 5000 - 18
 
     # ent_train = np.union1d(np.unique(yago_3_10["train"][:,0]), np.unique(yago_3_10["train"][:,2]))
     # ent_valid = np.union1d(np.unique(yago_3_10["valid"][:,0]), np.unique(yago_3_10["valid"][:,2]))
@@ -114,116 +136,122 @@ def test_yago_3_10():
 def test_wn18rr():
     wn18rr = load_wn18rr()
 
-    ent_train = np.union1d(np.unique(wn18rr["train"][:, 0]), np.unique(wn18rr["train"][:, 2]))
-    ent_valid = np.union1d(np.unique(wn18rr["valid"][:, 0]), np.unique(wn18rr["valid"][:, 2]))
-    ent_test = np.union1d(np.unique(wn18rr["test"][:, 0]), np.unique(wn18rr["test"][:, 2]))
+    ent_train = np.union1d(
+        np.unique(wn18rr["train"][:, 0]), np.unique(wn18rr["train"][:, 2])
+    )
+    ent_valid = np.union1d(
+        np.unique(wn18rr["valid"][:, 0]), np.unique(wn18rr["valid"][:, 2])
+    )
+    ent_test = np.union1d(
+        np.unique(wn18rr["test"][:, 0]), np.unique(wn18rr["test"][:, 2])
+    )
     distinct_ent = np.union1d(np.union1d(ent_train, ent_valid), ent_test)
     distinct_rel = np.union1d(
         np.union1d(np.unique(wn18rr["train"][:, 1]), np.unique(wn18rr["train"][:, 1])),
-        np.unique(wn18rr["train"][:, 1])
+        np.unique(wn18rr["train"][:, 1]),
     )
 
-    assert len(wn18rr['train']) == 86835
+    assert len(wn18rr["train"]) == 86835
 
     # - 210 because 210 triples containing unseen entities are removed
-    assert len(wn18rr['valid']) == 3034 - 210
+    assert len(wn18rr["valid"]) == 3034 - 210
 
     # - 210 because 210 triples containing unseen entities are removed
-    assert len(wn18rr['test']) == 3134 - 210
+    assert len(wn18rr["test"]) == 3134 - 210
 
 
 def test_wn11():
     wn11 = load_wn11(clean_unseen=False)
-    assert len(wn11['train']) == 110361
-    assert len(wn11['valid']) == 5215
-    assert len(wn11['test']) == 21035
-    assert len(wn11['valid_labels']) == 5215
-    assert len(wn11['test_labels']) == 21035
-    assert sum(wn11['valid_labels']) == 2606
-    assert sum(wn11['test_labels']) == 10493
+    assert len(wn11["train"]) == 110361
+    assert len(wn11["valid"]) == 5215
+    assert len(wn11["test"]) == 21035
+    assert len(wn11["valid_labels"]) == 5215
+    assert len(wn11["test_labels"]) == 21035
+    assert sum(wn11["valid_labels"]) == 2606
+    assert sum(wn11["test_labels"]) == 10493
 
     wn11 = load_wn11(clean_unseen=True)
-    assert len(wn11['train']) == 110361
-    assert len(wn11['valid']) == 5215 - 338
-    assert len(wn11['test']) == 21035 - 1329
-    assert len(wn11['valid_labels']) == 5215 - 338
-    assert len(wn11['test_labels']) == 21035 - 1329
-    assert sum(wn11['valid_labels']) == 2409
-    assert sum(wn11['test_labels']) == 9706
+    assert len(wn11["train"]) == 110361
+    assert len(wn11["valid"]) == 5215 - 338
+    assert len(wn11["test"]) == 21035 - 1329
+    assert len(wn11["valid_labels"]) == 5215 - 338
+    assert len(wn11["test_labels"]) == 21035 - 1329
+    assert sum(wn11["valid_labels"]) == 2409
+    assert sum(wn11["test_labels"]) == 9706
 
 
 def test_fb13():
     fb13 = load_fb13(clean_unseen=False)
-    assert len(fb13['train']) == 316232
-    assert len(fb13['valid']) == 5908 + 5908
-    assert len(fb13['test']) == 23733 + 23731
-    assert len(fb13['valid_labels']) == 5908 + 5908
-    assert len(fb13['test_labels']) == 23733 + 23731
-    assert sum(fb13['valid_labels']) == 5908
-    assert sum(fb13['test_labels']) == 23733
+    assert len(fb13["train"]) == 316232
+    assert len(fb13["valid"]) == 5908 + 5908
+    assert len(fb13["test"]) == 23733 + 23731
+    assert len(fb13["valid_labels"]) == 5908 + 5908
+    assert len(fb13["test_labels"]) == 23733 + 23731
+    assert sum(fb13["valid_labels"]) == 5908
+    assert sum(fb13["test_labels"]) == 23733
 
     fb13 = load_fb13(clean_unseen=True)
-    assert len(fb13['train']) == 316232
-    assert len(fb13['valid']) == 5908 + 5908
-    assert len(fb13['test']) == 23733 + 23731
-    assert len(fb13['valid_labels']) == 5908 + 5908
-    assert len(fb13['test_labels']) == 23733 + 23731
-    assert sum(fb13['valid_labels']) == 5908
-    assert sum(fb13['test_labels']) == 23733
+    assert len(fb13["train"]) == 316232
+    assert len(fb13["valid"]) == 5908 + 5908
+    assert len(fb13["test"]) == 23733 + 23731
+    assert len(fb13["valid_labels"]) == 5908 + 5908
+    assert len(fb13["test_labels"]) == 23733 + 23731
+    assert sum(fb13["valid_labels"]) == 5908
+    assert sum(fb13["test_labels"]) == 23733
 
 
 def test_onet20k():
     onet = load_onet20k()
-    assert len(onet['train']) == 461932
-    assert len(onet['valid']) == 850
-    assert len(onet['test']) == 2000
-    assert len(onet['train_numeric_values']) == 461932
-    assert len(onet['valid_numeric_values']) == 850
-    assert len(onet['test_numeric_values']) == 2000
+    assert len(onet["train"]) == 461932
+    assert len(onet["valid"]) == 850
+    assert len(onet["test"]) == 2000
+    assert len(onet["train_numeric_values"]) == 461932
+    assert len(onet["valid_numeric_values"]) == 850
+    assert len(onet["test_numeric_values"]) == 2000
 
 
 def test_nl27k():
     nl27k = load_nl27k()
-    assert len(nl27k['train']) == 149100
-    assert len(nl27k['valid']) == 12274
-    assert len(nl27k['test']) == 14026
-    assert len(nl27k['train_numeric_values']) == 149100
-    assert len(nl27k['valid_numeric_values']) == 12274
-    assert len(nl27k['test_numeric_values']) == 14026
+    assert len(nl27k["train"]) == 149100
+    assert len(nl27k["valid"]) == 12274
+    assert len(nl27k["test"]) == 14026
+    assert len(nl27k["train_numeric_values"]) == 149100
+    assert len(nl27k["valid_numeric_values"]) == 12274
+    assert len(nl27k["test_numeric_values"]) == 14026
 
     nl27k = load_nl27k(clean_unseen=False)
-    assert len(nl27k['train']) == 149100
-    assert len(nl27k['valid']) == 12274 + 4
-    assert len(nl27k['test']) == 14026 + 8
-    assert len(nl27k['train_numeric_values']) == 149100
-    assert len(nl27k['valid_numeric_values']) == 12274 + 4
-    assert len(nl27k['test_numeric_values']) == 14026 + 8
+    assert len(nl27k["train"]) == 149100
+    assert len(nl27k["valid"]) == 12274 + 4
+    assert len(nl27k["test"]) == 14026 + 8
+    assert len(nl27k["train_numeric_values"]) == 149100
+    assert len(nl27k["valid_numeric_values"]) == 12274 + 4
+    assert len(nl27k["test_numeric_values"]) == 14026 + 8
 
 
 def test_ppi5k():
     ppi5k = load_ppi5k()
-    assert len(ppi5k['train']) == 230929
-    assert len(ppi5k['valid']) == 19017
-    assert len(ppi5k['test']) == 21720
-    assert len(ppi5k['train_numeric_values']) == 230929
-    assert len(ppi5k['valid_numeric_values']) == 19017
-    assert len(ppi5k['test_numeric_values']) == 21720
+    assert len(ppi5k["train"]) == 230929
+    assert len(ppi5k["valid"]) == 19017
+    assert len(ppi5k["test"]) == 21720
+    assert len(ppi5k["train_numeric_values"]) == 230929
+    assert len(ppi5k["valid_numeric_values"]) == 19017
+    assert len(ppi5k["test_numeric_values"]) == 21720
 
 
 def test_cn15k():
     cn15k = load_cn15k()
-    assert len(cn15k['train']) == 199417
-    assert len(cn15k['valid']) == 16829
-    assert len(cn15k['test']) == 19224
-    assert len(cn15k['train_numeric_values']) == 199417
-    assert len(cn15k['valid_numeric_values']) == 16829
-    assert len(cn15k['test_numeric_values']) == 19224
+    assert len(cn15k["train"]) == 199417
+    assert len(cn15k["valid"]) == 16829
+    assert len(cn15k["test"]) == 19224
+    assert len(cn15k["train_numeric_values"]) == 199417
+    assert len(cn15k["valid_numeric_values"]) == 16829
+    assert len(cn15k["test_numeric_values"]) == 19224
 
 
 def test_load_from_ntriples(request):
     rootdir = request.config.rootdir
-    path = os.path.join(rootdir, 'tests', 'emgraph', 'datasets')
-    X = load_from_ntriples('', 'test_triples.nt', data_home=path)
+    path = os.path.join(rootdir, "tests", "emgraph", "datasets")
+    X = load_from_ntriples("", "test_triples.nt", data_home=path)
     assert X.shape == (3, 3)
     assert len(np.unique(X.flatten())) == 6
 
@@ -233,91 +261,121 @@ def test_oneton_adapter():
 
     # Train set
     X = np.array(
-        [['a', 'p', 'b'],
-         ['a', 'p', 'd'],
-         ['c', 'p', 'd'],
-         ['c', 'p', 'e'],
-         ['c', 'p', 'f']]
+        [
+            ["a", "p", "b"],
+            ["a", "p", "d"],
+            ["c", "p", "d"],
+            ["c", "p", "e"],
+            ["c", "p", "f"],
+        ]
     )
 
     #              a, b, c, d, e, f
-    O = np.array(
-        [[0, 1, 0, 1, 0, 0],  # (a, p)
-         [0, 0, 0, 1, 1, 1]]
-    )  # (c, p)
+    O = np.array([[0, 1, 0, 1, 0, 0], [0, 0, 0, 1, 1, 1]])  # (a, p)  # (c, p)
 
     # Test
-    T = np.array(
-        [['a', 'p', 'c'],
-         ['c', 'p', 'b']]
-    )
+    T = np.array([["a", "p", "c"], ["c", "p", "b"]])
 
     #               a, b, c, d, e, f
-    OT1 = np.array(
-        [[0, 1, 0, 1, 0, 0],  # (a, p)     # test set onehots when output mapping is from train set
-         [0, 0, 0, 1, 1, 1]]
-    ),  # (c, p)
-    OT2 = np.array(
-        [[0, 0, 1, 0, 0, 0],  # (a, p)     # test set onehots when output mapping is from test set
-         [0, 1, 0, 0, 0, 0]]
-    ),  # (c, p)
+    OT1 = (
+        np.array(
+            [
+                [
+                    0,
+                    1,
+                    0,
+                    1,
+                    0,
+                    0,
+                ],  # (a, p)     # test set onehots when output mapping is from train set
+                [0, 0, 0, 1, 1, 1],
+            ]
+        ),
+    )  # (c, p)
+    OT2 = (
+        np.array(
+            [
+                [
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                ],  # (a, p)     # test set onehots when output mapping is from test set
+                [0, 1, 0, 0, 0, 0],
+            ]
+        ),
+    )  # (c, p)
 
     # Filter
     filter = np.concatenate((X, T))
     #               a, b, c, d, e, f
     OF = np.array(
-        [[0, 1, 1, 1, 0, 0],  # (a, p)   # train set onehots when output mapping is from filter
-         [0, 1, 0, 1, 1, 1]]
+        [
+            [
+                0,
+                1,
+                1,
+                1,
+                0,
+                0,
+            ],  # (a, p)   # train set onehots when output mapping is from filter
+            [0, 1, 0, 1, 1, 1],
+        ]
     )  # (c, p)
 
     # Expected input tuple to filtered outputs
-    OF_map = {
-        (0, 0): [0, 1, 1, 1, 0, 0],
-        (2, 0): [0, 1, 0, 1, 1, 1]
-    }
+    OF_map = {(0, 0): [0, 1, 1, 1, 0, 0], (2, 0): [0, 1, 0, 1, 1, 1]}
 
     rel_to_idx, ent_to_idx = create_mappings(X)
     X = to_idx(X, ent_to_idx, rel_to_idx)
 
     adapter = OneToNDatasetAdapter()
     adapter.use_mappings(rel_to_idx, ent_to_idx)
-    adapter.set_data(X, 'train', mapped_status=True)
+    adapter.set_data(X, "train", mapped_status=True)
 
-    adapter.set_data(T, 'test', mapped_status=False)
+    adapter.set_data(T, "test", mapped_status=False)
 
     # Adapter internally maps test set
-    assert (adapter.mapped_status['test'] == True)
+    assert adapter.mapped_status["test"] == True
 
     # Generate output map
-    train_output_map = adapter.generate_output_mapping('train')
+    train_output_map = adapter.generate_output_mapping("train")
 
     # Assert all unique sp pairs are in the output_map keys
     unique_sp = set([(s, p) for s, p in X[:, [0, 1]]])
     for sp in train_output_map.keys():
-        assert (sp in unique_sp)
+        assert sp in unique_sp
 
     # ValueError if generating onehot outputs before output_mapping is set
     with pytest.raises(ValueError):
-        adapter.generate_outputs('train')
+        adapter.generate_outputs("train")
 
     adapter.set_output_mapping(train_output_map)
-    adapter.generate_outputs('train')
-    train_iter = adapter.get_next_batch(batches_count=1, dataset_type='train', use_filter=False)
+    adapter.generate_outputs("train")
+    train_iter = adapter.get_next_batch(
+        batches_count=1, dataset_type="train", use_filter=False
+    )
     triples, onehot = next(train_iter)
     assert np.all(np.unique(X[:, [0, 1]], axis=0) == triples[:, [0, 1]])
     assert np.all(O == onehot)
 
-    test_iter = adapter.get_next_batch(batches_count=1, dataset_type='test', use_filter=False)
+    test_iter = adapter.get_next_batch(
+        batches_count=1, dataset_type="test", use_filter=False
+    )
 
     triples, onehot = next(test_iter)
     assert np.all(np.unique(X[:, [0, 1]], axis=0) == triples[:, [0, 1]])
     assert np.all(OT1 == onehot)
 
     # Generate test output map
-    test_output_map = adapter.generate_output_mapping('test')
+    test_output_map = adapter.generate_output_mapping("test")
     adapter.set_output_mapping(test_output_map)
 
-    test_iter = adapter.get_next_batch(batches_count=1, dataset_type='test', use_filter=False)
+    test_iter = adapter.get_next_batch(
+        batches_count=1, dataset_type="test", use_filter=False
+    )
 
     triples, onehot = next(test_iter)
     assert np.all(np.unique(X[:, [0, 1]], axis=0) == triples[:, [0, 1]])
@@ -325,40 +383,48 @@ def test_oneton_adapter():
 
     # Train onehot outputs with filter=True
     adapter.set_filter(filter_triples=filter)
-    train_iter = adapter.get_next_batch(batches_count=1, dataset_type='train', use_filter=True)
+    train_iter = adapter.get_next_batch(
+        batches_count=1, dataset_type="train", use_filter=True
+    )
     triples, onehot = next(train_iter)
     assert np.all(np.unique(X[:, [0, 1]], axis=0) == triples[:, [0, 1]])
     assert np.all(OF == onehot)
 
     ##  Test adapter clear_outputs
-    assert (len(adapter.filtered_status) > 0)
+    assert len(adapter.filtered_status) > 0
     adapter.clear_outputs()
-    assert (len(adapter.filtered_status) == 0)
+    assert len(adapter.filtered_status) == 0
 
     # Test verify_outputs
     adapter.clear_outputs()
-    adapter.generate_outputs('train', use_filter=False, unique_pairs=False)
-    assert adapter.verify_outputs('train', use_filter=False, unique_pairs=False) == True
-    assert adapter.verify_outputs('train', use_filter=True, unique_pairs=True) == False
-    assert adapter.verify_outputs('train', use_filter=True, unique_pairs=False) == False
-    assert adapter.verify_outputs('train', use_filter=False, unique_pairs=True) == False
+    adapter.generate_outputs("train", use_filter=False, unique_pairs=False)
+    assert adapter.verify_outputs("train", use_filter=False, unique_pairs=False) == True
+    assert adapter.verify_outputs("train", use_filter=True, unique_pairs=True) == False
+    assert adapter.verify_outputs("train", use_filter=True, unique_pairs=False) == False
+    assert adapter.verify_outputs("train", use_filter=False, unique_pairs=True) == False
 
     adapter.clear_outputs()
-    adapter.generate_outputs('train', use_filter=True, unique_pairs=True)
-    assert adapter.verify_outputs('train', use_filter=False, unique_pairs=False) == False
-    assert adapter.verify_outputs('train', use_filter=True, unique_pairs=True) == True
-    assert adapter.verify_outputs('train', use_filter=True, unique_pairs=False) == False
-    assert adapter.verify_outputs('train', use_filter=False, unique_pairs=True) == False
+    adapter.generate_outputs("train", use_filter=True, unique_pairs=True)
+    assert (
+        adapter.verify_outputs("train", use_filter=False, unique_pairs=False) == False
+    )
+    assert adapter.verify_outputs("train", use_filter=True, unique_pairs=True) == True
+    assert adapter.verify_outputs("train", use_filter=True, unique_pairs=False) == False
+    assert adapter.verify_outputs("train", use_filter=False, unique_pairs=True) == False
 
     # Test batch output shapes
     adapter.clear_outputs()
-    train_iter = adapter.get_next_batch(batches_count=1, dataset_type='train', use_filter=True, unique_pairs=True)
+    train_iter = adapter.get_next_batch(
+        batches_count=1, dataset_type="train", use_filter=True, unique_pairs=True
+    )
     out, triples = next(train_iter)
     assert out.shape[0] == 2
     assert triples.shape[0] == 2
 
     adapter.clear_outputs()
-    train_iter = adapter.get_next_batch(batches_count=1, dataset_type='train', use_filter=True, unique_pairs=False)
+    train_iter = adapter.get_next_batch(
+        batches_count=1, dataset_type="train", use_filter=True, unique_pairs=False
+    )
     out, triples = next(train_iter)
     assert out.shape[0] == 5
     assert triples.shape[0] == 5
@@ -366,28 +432,42 @@ def test_oneton_adapter():
     # Test batch subject corruptions
     batch_size = 3
     batch_iter = adapter.get_next_batch_subject_corruptions(
-        batch_size=batch_size, dataset_type='train', use_filter=True
+        batch_size=batch_size, dataset_type="train", use_filter=True
     )
     triples, out, out_onehot = next(batch_iter)
 
-    assert np.all(X == triples)  # only 1 relation in X, so triples should be the same (ignores batch_size)
+    assert np.all(
+        X == triples
+    )  # only 1 relation in X, so triples should be the same (ignores batch_size)
     assert triples.shape[1] == 3  # triples should be triples!
     assert out.shape[1] == 3  # batch out should also be triples!
     assert out.shape[0] == batch_size  # batch dimension of out should equal batch_size
-    assert out_onehot.shape[0] == batch_size  # Onehot batch_dimension should equal batch size
-    assert out_onehot.shape[0] == out.shape[0]  # .. and should be same size as number of unique entities
+    assert (
+        out_onehot.shape[0] == batch_size
+    )  # Onehot batch_dimension should equal batch size
+    assert (
+        out_onehot.shape[0] == out.shape[0]
+    )  # .. and should be same size as number of unique entities
     assert out_onehot.shape[1] == len(adapter.ent_to_idx)
 
     adapter.clear_outputs()
-    batch_iter = adapter.get_next_batch_subject_corruptions(batch_size=-1, dataset_type='train', use_filter=True)
+    batch_iter = adapter.get_next_batch_subject_corruptions(
+        batch_size=-1, dataset_type="train", use_filter=True
+    )
     triples, out, out_onehot = next(batch_iter)
 
     assert np.all(X == triples)  # only 1 relation in X, so triples should be the same
     assert triples.shape[1] == 3  # triples should be triples!
     assert out.shape[1] == 3  # batch out should also be triples!
-    assert out.shape[0] == len(adapter.ent_to_idx)  # batch_size=-1 (entire set), so the batch_dim should equal ents
-    assert out_onehot.shape[0] == out_onehot.shape[1]  # Onehot should be a square matrix
-    assert out_onehot.shape[0] == out.shape[0]  # .. and should be same size as number of unique entities
+    assert out.shape[0] == len(
+        adapter.ent_to_idx
+    )  # batch_size=-1 (entire set), so the batch_dim should equal ents
+    assert (
+        out_onehot.shape[0] == out_onehot.shape[1]
+    )  # Onehot should be a square matrix
+    assert (
+        out_onehot.shape[0] == out.shape[0]
+    )  # .. and should be same size as number of unique entities
     assert out_onehot.shape[1] == len(adapter.ent_to_idx)
 
     # Verify that onehot outputs are as expected in the out array (or if not present in OF_Map then is a zero vector)
@@ -399,5 +479,5 @@ def test_oneton_adapter():
             assert np.all(out_onehot[idx] == 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_oneton_adapter()

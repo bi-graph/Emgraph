@@ -4,13 +4,10 @@ from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFOR
 from emgraph.utils import constants as constants
 from .EmbeddingModel import EmbeddingModel, register_model
 
-tf.device('/physical_device:GPU:0')  # todo: fix me
+tf.device("/physical_device:GPU:0")  # todo: fix me
 
 
-@register_model(
-    "TransE",
-    ["norm", "normalize_ent_emb", "negative_corruption_entities"]
-)
+@register_model("TransE", ["norm", "normalize_ent_emb", "negative_corruption_entities"])
 class TransE(EmbeddingModel):
     r"""Translating Embeddings (TransE)
 
@@ -143,42 +140,50 @@ class TransE(EmbeddingModel):
     """
 
     def __init__(
-            self,
-            k=constants.DEFAULT_EMBEDDING_SIZE,
-            eta=constants.DEFAULT_ETA,
-            epochs=constants.DEFAULT_EPOCH,
-            batches_count=constants.DEFAULT_BATCH_COUNT,
-            seed=constants.DEFAULT_SEED,
-            embedding_model_params={
-                'norm': constants.DEFAULT_NORM_TRANSE,
-                'normalize_ent_emb': constants.DEFAULT_NORMALIZE_EMBEDDINGS,
-                'negative_corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
-                'corrupt_sides': constants.DEFAULT_CORRUPT_SIDE_TRAIN
-            },
-            optimizer=constants.DEFAULT_OPTIM,
-            optimizer_params={'lr': constants.DEFAULT_LR},
-            loss=constants.DEFAULT_LOSS,
-            loss_params={},
-            regularizer=constants.DEFAULT_REGULARIZER,
-            regularizer_params={},
-            initializer=constants.DEFAULT_INITIALIZER,
-            initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
-            verbose=constants.DEFAULT_VERBOSE,
-            large_graphs=False
+        self,
+        k=constants.DEFAULT_EMBEDDING_SIZE,
+        eta=constants.DEFAULT_ETA,
+        epochs=constants.DEFAULT_EPOCH,
+        batches_count=constants.DEFAULT_BATCH_COUNT,
+        seed=constants.DEFAULT_SEED,
+        embedding_model_params={
+            "norm": constants.DEFAULT_NORM_TRANSE,
+            "normalize_ent_emb": constants.DEFAULT_NORMALIZE_EMBEDDINGS,
+            "negative_corruption_entities": constants.DEFAULT_CORRUPTION_ENTITIES,
+            "corrupt_sides": constants.DEFAULT_CORRUPT_SIDE_TRAIN,
+        },
+        optimizer=constants.DEFAULT_OPTIM,
+        optimizer_params={"lr": constants.DEFAULT_LR},
+        loss=constants.DEFAULT_LOSS,
+        loss_params={},
+        regularizer=constants.DEFAULT_REGULARIZER,
+        regularizer_params={},
+        initializer=constants.DEFAULT_INITIALIZER,
+        initializer_params={"uniform": DEFAULT_GLOROT_IS_UNIFORM},
+        verbose=constants.DEFAULT_VERBOSE,
+        large_graphs=False,
     ):
         """Initialize an EmbeddingModel.
 
         Also creates a new Tensorflow session for training.
         """
         super().__init__(
-            k=k, eta=eta, epochs=epochs,
-            batches_count=batches_count, seed=seed,
+            k=k,
+            eta=eta,
+            epochs=epochs,
+            batches_count=batches_count,
+            seed=seed,
             embedding_model_params=embedding_model_params,
-            optimizer=optimizer, optimizer_params=optimizer_params,
-            loss=loss, loss_params=loss_params,
-            regularizer=regularizer, regularizer_params=regularizer_params,
-            initializer=initializer, initializer_params=initializer_params,
-            verbose=verbose, large_graphs=large_graphs
+            optimizer=optimizer,
+            optimizer_params=optimizer_params,
+            loss=loss,
+            loss_params=loss_params,
+            regularizer=regularizer,
+            regularizer_params=regularizer_params,
+            initializer=initializer,
+            initializer_params=initializer_params,
+            verbose=verbose,
+            large_graphs=large_graphs,
         )
 
     def _fn(self, e_s, e_p, e_o):
@@ -200,14 +205,21 @@ class TransE(EmbeddingModel):
 
         return tf.negative(
             tf.norm(
-                e_s + e_p - e_o, ord=self.embedding_model_params.get('norm', constants.DEFAULT_NORM_TRANSE),
-                axis=1
+                e_s + e_p - e_o,
+                ord=self.embedding_model_params.get(
+                    "norm", constants.DEFAULT_NORM_TRANSE
+                ),
+                axis=1,
             )
         )
 
     def fit(
-            self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None
+        self,
+        X,
+        early_stopping=False,
+        early_stopping_params={},
+        focusE_numeric_edge_values=None,
+        tensorboard_logs_path=None,
     ):
         """Train a Translating Embeddings model.
 
@@ -315,8 +327,11 @@ class TransE(EmbeddingModel):
         :rtype:
         """
         super().fit(
-            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-            tensorboard_logs_path=tensorboard_logs_path
+            X,
+            early_stopping,
+            early_stopping_params,
+            focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path,
         )
 
     def predict(self, X, from_idx=False):
@@ -337,7 +352,9 @@ class TransE(EmbeddingModel):
         # __doc__ = super().predict.__doc__  # NOQA
         return super().predict(X, from_idx=from_idx)
 
-    def _calibrate(self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50):
+    def _calibrate(
+        self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50
+    ):
         __doc__ = super()._calibrate.__doc__  # NOQA
         super()._calibrate(X_pos, X_neg, positive_base_rate, batches_count, epochs)
 

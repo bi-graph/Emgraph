@@ -9,5 +9,12 @@ from .nll_multiclass import NLLMulticlass
 from .pairwise import PairwiseLoss
 from .self_adversarial import SelfAdversarialLoss
 
-__all__ = ['AbsoluteMarginLoss', 'BCELoss', 'NLLLoss', 'NLLMulticlass', 'PairwiseLoss', 'SelfAdversarialLoss',
-           'LOSS_REGISTRY']
+__all__ = [
+    "AbsoluteMarginLoss",
+    "BCELoss",
+    "NLLLoss",
+    "NLLMulticlass",
+    "PairwiseLoss",
+    "SelfAdversarialLoss",
+    "LOSS_REGISTRY",
+]

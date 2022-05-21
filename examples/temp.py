@@ -8,14 +8,21 @@ from emgraph.datasets import load_wn11
 from emgraph.models import TransE
 
 X = load_wn11()
-X_valid_pos = X['valid'][X['valid_labels']]
-X_valid_neg = X['valid'][~X['valid_labels']]
+X_valid_pos = X["valid"][X["valid_labels"]]
+X_valid_neg = X["valid"][~X["valid_labels"]]
 # tf.config.experimental_run_functions_eagerly(False)
 
 model = TransE(
-    batches_count=64, seed=0, epochs=0, k=100, eta=20,
-    optimizer='adam', optimizer_params={'lr': 0.0001},
-    loss='pairwise', verbose=True, large_graphs=False
+    batches_count=64,
+    seed=0,
+    epochs=0,
+    k=100,
+    eta=20,
+    optimizer="adam",
+    optimizer_params={"lr": 0.0001},
+    loss="pairwise",
+    verbose=True,
+    large_graphs=False,
 )
 
 # model = ConvE(batches_count=1, seed=22, epochs=5, k=100)
@@ -44,9 +51,9 @@ model = TransE(
 # model = DistMult(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
 #                  loss_params={'margin': 5})
 # model = RandomBaseline()
-model.fit(X['train'])
+model.fit(X["train"])
 
 # scores
-scores = model.predict(X['test'])
+scores = model.predict(X["test"])
 print("scores: ", scores)
-print("Raw scores:", brier_score_loss(X['test_labels'], expit(scores)))
+print("Raw scores:", brier_score_loss(X["test_labels"], expit(scores)))

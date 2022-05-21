@@ -4,7 +4,7 @@ from emgraph.losses.loss import Loss
 from emgraph.losses.utils import clip_before_exp, export_emgraph_loss
 
 
-@export_emgraph_loss("multiclass_nll", [], {'require_same_size_pos_neg': False})
+@export_emgraph_loss("multiclass_nll", [], {"require_same_size_pos_neg": False})
 class NLLMulticlass(Loss):
     r"""
     Multiclass NLL loss introduced in :cite:`chen2015` where both the subject and objects are corrupted (to use it in
@@ -70,7 +70,9 @@ class NLLMulticlass(Loss):
         scores_pos = clip_before_exp(scores_pos)
         scores_neg = clip_before_exp(scores_neg)
 
-        scores_neg_reshaped = tf.reshape(scores_neg, [self._loss_parameters['eta'], tf.shape(scores_pos)[0]])
+        scores_neg_reshaped = tf.reshape(
+            scores_neg, [self._loss_parameters["eta"], tf.shape(scores_pos)[0]]
+        )
         neg_exp = tf.exp(scores_neg_reshaped)
         pos_exp = tf.exp(scores_pos)
         softmax_score = pos_exp / (tf.reduce_sum(neg_exp, axis=0) + pos_exp)

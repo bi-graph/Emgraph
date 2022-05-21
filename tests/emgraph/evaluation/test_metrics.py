@@ -4,7 +4,7 @@ from emgraph.evaluation.metrics import hits_at_n_score, mr_score, mrr_score, ran
 
 
 def test_rank_score():
-    y_pred = np.array([.434, .65, .21, .84])
+    y_pred = np.array([0.434, 0.65, 0.21, 0.84])
     y_true = np.array([0, 0, 1, 0])
     rank_actual = rank_score(y_true, y_pred)
     assert rank_actual == 4
@@ -12,8 +12,7 @@ def test_rank_score():
 
 def test_mrr_score():
     y_pred_true = np.array(
-        [[[0, 1, 0], [.32, .84, .73]],
-         [[0, 1, 0], [.66, .11, .33]]]
+        [[[0, 1, 0], [0.32, 0.84, 0.73]], [[0, 1, 0], [0.66, 0.11, 0.33]]]
     )
 
     rankings = []
@@ -25,8 +24,7 @@ def test_mrr_score():
 
 def test_hits_at_n_score():
     y_pred_true = np.array(
-        [[[0, 1, 0], [.32, .84, .73]],
-         [[0, 1, 0], [.66, .11, .33]]]
+        [[[0, 1, 0], [0.32, 0.84, 0.73]], [[0, 1, 0], [0.66, 0.11, 0.33]]]
     )
     rankings = []
     for y_pred_true_k in y_pred_true:
@@ -36,6 +34,6 @@ def test_hits_at_n_score():
 
 
 def test_mr_score():
-    rank = np.array([.2, .4, .6, .8])
+    rank = np.array([0.2, 0.4, 0.6, 0.8])
     mr = mr_score(rank)
     assert mr == 0.5

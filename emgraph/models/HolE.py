@@ -32,28 +32,28 @@ class HolE(ComplEx):
     >>> model.fit(X)
     >>> model.predict(np.array([['f', 'y', 'e'], ['b', 'y', 'd']]))
     [[0.009254738], [0.00023370088]]
-   """
+    """
 
     def __init__(
-            self,
-            k=constants.DEFAULT_EMBEDDING_SIZE,
-            eta=constants.DEFAULT_ETA,
-            epochs=constants.DEFAULT_EPOCH,
-            batches_count=constants.DEFAULT_BATCH_COUNT,
-            seed=constants.DEFAULT_SEED,
-            embedding_model_params={
-                'negative_corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
-                'corrupt_sides': constants.DEFAULT_CORRUPT_SIDE_TRAIN
-            },
-            optimizer=constants.DEFAULT_OPTIM,
-            optimizer_params={'lr': constants.DEFAULT_LR},
-            loss=constants.DEFAULT_LOSS,
-            loss_params={},
-            regularizer=constants.DEFAULT_REGULARIZER,
-            regularizer_params={},
-            initializer=constants.DEFAULT_INITIALIZER,
-            initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
-            verbose=constants.DEFAULT_VERBOSE
+        self,
+        k=constants.DEFAULT_EMBEDDING_SIZE,
+        eta=constants.DEFAULT_ETA,
+        epochs=constants.DEFAULT_EPOCH,
+        batches_count=constants.DEFAULT_BATCH_COUNT,
+        seed=constants.DEFAULT_SEED,
+        embedding_model_params={
+            "negative_corruption_entities": constants.DEFAULT_CORRUPTION_ENTITIES,
+            "corrupt_sides": constants.DEFAULT_CORRUPT_SIDE_TRAIN,
+        },
+        optimizer=constants.DEFAULT_OPTIM,
+        optimizer_params={"lr": constants.DEFAULT_LR},
+        loss=constants.DEFAULT_LOSS,
+        loss_params={},
+        regularizer=constants.DEFAULT_REGULARIZER,
+        regularizer_params={},
+        initializer=constants.DEFAULT_INITIALIZER,
+        initializer_params={"uniform": DEFAULT_GLOROT_IS_UNIFORM},
+        verbose=constants.DEFAULT_VERBOSE,
     ):
         """
 
@@ -148,13 +148,21 @@ class HolE(ComplEx):
         """
 
         super().__init__(
-            k=k, eta=eta, epochs=epochs, batches_count=batches_count, seed=seed,
+            k=k,
+            eta=eta,
+            epochs=epochs,
+            batches_count=batches_count,
+            seed=seed,
             embedding_model_params=embedding_model_params,
-            optimizer=optimizer, optimizer_params=optimizer_params,
-            loss=loss, loss_params=loss_params,
-            regularizer=regularizer, regularizer_params=regularizer_params,
-            initializer=initializer, initializer_params=initializer_params,
-            verbose=verbose
+            optimizer=optimizer,
+            optimizer_params=optimizer_params,
+            loss=loss,
+            loss_params=loss_params,
+            regularizer=regularizer,
+            regularizer_params=regularizer_params,
+            initializer=initializer,
+            initializer_params=initializer_params,
+            verbose=verbose,
         )
         self.internal_k = self.k * 2
 
@@ -181,8 +189,12 @@ class HolE(ComplEx):
         return (2 / self.k) * (super()._fn(e_s, e_p, e_o))
 
     def fit(
-            self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None
+        self,
+        X,
+        early_stopping=False,
+        early_stopping_params={},
+        focusE_numeric_edge_values=None,
+        tensorboard_logs_path=None,
     ):
         """Train a HolE model.
 
@@ -255,6 +267,9 @@ class HolE(ComplEx):
 
         """
         super().fit(
-            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-            tensorboard_logs_path=tensorboard_logs_path
+            X,
+            early_stopping,
+            early_stopping_params,
+            focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path,
         )

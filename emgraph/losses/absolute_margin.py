@@ -5,7 +5,7 @@ from emgraph.losses.loss import Loss
 from emgraph.losses.utils import export_emgraph_loss
 
 
-@export_emgraph_loss("absolute_margin", ['margin'])
+@export_emgraph_loss("absolute_margin", ["margin"])
 class AbsoluteMarginLoss(Loss):
     r"""
     Absolute margin, max-margin loss :cite:`Hamaguchi2017`.
@@ -35,7 +35,7 @@ class AbsoluteMarginLoss(Loss):
         """
 
         if hyperparam_dict is None:
-            hyperparam_dict = {'margin': DEFAULT_MARGIN}
+            hyperparam_dict = {"margin": DEFAULT_MARGIN}
         super().__init__(eta, hyperparam_dict, verbose)
 
     def _init_hyperparams(self, hyperparam_dict):
@@ -49,7 +49,7 @@ class AbsoluteMarginLoss(Loss):
         :rtype: -
         """
 
-        self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN)
+        self._loss_parameters["margin"] = hyperparam_dict.get("margin", DEFAULT_MARGIN)
 
     def _apply(self, scores_pos, scores_neg):
         """
@@ -63,6 +63,8 @@ class AbsoluteMarginLoss(Loss):
         :rtype: float
         """
 
-        margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
+        margin = tf.constant(
+            self._loss_parameters["margin"], dtype=tf.float32, name="margin"
+        )
         loss = tf.reduce_sum(tf.maximum(margin + scores_neg, 0) - scores_pos)
         return loss

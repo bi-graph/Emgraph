@@ -28,13 +28,15 @@ class Regularizer(abc.ABC):
         try:
             self._init_hyperparams(hyperparam_dict)
             if verbose:
-                logger.info('\n------ Regularizer -----')
-                logger.info('Name : {}'.format(self.name))
+                logger.info("\n------ Regularizer -----")
+                logger.info("Name : {}".format(self.name))
                 for key, value in self._regularizer_parameters.items():
-                    logger.info('{} : {}'.format(key, value))
+                    logger.info("{} : {}".format(key, value))
 
         except KeyError as e:
-            msg = 'Some of the hyperparams for regularizer were not passed.\n{}'.format(e)
+            msg = "Some of the hyperparams for regularizer were not passed.\n{}".format(
+                e
+            )
             logger.error(msg)
             raise Exception(msg)
 
@@ -52,7 +54,7 @@ class Regularizer(abc.ABC):
             param_value = REGULARIZER_REGISTRY[self.name].class_params.get(param_name)
             return param_value
         except KeyError as e:
-            msg = 'Invalid Key.\n{}'.format(e)
+            msg = "Invalid Key.\n{}".format(e)
             logger.error(msg)
             raise Exception(msg)
 
@@ -66,7 +68,7 @@ class Regularizer(abc.ABC):
         :rtype: -
         """
 
-        logger.error('This function is a placeholder in an abstract class')
+        logger.error("This function is a placeholder in an abstract class")
         raise NotImplementedError("This function is a placeholder in an abstract class")
 
     def _apply(self, trainable_params):
@@ -79,7 +81,7 @@ class Regularizer(abc.ABC):
         :rtype: tf.Tensor
         """
 
-        logger.error('This function is a placeholder in an abstract class')
+        logger.error("This function is a placeholder in an abstract class")
         raise NotImplementedError("This function is a placeholder in an abstract class")
 
     def apply(self, trainable_params):

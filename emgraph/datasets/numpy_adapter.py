@@ -4,10 +4,8 @@ from ..datasets import EmgraphBaseDatasetAdaptor
 
 
 class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
-
     def __init__(self):
-        """Initialize the NumpyDatasetAdapter variables
-        """
+        """Initialize the NumpyDatasetAdapter variables"""
 
         super(NumpyDatasetAdapter, self).__init__()
         # NumpyDatasetAdapter uses SQLAdapter to filter (if filters are set)
@@ -24,11 +22,14 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         """
 
         from ..evaluation import create_mappings
+
         if use_all:
             complete_dataset = []
             for key in self.dataset.keys():
                 complete_dataset.append(self.dataset[key])
-            self.rel_to_idx, self.ent_to_idx = create_mappings(np.concatenate(complete_dataset, axis=0))
+            self.rel_to_idx, self.ent_to_idx = create_mappings(
+                np.concatenate(complete_dataset, axis=0)
+            )
 
         else:
             self.rel_to_idx, self.ent_to_idx = create_mappings(self.dataset["train"])
@@ -99,19 +100,25 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
 
         for i in range(batches_count):
             output = []
-            out = np.int32(self.dataset[dataset_type][(i * batch_size):((i + 1) * batch_size), :])
+            out = np.int32(
+                self.dataset[dataset_type][(i * batch_size) : ((i + 1) * batch_size), :]
+            )
             output.append(out)
 
             try:
                 focusE_numeric_edge_values_batch = self.focusE_numeric_edge_values[
-                                                       dataset_type][(i * batch_size):((i + 1) * batch_size), :]
+                    dataset_type
+                ][(i * batch_size) : ((i + 1) * batch_size), :]
                 output.append(focusE_numeric_edge_values_batch)
             except KeyError:
                 pass
 
             if use_filter:
                 # get the filter values by querying the database
-                participating_objects, participating_subjects = self.filter_adapter.get_participating_entities(out)
+                (
+                    participating_objects,
+                    participating_subjects,
+                ) = self.filter_adapter.get_participating_entities(out)
                 output.append(participating_objects)
                 output.append(participating_subjects)
 
@@ -127,6 +134,7 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         """
 
         from ..evaluation import to_idx
+
         if len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0:
             self.generate_mappings()
 
@@ -135,7 +143,7 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
                 self.dataset[key] = to_idx(
                     self.dataset[key],
                     ent_to_idx=self.ent_to_idx,
-                    rel_to_idx=self.rel_to_idx
+                    rel_to_idx=self.rel_to_idx,
                 )
                 self.mapped_status[key] = True
 
@@ -149,14 +157,24 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         """
 
         if type(data) != np.ndarray:
-            msg = 'Invalid type for input data. Expected ndarray, got {}'.format(type(data))
+            msg = "Invalid type for input data. Expected ndarray, got {}".format(
+                type(data)
+            )
             raise ValueError(msg)
 
         if (np.shape(data)[1]) != 3:
-            msg = 'Invalid size for input data. Expected number of column 3, got {}'.format(np.shape(data)[1])
+            msg = "Invalid size for input data. Expected number of column 3, got {}".format(
+                np.shape(data)[1]
+            )
             raise ValueError(msg)
 
-    def set_data(self, dataset, dataset_type=None, mapped_status=False, focusE_numeric_edge_values=None):
+    def set_data(
+        self,
+        dataset,
+        dataset_type=None,
+        mapped_status=False,
+        focusE_numeric_edge_values=None,
+    ):
         """set the dataset based on the type.
             Note: If you pass the same dataset type it will be appended
 
@@ -178,15 +196,21 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
                 self.dataset[key] = dataset[key]
                 self.mapped_status[key] = mapped_status
                 if focusE_numeric_edge_values is not None:
-                    self.focusE_numeric_edge_values[key] = focusE_numeric_edge_values[key]
+                    self.focusE_numeric_edge_values[key] = focusE_numeric_edge_values[
+                        key
+                    ]
         elif dataset_type is not None:
             self._validate_data(dataset)
             self.dataset[dataset_type] = dataset
             self.mapped_status[dataset_type] = mapped_status
             if focusE_numeric_edge_values is not None:
-                self.focusE_numeric_edge_values[dataset_type] = focusE_numeric_edge_values
+                self.focusE_numeric_edge_values[
+                    dataset_type
+                ] = focusE_numeric_edge_values
         else:
-            raise Exception("Incorrect usage. Expected a dictionary or a combination of dataset and it's type.")
+            raise Exception(
+                "Incorrect usage. Expected a dictionary or a combination of dataset and it's type."
+            )
 
         # If the concept-idx mappings are present, then map the passed dataset
         if not (len(self.rel_to_idx) == 0 or len(self.ent_to_idx) == 0):
@@ -211,8 +235,7 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         self.filter_adapter.set_data(filter_triples, "filter", mapped_status)
 
     def cleanup(self):
-        """Cleans up the internal state.
-        """
+        """Cleans up the internal state."""
         if self.filter_adapter is not None:
             self.filter_adapter.cleanup()
             self.filter_adapter = None

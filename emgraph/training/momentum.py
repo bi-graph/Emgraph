@@ -5,7 +5,7 @@ from emgraph.training.optimizer import Optimizer
 from emgraph.training.utils import export_emgraph_optimizer
 
 
-@export_emgraph_optimizer(name="momentum", external_params=['lr', 'momentum'])
+@export_emgraph_optimizer(name="momentum", external_params=["lr", "momentum"])
 class Momentum(Optimizer):
     """
     Momentum Optimizer.
@@ -40,8 +40,10 @@ class Momentum(Optimizer):
         :rtype: -
         """
 
-        self._optimizer_params['lr'] = hyperparam_dict.get('lr', DEFAULT_LR)
-        self._optimizer_params['momentum'] = hyperparam_dict.get('momentum', DEFAULT_MOMENTUM)
+        self._optimizer_params["lr"] = hyperparam_dict.get("lr", DEFAULT_LR)
+        self._optimizer_params["momentum"] = hyperparam_dict.get(
+            "momentum", DEFAULT_MOMENTUM
+        )
 
         if self.verbose:
             self._display_params()
@@ -59,9 +61,9 @@ class Momentum(Optimizer):
         """
 
         self.optimizer = tf.optimizers.SGD(
-            learning_rate=self._optimizer_params['lr'],
-            momentum=self._optimizer_params['momentum']
-            )
+            learning_rate=self._optimizer_params["lr"],
+            momentum=self._optimizer_params["momentum"],
+        )
 
         train = self.optimizer.minimize(loss, var_list)
         return train

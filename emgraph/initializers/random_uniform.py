@@ -1,7 +1,10 @@
 import numpy as np
 import tensorflow as tf
 
-from emgraph.initializers._initializer_constants import DEFAULT_UNIFORM_HIGH, DEFAULT_UNIFORM_LOW
+from emgraph.initializers._initializer_constants import (
+    DEFAULT_UNIFORM_HIGH,
+    DEFAULT_UNIFORM_LOW,
+)
 from emgraph.initializers.initializer import Initializer
 from emgraph.initializers.utils import export_emgraph_initializer
 
@@ -44,13 +47,17 @@ class RandomUniform(Initializer):
         :type hyperparam_dict: dict
         """
 
-        self._initializer_params['low'] = hyperparam_dict.get('low', DEFAULT_UNIFORM_LOW)
-        self._initializer_params['high'] = hyperparam_dict.get('high', DEFAULT_UNIFORM_HIGH)
+        self._initializer_params["low"] = hyperparam_dict.get(
+            "low", DEFAULT_UNIFORM_LOW
+        )
+        self._initializer_params["high"] = hyperparam_dict.get(
+            "high", DEFAULT_UNIFORM_HIGH
+        )
 
         if self.verbose:
             self._display_params()
 
-    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept='e'):
+    def _get_tf_initializer(self, in_shape=None, out_shape=None, concept="e"):
         """
         Generate an initialized Tensorflow node for the initializer.
 
@@ -65,11 +72,11 @@ class RandomUniform(Initializer):
         """
 
         return tf.random_uniform_initializer(
-            minval=self._initializer_params['low'],
-            maxval=self._initializer_params['high']
+            minval=self._initializer_params["low"],
+            maxval=self._initializer_params["high"],
         )
 
-    def _get_np_initializer(self, in_shape, out_shape, concept='e'):
+    def _get_np_initializer(self, in_shape, out_shape, concept="e"):
         """
         Generate an initialized Numpy array for the initializer.
 
@@ -84,7 +91,7 @@ class RandomUniform(Initializer):
         """
 
         return self.random_generator.uniform(
-            self._initializer_params['low'],
-            self._initializer_params['high'],
-            size=(in_shape, out_shape)
+            self._initializer_params["low"],
+            self._initializer_params["high"],
+            size=(in_shape, out_shape),
         ).astype(np.float32)

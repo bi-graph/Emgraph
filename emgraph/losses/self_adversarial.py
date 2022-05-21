@@ -1,11 +1,16 @@
 import tensorflow as tf
 
-from emgraph.losses._loss_constants import DEFAULT_ALPHA_ADVERSARIAL, DEFAULT_MARGIN_ADVERSARIAL
+from emgraph.losses._loss_constants import (
+    DEFAULT_ALPHA_ADVERSARIAL,
+    DEFAULT_MARGIN_ADVERSARIAL,
+)
 from emgraph.losses.loss import Loss
 from emgraph.losses.utils import export_emgraph_loss
 
 
-@export_emgraph_loss("self_adversarial", ['margin', 'alpha'], {'require_same_size_pos_neg': False})
+@export_emgraph_loss(
+    "self_adversarial", ["margin", "alpha"], {"require_same_size_pos_neg": False}
+)
 class SelfAdversarialLoss(Loss):
     r"""
     Self adversarial sampling loss :cite:`sun2018rotate`.
@@ -45,7 +50,10 @@ class SelfAdversarialLoss(Loss):
         """
 
         if hyperparam_dict is None:
-            hyperparam_dict = {'margin': DEFAULT_MARGIN_ADVERSARIAL, 'alpha': DEFAULT_ALPHA_ADVERSARIAL}
+            hyperparam_dict = {
+                "margin": DEFAULT_MARGIN_ADVERSARIAL,
+                "alpha": DEFAULT_ALPHA_ADVERSARIAL,
+            }
         super().__init__(eta, hyperparam_dict, verbose)
 
     def _init_hyperparams(self, hyperparam_dict):
@@ -60,8 +68,12 @@ class SelfAdversarialLoss(Loss):
         :rtype: -
         """
 
-        self._loss_parameters['margin'] = hyperparam_dict.get('margin', DEFAULT_MARGIN_ADVERSARIAL)
-        self._loss_parameters['alpha'] = hyperparam_dict.get('alpha', DEFAULT_ALPHA_ADVERSARIAL)
+        self._loss_parameters["margin"] = hyperparam_dict.get(
+            "margin", DEFAULT_MARGIN_ADVERSARIAL
+        )
+        self._loss_parameters["alpha"] = hyperparam_dict.get(
+            "alpha", DEFAULT_ALPHA_ADVERSARIAL
+        )
 
     def _apply(self, scores_pos, scores_neg):
         """
@@ -75,16 +87,26 @@ class SelfAdversarialLoss(Loss):
         :rtype: float
         """
 
-        margin = tf.constant(self._loss_parameters['margin'], dtype=tf.float32, name='margin')
-        alpha = tf.constant(self._loss_parameters['alpha'], dtype=tf.float32, name='alpha')
+        margin = tf.constant(
+            self._loss_parameters["margin"], dtype=tf.float32, name="margin"
+        )
+        alpha = tf.constant(
+            self._loss_parameters["alpha"], dtype=tf.float32, name="alpha"
+        )
 
         # Compute p(neg_samples) based on eq 4
-        scores_neg_reshaped = tf.reshape(scores_neg, [self._loss_parameters['eta'], tf.shape(scores_pos)[0]])
+        scores_neg_reshaped = tf.reshape(
+            scores_neg, [self._loss_parameters["eta"], tf.shape(scores_pos)[0]]
+        )
         p_neg = tf.nn.softmax(alpha * scores_neg_reshaped, axis=0)
 
         # Compute Loss based on eg 5
-        loss = tf.reduce_sum(-tf.math.log_sigmoid(margin - tf.negative(scores_pos))) - tf.reduce_sum(
-            tf.multiply(p_neg, tf.math.log_sigmoid(tf.negative(scores_neg_reshaped) - margin))
+        loss = tf.reduce_sum(
+            -tf.math.log_sigmoid(margin - tf.negative(scores_pos))
+        ) - tf.reduce_sum(
+            tf.multiply(
+                p_neg, tf.math.log_sigmoid(tf.negative(scores_neg_reshaped) - margin)
+            )
         )
 
         return loss

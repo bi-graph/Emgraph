@@ -2,7 +2,6 @@ from emgraph.initializers._initializer_constants import INITIALIZER_REGISTRY
 import tensorflow as tf
 
 
-
 def export_emgraph_initializer(name, external_params=[], class_params={}):
     """
     Wrapper for Saving the initializer class info in the INITIALIZER_REGISTRY dictionary.

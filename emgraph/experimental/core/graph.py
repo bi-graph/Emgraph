@@ -13,25 +13,24 @@ WEIGHT = "weight"
 
 
 class Graph:
-
     def __init__(
-            self,
-            nodes=None,
-            edges=None,
-            *,
-            is_directed=False,
-            source_column=SOURCE,
-            target_column=TARGET,
-            edge_weight_column=WEIGHT,
-            edge_type_column=None,
-            node_type_default=NODE_TYPE_DEFAULT,
-            edge_type_default=EDGE_TYPE_DEFAULT,
-            dtype="float32",
-            # legacy arguments:
-            graph=None,
-            node_type_name=TYPE_ATTR_NAME,
-            edge_type_name=TYPE_ATTR_NAME,
-            node_features=None,
+        self,
+        nodes=None,
+        edges=None,
+        *,
+        is_directed=False,
+        source_column=SOURCE,
+        target_column=TARGET,
+        edge_weight_column=WEIGHT,
+        edge_type_column=None,
+        node_type_default=NODE_TYPE_DEFAULT,
+        edge_type_default=EDGE_TYPE_DEFAULT,
+        dtype="float32",
+        # legacy arguments:
+        graph=None,
+        node_type_name=TYPE_ATTR_NAME,
+        edge_type_name=TYPE_ATTR_NAME,
+        node_features=None,
     ):
         """
 

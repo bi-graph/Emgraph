@@ -14,17 +14,17 @@ for cls in classes:
     print(f"model name: {cls.__name__}")
 
     model = cls(
-        batches_count=10, seed=0, epochs=1, k=150, eta=1,
-        loss='nll', optimizer='adam'
+        batches_count=10, seed=0, epochs=1, k=150, eta=1, loss="nll", optimizer="adam"
     )
-    model.fit(np.concatenate((X['train'], X['valid'])))
+    model.fit(np.concatenate((X["train"], X["valid"])))
 
-    filter_triples = np.concatenate((X['train'], X['valid'], X['test']))
+    filter_triples = np.concatenate((X["train"], X["valid"], X["test"]))
     ranks = evaluate_performance(
-        X['test'][:5], model=model,
+        X["test"][:5],
+        model=model,
         filter_triples=filter_triples,
-        corrupt_side='s+o',
-        use_default_protocol=False
+        corrupt_side="s+o",
+        use_default_protocol=False,
     )
 
     print(f"ranks: {ranks}\n\n")

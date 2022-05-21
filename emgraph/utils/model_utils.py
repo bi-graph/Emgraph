@@ -58,28 +58,32 @@ def save_model(model, model_name_path=None, protocol=pickle.HIGHEST_PROTOCOL):
         [-0.29721245, 0.07865551]
     """
 
-    logger.debug('Saving model {}.'.format(model.__class__.__name__))
+    logger.debug("Saving model {}.".format(model.__class__.__name__))
 
     obj = {
-        'class_name': model.__class__.__name__,
-        'hyperparams': model.all_params,
-        'is_fitted': model.is_fitted,
-        'ent_to_idx': model.ent_to_idx,
-        'rel_to_idx': model.rel_to_idx,
-        'is_calibrated': model.is_calibrated
+        "class_name": model.__class__.__name__,
+        "hyperparams": model.all_params,
+        "is_fitted": model.is_fitted,
+        "ent_to_idx": model.ent_to_idx,
+        "rel_to_idx": model.rel_to_idx,
+        "is_calibrated": model.is_calibrated,
     }
 
     model.get_embedding_model_params(obj)
 
     logger.debug(
-        'Saving hyperparams:{}\n\tis_fitted: \
-                         {}'.format(model.all_params, model.is_fitted)
+        "Saving hyperparams:{}\n\tis_fitted: \
+                         {}".format(
+            model.all_params, model.is_fitted
+        )
     )
 
     if model_name_path is None:
-        model_name_path = DEFAULT_MODEL_NAMES.format(strftime("%Y_%m_%d-%H_%M_%S", gmtime()))
+        model_name_path = DEFAULT_MODEL_NAMES.format(
+            strftime("%Y_%m_%d-%H_%M_%S", gmtime())
+        )
 
-    with open(model_name_path, 'wb') as fw:
+    with open(model_name_path, "wb") as fw:
         pickle.dump(obj, fw, protocol=protocol)
         # dump model tf
 
@@ -122,43 +126,47 @@ def restore_model(model_name_path=None):
             model_name_path = default_models[len(default_models) - 1]
             logger.info(
                 "Will will load the model: {0} in your \
-                                         current dir...".format(model_name_path)
+                                         current dir...".format(
+                    model_name_path
+                )
             )
 
     model = None
-    logger.info('Will load model {}.'.format(model_name_path))
+    logger.info("Will load model {}.".format(model_name_path))
 
     try:
-        with open(model_name_path, 'rb') as fr:
+        with open(model_name_path, "rb") as fr:
             restored_obj = pickle.load(fr)
 
-        logger.debug('Restoring model ...')
+        logger.debug("Restoring model ...")
         module = importlib.import_module("emgraph.models")
-        class_ = getattr(module, restored_obj['class_name'])
-        model = class_(**restored_obj['hyperparams'])
-        model.is_fitted = restored_obj['is_fitted']
-        model.ent_to_idx = restored_obj['ent_to_idx']
-        model.rel_to_idx = restored_obj['rel_to_idx']
+        class_ = getattr(module, restored_obj["class_name"])
+        model = class_(**restored_obj["hyperparams"])
+        model.is_fitted = restored_obj["is_fitted"]
+        model.ent_to_idx = restored_obj["ent_to_idx"]
+        model.rel_to_idx = restored_obj["rel_to_idx"]
 
         try:
-            model.is_calibrated = restored_obj['is_calibrated']
+            model.is_calibrated = restored_obj["is_calibrated"]
         except KeyError:
             model.is_calibrated = False
 
         model.restore_model_params(restored_obj)
     except pickle.UnpicklingError as e:
-        msg = 'Error unpickling model {} : {}.'.format(model_name_path, e)
+        msg = "Error unpickling model {} : {}.".format(model_name_path, e)
         logger.debug(msg)
         raise Exception(msg)
     except (IOError, FileNotFoundError):
-        msg = 'No model found: {}.'.format(model_name_path)
+        msg = "No model found: {}.".format(model_name_path)
         logger.debug(msg)
         raise FileNotFoundError(msg)
 
     return model
 
 
-def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=True, export_tsv_embeddings=True):
+def create_tensorboard_visualizations(
+    model, loc, labels=None, write_metadata=True, export_tsv_embeddings=True
+):
     """Export embeddings to Tensorboard.
 
     This function exports embeddings to disk in a format used by
@@ -236,34 +244,38 @@ def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=Tr
 
     # Create loc if it doesn't exist
     if not os.path.exists(loc):
-        logger.debug('Creating Tensorboard visualization directory: %s' % loc)
+        logger.debug("Creating Tensorboard visualization directory: %s" % loc)
         os.mkdir(loc)
 
     if not model.is_fitted:
-        raise ValueError('Cannot write embeddings if model is not fitted.')
+        raise ValueError("Cannot write embeddings if model is not fitted.")
 
     # If no label data supplied, use model ent_to_idx keys as labels
     if labels is None:
 
-        logger.info('Using model entity dictionary to create Tensorboard metadata.tsv')
+        logger.info("Using model entity dictionary to create Tensorboard metadata.tsv")
         labels = list(model.ent_to_idx.keys())
     else:
         if len(labels) != len(model.ent_to_idx):
-            raise ValueError('Label data rows must equal number of embeddings.')
+            raise ValueError("Label data rows must equal number of embeddings.")
 
     if write_metadata:
-        logger.debug('Writing metadata.tsv to: %s' % loc)
+        logger.debug("Writing metadata.tsv to: %s" % loc)
         write_metadata_tsv(loc, labels)
 
     if export_tsv_embeddings:
         tsv_filename = "embeddings_projector.tsv"
-        logger.info('Writing embeddings tsv to: %s' % os.path.join(loc, tsv_filename))
-        np.savetxt(os.path.join(loc, tsv_filename), model.trained_model_params[0], delimiter='\t')
+        logger.info("Writing embeddings tsv to: %s" % os.path.join(loc, tsv_filename))
+        np.savetxt(
+            os.path.join(loc, tsv_filename),
+            model.trained_model_params[0],
+            delimiter="\t",
+        )
 
-    checkpoint_path = os.path.join(loc, 'graph_embedding.ckpt')
+    checkpoint_path = os.path.join(loc, "graph_embedding.ckpt")
 
     # Create embeddings Variable
-    embedding_var = tf.Variable(model.trained_model_params[0], name='graph_embedding')
+    embedding_var = tf.Variable(model.trained_model_params[0], name="graph_embedding")
 
     with tf.Session() as sess:
         saver = tf.train.Saver([embedding_var])
@@ -279,7 +291,7 @@ def create_tensorboard_visualizations(model, loc, labels=None, write_metadata=Tr
         embedding.tensor_name = embedding_var.name
 
         # Link this tensor to its metadata file (e.g. labels).
-        embedding.metadata_path = 'metadata.tsv'
+        embedding.metadata_path = "metadata.tsv"
 
         # Saves a config file that TensorBoard will read during startup.
         projector.visualize_embeddings(tf.summary.FileWriter(loc), config)
@@ -299,15 +311,15 @@ def write_metadata_tsv(loc, data):
     """
 
     # Write metadata.tsv
-    metadata_path = os.path.join(loc, 'metadata.tsv')
+    metadata_path = os.path.join(loc, "metadata.tsv")
 
     if isinstance(data, list):
-        with open(metadata_path, 'w+', encoding='utf8') as metadata_file:
+        with open(metadata_path, "w+", encoding="utf8") as metadata_file:
             for row in data:
-                metadata_file.write('%s\n' % row)
+                metadata_file.write("%s\n" % row)
 
     elif isinstance(data, pd.DataFrame):
-        data.to_csv(metadata_path, sep='\t', index=False)
+        data.to_csv(metadata_path, sep="\t", index=False)
 
 
 def dataframe_to_triples(X, schema):

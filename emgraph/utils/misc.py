@@ -11,11 +11,18 @@ DEBUG = True
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
 def make_variable(
-        name=None, shape=None, initializer=tf.keras.initializers.Zeros, dtype=tf.float32,
-        trainable=True
+    name=None,
+    shape=None,
+    initializer=tf.keras.initializers.Zeros,
+    dtype=tf.float32,
+    trainable=True,
 ):
-    return tf.Variable(initializer(shape=shape, dtype=dtype), name=name, trainable=trainable)
+    return tf.Variable(
+        initializer(shape=shape, dtype=dtype), name=name, trainable=trainable
+    )
+
 
 def get_entity_triples(entity, graph):
     """
@@ -29,7 +36,11 @@ def get_entity_triples(entity, graph):
     :rtype: np.ndarray, shape [n, 3]
     """
 
-    logger.debug('Return a list of all triples where {} appears as subject or object.'.format(entity))
+    logger.debug(
+        "Return a list of all triples where {} appears as subject or object.".format(
+            entity
+        )
+    )
     # NOTE: The current implementation is slightly faster (~15%) than the more readable one-liner:
     #           rows, _ = np.where((entity == graph[:,[SUBJECT,OBJECT]]))
 

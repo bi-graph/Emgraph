@@ -6,7 +6,7 @@ from emgraph.initializers._initializer_constants import DEFAULT_GLOROT_IS_UNIFOR
 from emgraph.utils import constants as constants
 from .EmbeddingModel import EmbeddingModel, register_model
 
-tf.device('/physical_device:GPU:0')  # todo: fix me
+tf.device("/physical_device:GPU:0")  # todo: fix me
 
 
 @register_model("ComplEx", ["negative_corruption_entities"])
@@ -90,25 +90,25 @@ class ComplEx(EmbeddingModel):
     """
 
     def __init__(
-            self,
-            k=constants.DEFAULT_EMBEDDING_SIZE,
-            eta=constants.DEFAULT_ETA,
-            epochs=constants.DEFAULT_EPOCH,
-            batches_count=constants.DEFAULT_BATCH_COUNT,
-            seed=constants.DEFAULT_SEED,
-            embedding_model_params={
-                'negative_corruption_entities': constants.DEFAULT_CORRUPTION_ENTITIES,
-                'corrupt_sides': constants.DEFAULT_CORRUPT_SIDE_TRAIN
-            },
-            optimizer=constants.DEFAULT_OPTIM,
-            optimizer_params={'lr': constants.DEFAULT_LR},
-            loss=constants.DEFAULT_LOSS,
-            loss_params={},
-            regularizer=constants.DEFAULT_REGULARIZER,
-            regularizer_params={},
-            initializer=constants.DEFAULT_INITIALIZER,
-            initializer_params={'uniform': DEFAULT_GLOROT_IS_UNIFORM},
-            verbose=constants.DEFAULT_VERBOSE
+        self,
+        k=constants.DEFAULT_EMBEDDING_SIZE,
+        eta=constants.DEFAULT_ETA,
+        epochs=constants.DEFAULT_EPOCH,
+        batches_count=constants.DEFAULT_BATCH_COUNT,
+        seed=constants.DEFAULT_SEED,
+        embedding_model_params={
+            "negative_corruption_entities": constants.DEFAULT_CORRUPTION_ENTITIES,
+            "corrupt_sides": constants.DEFAULT_CORRUPT_SIDE_TRAIN,
+        },
+        optimizer=constants.DEFAULT_OPTIM,
+        optimizer_params={"lr": constants.DEFAULT_LR},
+        loss=constants.DEFAULT_LOSS,
+        loss_params={},
+        regularizer=constants.DEFAULT_REGULARIZER,
+        regularizer_params={},
+        initializer=constants.DEFAULT_INITIALIZER,
+        initializer_params={"uniform": DEFAULT_GLOROT_IS_UNIFORM},
+        verbose=constants.DEFAULT_VERBOSE,
     ):
         """Initialize an EmbeddingModel
 
@@ -203,13 +203,21 @@ class ComplEx(EmbeddingModel):
         :type verbose: bool
         """
         super().__init__(
-            k=k, eta=eta, epochs=epochs, batches_count=batches_count, seed=seed,
+            k=k,
+            eta=eta,
+            epochs=epochs,
+            batches_count=batches_count,
+            seed=seed,
             embedding_model_params=embedding_model_params,
-            optimizer=optimizer, optimizer_params=optimizer_params,
-            loss=loss, loss_params=loss_params,
-            regularizer=regularizer, regularizer_params=regularizer_params,
-            initializer=initializer, initializer_params=initializer_params,
-            verbose=verbose
+            optimizer=optimizer,
+            optimizer_params=optimizer_params,
+            loss=loss,
+            loss_params=loss_params,
+            regularizer=regularizer,
+            regularizer_params=regularizer_params,
+            initializer=initializer,
+            initializer_params=initializer_params,
+            verbose=verbose,
         )
 
         self.internal_k = self.k * 2
@@ -224,36 +232,36 @@ class ComplEx(EmbeddingModel):
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
             self.ent_emb = self.make_variable(
-                'ent_emb_{}'.format(timestamp),
+                "ent_emb_{}".format(timestamp),
                 shape=[len(self.ent_to_idx), self.internal_k],
                 initializer=self.initializer.get_entity_initializer(
                     len(self.ent_to_idx), self.internal_k
                 ),
-                dtype=tf.float32
+                dtype=tf.float32,
             )
             self.rel_emb = self.make_variable(
-                'rel_emb_{}'.format(timestamp),
+                "rel_emb_{}".format(timestamp),
                 shape=[len(self.rel_to_idx), self.internal_k],
                 initializer=self.initializer.get_relation_initializer(
                     len(self.rel_to_idx), self.internal_k
                 ),
-                dtype=tf.float32
+                dtype=tf.float32,
             )
         else:
             # initialize entity embeddings to zero (these are reinitialized every batch by batch embeddings)
             self.ent_emb = self.make_variable(
-                'ent_emb_{}'.format(timestamp),
+                "ent_emb_{}".format(timestamp),
                 shape=[self.batch_size * 2, self.internal_k],
                 initializer=tf.zeros_initializer(),
-                dtype=tf.float32
+                dtype=tf.float32,
             )
             self.rel_emb = self.make_variable(
-                'rel_emb_{}'.format(timestamp),
+                "rel_emb_{}".format(timestamp),
                 shape=[len(self.rel_to_idx), self.internal_k],
                 initializer=self.initializer.get_relation_initializer(
                     len(self.rel_to_idx), self.internal_k
                 ),
-                dtype=tf.float32
+                dtype=tf.float32,
             )
 
     def _fn(self, e_s, e_p, e_o):
@@ -282,14 +290,20 @@ class ComplEx(EmbeddingModel):
         e_o_real, e_o_img = tf.split(e_o, 2, axis=1)
 
         # See Eq. 9 [trouillon2016complex):
-        return tf.reduce_sum(e_p_real * e_s_real * e_o_real, axis=1) + \
-               tf.reduce_sum(e_p_real * e_s_img * e_o_img, axis=1) + \
-               tf.reduce_sum(e_p_img * e_s_real * e_o_img, axis=1) - \
-               tf.reduce_sum(e_p_img * e_s_img * e_o_real, axis=1)
+        return (
+            tf.reduce_sum(e_p_real * e_s_real * e_o_real, axis=1)
+            + tf.reduce_sum(e_p_real * e_s_img * e_o_img, axis=1)
+            + tf.reduce_sum(e_p_img * e_s_real * e_o_img, axis=1)
+            - tf.reduce_sum(e_p_img * e_s_img * e_o_real, axis=1)
+        )
 
     def fit(
-            self, X, early_stopping=False, early_stopping_params={}, focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None
+        self,
+        X,
+        early_stopping=False,
+        early_stopping_params={},
+        focusE_numeric_edge_values=None,
+        tensorboard_logs_path=None,
     ):
         """Train a ComplEx model.
 
@@ -403,8 +417,11 @@ class ComplEx(EmbeddingModel):
         :rtype:
         """
         super().fit(
-            X, early_stopping, early_stopping_params, focusE_numeric_edge_values,
-            tensorboard_logs_path=tensorboard_logs_path
+            X,
+            early_stopping,
+            early_stopping_params,
+            focusE_numeric_edge_values,
+            tensorboard_logs_path=tensorboard_logs_path,
         )
 
     def predict(self, X, from_idx=False):
@@ -425,7 +442,9 @@ class ComplEx(EmbeddingModel):
         __doc__ = super().predict.__doc__  # NOQA
         return super().predict(X, from_idx=from_idx)
 
-    def _calibrate(self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50):
+    def _calibrate(
+        self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50
+    ):
         """Calibrate predictions
 
         The method implements the heuristics described in :cite:`calibration`,

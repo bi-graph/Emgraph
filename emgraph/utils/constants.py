@@ -1,6 +1,6 @@
 # Default values:
 
-DEFAULT_INITIALIZER = 'glorot_uniform'
+DEFAULT_INITIALIZER = "glorot_uniform"
 
 # Default learning rate for the optimizers
 DEFAULT_LR = 0.0005
@@ -18,20 +18,20 @@ DEFAULT_CHECK_INTERVAL_EARLY_STOPPING = 10
 DEFAULT_STOP_INTERVAL_EARLY_STOPPING = 3
 
 # default evaluation criteria for early stopping
-DEFAULT_CRITERIA_EARLY_STOPPING = 'mrr'
+DEFAULT_CRITERIA_EARLY_STOPPING = "mrr"
 
 # default value which indicates whether to normalize the embeddings after each batch update
 DEFAULT_NORMALIZE_EMBEDDINGS = False
 
 # Default side to corrupt for evaluation
-DEFAULT_CORRUPT_SIDE_EVAL = 's,o'
+DEFAULT_CORRUPT_SIDE_EVAL = "s,o"
 
 # default hyperparameter for transE
 DEFAULT_NORM_TRANSE = 1
 
 # default value for the way in which the corruptions are to be generated while training/testing.
 # Uses all entities
-DEFAULT_CORRUPTION_ENTITIES = 'all'
+DEFAULT_CORRUPTION_ENTITIES = "all"
 
 # Threshold (on number of unique entities) to categorize the data as Huge Dataset (to warn user)
 ENTITY_WARN_THRESHOLD = 5e5
@@ -64,7 +64,7 @@ DEFAULT_REGULARIZER = None
 DEFAULT_VERBOSE = False
 
 # Specifies how to generate corruptions for training - default does s and o together and applies the loss
-DEFAULT_CORRUPT_SIDE_TRAIN = ['s,o']
+DEFAULT_CORRUPT_SIDE_TRAIN = ["s,o"]
 
 # Subject corruption with a OneToNDatasetAdapter requires an N*N matrix (where N is number of unique entities).
 # Specify a batch size to reduce memory overhead.
@@ -80,7 +80,7 @@ DEFAULT_CONVE_USE_BIAS = True
 DEFAULT_CONVE_USE_BATCHNORM = True
 
 # Default value for comparison strategy to use while comparing scores of corruptions against positive
-DEFAULT_RANK_COMPARE_STRATEGY = 'worst'
+DEFAULT_RANK_COMPARE_STRATEGY = "worst"
 
 # Score comparison precision
 # (Multiplies the score with this value and truncates the decimal part for comparison)

@@ -4,7 +4,7 @@ from emgraph.training.optimizer import Optimizer
 from emgraph.training.utils import export_emgraph_optimizer
 
 
-@export_emgraph_optimizer("adagrad", ['lr'])
+@export_emgraph_optimizer("adagrad", ["lr"])
 class Adagrad(Optimizer):
     """
     Wrapper around adagrad optimizer.
@@ -39,7 +39,9 @@ class Adagrad(Optimizer):
         :rtype: tf.Operation
         """
 
-        self.optimizer = tf.optimizers.Adagrad(learning_rate=self._optimizer_params['lr'])
+        self.optimizer = tf.optimizers.Adagrad(
+            learning_rate=self._optimizer_params["lr"]
+        )
         train = self.optimizer.minimize(loss, var_list)
         return train
 

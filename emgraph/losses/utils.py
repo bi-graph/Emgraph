@@ -1,6 +1,10 @@
 import tensorflow as tf
 
-from emgraph.losses._loss_constants import DEFAULT_CLIP_EXP_LOWER, DEFAULT_CLIP_EXP_UPPER, LOSS_REGISTRY
+from emgraph.losses._loss_constants import (
+    DEFAULT_CLIP_EXP_LOWER,
+    DEFAULT_CLIP_EXP_UPPER,
+    LOSS_REGISTRY,
+)
 
 
 def export_emgraph_loss(name, external_params=[], class_params={}):
@@ -17,14 +21,14 @@ def export_emgraph_loss(name, external_params=[], class_params={}):
     :rtype: object
     """
 
-    default_class_params = {'require_same_size_pos_neg': True}
+    default_class_params = {"require_same_size_pos_neg": True}
 
     def populate_class_params():
         LOSS_REGISTRY[name].class_params = {
-            'require_same_size_pos_neg': class_params.get(
-                'require_same_size_pos_neg',
-                default_class_params['require_same_size_pos_neg']
-                )
+            "require_same_size_pos_neg": class_params.get(
+                "require_same_size_pos_neg",
+                default_class_params["require_same_size_pos_neg"],
+            )
         }
 
     def insert_in_registry(class_handle):
@@ -45,5 +49,5 @@ def clip_before_exp(value):
     return tf.clip_by_value(
         value,
         clip_value_min=DEFAULT_CLIP_EXP_LOWER,
-        clip_value_max=DEFAULT_CLIP_EXP_UPPER
-        )
+        clip_value_max=DEFAULT_CLIP_EXP_UPPER,
+    )
