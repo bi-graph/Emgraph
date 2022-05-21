@@ -3,22 +3,8 @@ import os
 import numpy as np
 import pytest
 
-from emgraph.datasets import (
-    OneToNDatasetAdapter,
-    load_cn15k,
-    load_fb13,
-    load_fb15k,
-    load_fb15k_237,
-    load_from_ntriples,
-    load_nl27k,
-    load_onet20k,
-    load_ppi5k,
-    load_wn11,
-    load_wn18,
-    load_wn18rr,
-    load_yago3_10,
-)
-from emgraph.datasets.datasets import _clean_data
+from emgraph.datasets import BaseDataset, OneToNDatasetAdapter
+from emgraph.datasets import DatasetType
 
 
 def test_clean_data():
@@ -34,7 +20,7 @@ def test_clean_data():
         ),
     }
 
-    clean_X, valid_idx, test_idx = _clean_data(X, return_idx=True)
+    clean_X, valid_idx, test_idx = BaseDataset._clean_data(X, return_idx=True)
 
     np.testing.assert_array_equal(clean_X["train"], X["train"])
     np.testing.assert_array_equal(clean_X["valid"], np.array([["a", "b", "c"]]))
@@ -46,7 +32,7 @@ def test_clean_data():
 
 
 def test_load_wn18():
-    wn18 = load_wn18()
+    wn18 = BaseDataset.load_dataset(DatasetType.WN18)
     assert len(wn18["train"]) == 141442
     assert len(wn18["valid"]) == 5000
     assert len(wn18["test"]) == 5000
@@ -71,7 +57,7 @@ def test_load_wn18():
 def test_reciprocals():
     """Test for reciprocal relations"""
     # Create dataset with reciprocal relations and test if the are added
-    fb15k = load_fb15k(add_reciprocal_rels=True)
+    fb15k = BaseDataset.load_dataset(DatasetType.FB15K, add_reciprocal_rels=True)
     train_reciprocal = fb15k["train"]
     triple = train_reciprocal[0]
     reciprocal_triple = train_reciprocal[train_reciprocal.shape[0] // 2]
@@ -80,12 +66,12 @@ def test_reciprocals():
     assert triple[1] + "_reciprocal" == reciprocal_triple[1]
 
     # create the same dataset without reciprocals. Now the number of triples should be half of prev
-    fb15k = load_fb15k(add_reciprocal_rels=False)
+    fb15k = BaseDataset.load_dataset(DatasetType.FB15K, add_reciprocal_rels=False)
     assert fb15k["train"].shape[0] == train_reciprocal.shape[0] // 2
 
 
 def test_load_fb15k():
-    fb15k = load_fb15k()
+    fb15k = BaseDataset.load_dataset(DatasetType.FB15K)
     assert len(fb15k["train"]) == 483142
     assert len(fb15k["valid"]) == 50000
     assert len(fb15k["test"]) == 59071
@@ -102,7 +88,7 @@ def test_load_fb15k():
 
 
 def test_load_fb15k_237():
-    fb15k_237 = load_fb15k_237()
+    fb15k_237 = BaseDataset.load_dataset(DatasetType.FB15K_237)
     assert len(fb15k_237["train"]) == 272115
 
     # - 9 because 9 triples containing unseen entities are removed
@@ -113,7 +99,7 @@ def test_load_fb15k_237():
 
 
 def test_yago_3_10():
-    yago_3_10 = load_yago3_10()
+    yago_3_10 = BaseDataset.load_dataset(DatasetType.YAGO3_10)
     assert len(yago_3_10["train"]) == 1079040
     assert len(yago_3_10["valid"]) == 5000 - 22
     assert len(yago_3_10["test"]) == 5000 - 18
@@ -134,7 +120,7 @@ def test_yago_3_10():
 
 
 def test_wn18rr():
-    wn18rr = load_wn18rr()
+    wn18rr = BaseDataset.load_dataset(DatasetType.WN18RR)
 
     ent_train = np.union1d(
         np.unique(wn18rr["train"][:, 0]), np.unique(wn18rr["train"][:, 2])
@@ -161,7 +147,7 @@ def test_wn18rr():
 
 
 def test_wn11():
-    wn11 = load_wn11(clean_unseen=False)
+    wn11 = BaseDataset.load_dataset(DatasetType.WN11, clean_unseen=False)
     assert len(wn11["train"]) == 110361
     assert len(wn11["valid"]) == 5215
     assert len(wn11["test"]) == 21035
@@ -170,7 +156,7 @@ def test_wn11():
     assert sum(wn11["valid_labels"]) == 2606
     assert sum(wn11["test_labels"]) == 10493
 
-    wn11 = load_wn11(clean_unseen=True)
+    wn11 = BaseDataset.load_dataset(DatasetType.WN11, clean_unseen=True)
     assert len(wn11["train"]) == 110361
     assert len(wn11["valid"]) == 5215 - 338
     assert len(wn11["test"]) == 21035 - 1329
@@ -181,7 +167,7 @@ def test_wn11():
 
 
 def test_fb13():
-    fb13 = load_fb13(clean_unseen=False)
+    fb13 = BaseDataset.load_dataset(DatasetType.FB13, clean_unseen=False)
     assert len(fb13["train"]) == 316232
     assert len(fb13["valid"]) == 5908 + 5908
     assert len(fb13["test"]) == 23733 + 23731
@@ -190,7 +176,7 @@ def test_fb13():
     assert sum(fb13["valid_labels"]) == 5908
     assert sum(fb13["test_labels"]) == 23733
 
-    fb13 = load_fb13(clean_unseen=True)
+    fb13 = BaseDataset.load_dataset(DatasetType.FB13, clean_unseen=True)
     assert len(fb13["train"]) == 316232
     assert len(fb13["valid"]) == 5908 + 5908
     assert len(fb13["test"]) == 23733 + 23731
@@ -201,7 +187,7 @@ def test_fb13():
 
 
 def test_onet20k():
-    onet = load_onet20k()
+    onet = BaseDataset.load_dataset(DatasetType.ONET20K)
     assert len(onet["train"]) == 461932
     assert len(onet["valid"]) == 850
     assert len(onet["test"]) == 2000
@@ -211,7 +197,7 @@ def test_onet20k():
 
 
 def test_nl27k():
-    nl27k = load_nl27k()
+    nl27k = BaseDataset.load_dataset(DatasetType.NL27K)
     assert len(nl27k["train"]) == 149100
     assert len(nl27k["valid"]) == 12274
     assert len(nl27k["test"]) == 14026
@@ -219,7 +205,7 @@ def test_nl27k():
     assert len(nl27k["valid_numeric_values"]) == 12274
     assert len(nl27k["test_numeric_values"]) == 14026
 
-    nl27k = load_nl27k(clean_unseen=False)
+    nl27k = BaseDataset.load_dataset(DatasetType.NL27K, clean_unseen=False)
     assert len(nl27k["train"]) == 149100
     assert len(nl27k["valid"]) == 12274 + 4
     assert len(nl27k["test"]) == 14026 + 8
@@ -229,7 +215,7 @@ def test_nl27k():
 
 
 def test_ppi5k():
-    ppi5k = load_ppi5k()
+    ppi5k = BaseDataset.load_dataset(DatasetType.PPI5K)
     assert len(ppi5k["train"]) == 230929
     assert len(ppi5k["valid"]) == 19017
     assert len(ppi5k["test"]) == 21720
@@ -239,7 +225,7 @@ def test_ppi5k():
 
 
 def test_cn15k():
-    cn15k = load_cn15k()
+    cn15k = BaseDataset.load_dataset(DatasetType.CN15K)
     assert len(cn15k["train"]) == 199417
     assert len(cn15k["valid"]) == 16829
     assert len(cn15k["test"]) == 19224
@@ -251,7 +237,7 @@ def test_cn15k():
 def test_load_from_ntriples(request):
     rootdir = request.config.rootdir
     path = os.path.join(rootdir, "tests", "emgraph", "datasets")
-    X = load_from_ntriples("", "test_triples.nt", data_home=path)
+    X = BaseDataset.load_from_ntriples("", "test_triples.nt", data_home=path)
     assert X.shape == (3, 3)
     assert len(np.unique(X.flatten())) == 6
 
