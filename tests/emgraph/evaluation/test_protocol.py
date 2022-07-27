@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
-from emgraph.datasets import BaseDataset,DatasetType
+from emgraph.datasets import BaseDataset, DatasetType
 from emgraph.evaluation import (
     create_mappings,
     evaluate_performance,

@@ -183,24 +183,24 @@ class EmbeddingModel(abc.ABC):
     """
 
     def __init__(
-            self,
-            k=constants.DEFAULT_EMBEDDING_SIZE,
-            eta=constants.DEFAULT_ETA,
-            epochs=constants.DEFAULT_EPOCH,
-            batches_count=constants.DEFAULT_BATCH_COUNT,
-            seed=constants.DEFAULT_SEED,
-            embedding_model_params={},
-            optimizer=constants.DEFAULT_OPTIM,
-            optimizer_params={"lr": constants.DEFAULT_LR},
-            loss=constants.DEFAULT_LOSS,
-            loss_params={},
-            regularizer=constants.DEFAULT_REGULARIZER,
-            regularizer_params={},
-            initializer=constants.DEFAULT_INITIALIZER,
-            initializer_params={"uniform": DEFAULT_GLOROT_IS_UNIFORM},
-            large_graphs=False,
-            verbose=constants.DEFAULT_VERBOSE,
-            model_variables=None,
+        self,
+        k=constants.DEFAULT_EMBEDDING_SIZE,
+        eta=constants.DEFAULT_ETA,
+        epochs=constants.DEFAULT_EPOCH,
+        batches_count=constants.DEFAULT_BATCH_COUNT,
+        seed=constants.DEFAULT_SEED,
+        embedding_model_params={},
+        optimizer=constants.DEFAULT_OPTIM,
+        optimizer_params={"lr": constants.DEFAULT_LR},
+        loss=constants.DEFAULT_LOSS,
+        loss_params={},
+        regularizer=constants.DEFAULT_REGULARIZER,
+        regularizer_params={},
+        initializer=constants.DEFAULT_INITIALIZER,
+        initializer_params={"uniform": DEFAULT_GLOROT_IS_UNIFORM},
+        large_graphs=False,
+        verbose=constants.DEFAULT_VERBOSE,
+        model_variables=None,
     ):
         """Initialize the EmbeddingModel class"""
 
@@ -505,10 +505,10 @@ class EmbeddingModel(abc.ABC):
 
         if get_weight:
             wt = self.weight_triple[
-                 self.batch_number
-                 * self.batch_size: (self.batch_number + 1)
-                                    * self.batch_size
-                 ]
+                self.batch_number
+                * self.batch_size : (self.batch_number + 1)
+                * self.batch_size
+            ]
 
             return e_s, e_p, e_o, wt
         return e_s, e_p, e_o
@@ -533,12 +533,12 @@ class EmbeddingModel(abc.ABC):
 
     # tf2x_dev branch
     def make_variable(
-            self,
-            name=None,
-            shape=None,
-            initializer=tf.keras.initializers.Zeros,
-            dtype=tf.float32,
-            trainable=True,
+        self,
+        name=None,
+        shape=None,
+        initializer=tf.keras.initializers.Zeros,
+        dtype=tf.float32,
+        trainable=True,
     ):
         return tf.Variable(
             initializer(shape=shape, dtype=dtype), name=name, trainable=trainable
@@ -700,7 +700,7 @@ class EmbeddingModel(abc.ABC):
                         "structural_wt", 0.001
                     )
                     assert (
-                            structure_weight <= 1 and structure_weight >= 0
+                        structure_weight <= 1 and structure_weight >= 0
                     ), "Invalid structure_weight passed to model params!"
 
                 else:
@@ -932,15 +932,15 @@ class EmbeddingModel(abc.ABC):
         """
 
         if (
-                epoch
-                >= self.early_stopping_params.get(
-            "burn_in", constants.DEFAULT_BURN_IN_EARLY_STOPPING
-        )
-                and epoch
-                % self.early_stopping_params.get(
-            "check_interval", constants.DEFAULT_CHECK_INTERVAL_EARLY_STOPPING
-        )
-                == 0
+            epoch
+            >= self.early_stopping_params.get(
+                "burn_in", constants.DEFAULT_BURN_IN_EARLY_STOPPING
+            )
+            and epoch
+            % self.early_stopping_params.get(
+                "check_interval", constants.DEFAULT_CHECK_INTERVAL_EARLY_STOPPING
+            )
+            == 0
         ):
             # compute and store test_loss
             ranks = []
@@ -949,10 +949,10 @@ class EmbeddingModel(abc.ABC):
             for x_test_triple in range(self.eval_dataset_handle.get_size("valid")):
                 rank_triple = self.rank
                 if (
-                        self.eval_config.get(
-                            "corrupt_side", constants.DEFAULT_CORRUPT_SIDE_EVAL
-                        )
-                        == "s,o"
+                    self.eval_config.get(
+                        "corrupt_side", constants.DEFAULT_CORRUPT_SIDE_EVAL
+                    )
+                    == "s,o"
                 ):
                     ranks.append(list(rank_triple))
                 else:
@@ -982,15 +982,15 @@ class EmbeddingModel(abc.ABC):
             elif self.early_stopping_best_value >= current_test_value:
                 self.early_stopping_stop_counter += 1
                 if self.early_stopping_stop_counter == self.early_stopping_params.get(
-                        "stop_interval", constants.DEFAULT_STOP_INTERVAL_EARLY_STOPPING
+                    "stop_interval", constants.DEFAULT_STOP_INTERVAL_EARLY_STOPPING
                 ):
 
                     # If the best value for the criteria has not changed from
                     #  initial value then
                     # save the model before early stopping
                     if (
-                            self.early_stopping_best_value
-                            == self.early_stopping_first_value
+                        self.early_stopping_best_value
+                        == self.early_stopping_first_value
                     ):
                         self._save_trained_params()
 
@@ -1107,12 +1107,12 @@ class EmbeddingModel(abc.ABC):
                 yield np.squeeze(out_triples), unique_entities, entity_embeddings
 
     def fit(
-            self,
-            X,
-            early_stopping=False,
-            early_stopping_params={},
-            focusE_numeric_edge_values=None,
-            tensorboard_logs_path=None,
+        self,
+        X,
+        early_stopping=False,
+        early_stopping_params={},
+        focusE_numeric_edge_values=None,
+        tensorboard_logs_path=None,
     ):
         """Train an EmbeddingModel (with optional early stopping).
 
@@ -1181,16 +1181,16 @@ class EmbeddingModel(abc.ABC):
                         for col_idx in range(focusE_numeric_edge_values.shape[1]):
                             # here nans signify unknown numeric values
                             if (
-                                    np.sum(
-                                        np.isnan(
-                                            focusE_numeric_edge_values[
-                                                X[:, 1] == reln, col_idx
-                                            ]
-                                        )
+                                np.sum(
+                                    np.isnan(
+                                        focusE_numeric_edge_values[
+                                            X[:, 1] == reln, col_idx
+                                        ]
                                     )
-                                    != focusE_numeric_edge_values[
-                                X[:, 1] == reln, col_idx
-                            ].shape[0]
+                                )
+                                != focusE_numeric_edge_values[
+                                    X[:, 1] == reln, col_idx
+                                ].shape[0]
                             ):
                                 min_val = np.nanmin(
                                     focusE_numeric_edge_values[X[:, 1] == reln, col_idx]
@@ -1205,22 +1205,22 @@ class EmbeddingModel(abc.ABC):
                                     continue
 
                                 if (
-                                        self.embedding_model_params.get(
-                                            "normalize_numeric_values", True
-                                        )
-                                        or min_val < 0
-                                        or max_val > 1
+                                    self.embedding_model_params.get(
+                                        "normalize_numeric_values", True
+                                    )
+                                    or min_val < 0
+                                    or max_val > 1
                                 ):
                                     focusE_numeric_edge_values[
                                         X[:, 1] == reln, col_idx
                                     ] = (
-                                                focusE_numeric_edge_values[
-                                                    X[:, 1] == reln, col_idx
-                                                ]
-                                                - min_val
-                                        ) / (
-                                                max_val - min_val
-                                        )
+                                        focusE_numeric_edge_values[
+                                            X[:, 1] == reln, col_idx
+                                        ]
+                                        - min_val
+                                    ) / (
+                                        max_val - min_val
+                                    )
                             else:
                                 pass  # all the weights are nans
 
@@ -1366,7 +1366,7 @@ class EmbeddingModel(abc.ABC):
 
             # todo: this is tf1 compatible -> should be removed
             if self.embedding_model_params.get(
-                    "normalize_ent_emb", constants.DEFAULT_NORMALIZE_EMBEDDINGS
+                "normalize_ent_emb", constants.DEFAULT_NORMALIZE_EMBEDDINGS
             ):
                 # Entity embeddings normalization
                 normalize_rel_emb_op = self.rel_emb.assign(
@@ -1400,8 +1400,8 @@ class EmbeddingModel(abc.ABC):
                             loss_batch, [self.ent_emb, self.rel_emb]
                         )
                         self.ent_emb_cpu[np.squeeze(unique_entities), :] = self.ent_emb[
-                                                                           : unique_entities.shape[0], :
-                                                                           ]
+                            : unique_entities.shape[0], :
+                        ]
                         # self.sess_train.run(self.ent_emb)[:unique_entities.shape[0], :]
                     else:
                         # print("loss: ", loss)
@@ -1427,7 +1427,7 @@ class EmbeddingModel(abc.ABC):
                     # todo ============================================================================================================
 
                     if self.embedding_model_params.get(
-                            "normalize_ent_emb", constants.DEFAULT_NORMALIZE_EMBEDDINGS
+                        "normalize_ent_emb", constants.DEFAULT_NORMALIZE_EMBEDDINGS
                     ):
                         normalize_ent_emb_op = self.ent_emb.assign(
                             tf.clip_by_norm(self.ent_emb, clip_norm=1, axes=1)
@@ -1549,8 +1549,8 @@ class EmbeddingModel(abc.ABC):
                 unique_ent = np.unique(np.array([out[0, 0], out[0, 2]]))
                 needed = self.corr_batch_size - unique_ent.shape[0]
                 large_number = (
-                        np.zeros((needed, self.ent_emb_cpu.shape[1]), dtype=np.float32)
-                        + np.nan
+                    np.zeros((needed, self.ent_emb_cpu.shape[1]), dtype=np.float32)
+                    + np.nan
                 )
                 entity_embeddings = np.concatenate(
                     (self.ent_emb_cpu[unique_ent, :], large_number), axis=0
@@ -1582,11 +1582,11 @@ class EmbeddingModel(abc.ABC):
 
         for i in range(self.corr_batches_count):
             all_ent = corruption_entities[
-                      i * self.corr_batch_size: (i + 1) * self.corr_batch_size
-                      ]
+                i * self.corr_batch_size : (i + 1) * self.corr_batch_size
+            ]
             needed = self.corr_batch_size - all_ent.shape[0]
             large_number = (
-                    np.zeros((needed, self.ent_emb_cpu.shape[1]), dtype=np.float32) + np.nan
+                np.zeros((needed, self.ent_emb_cpu.shape[1]), dtype=np.float32) + np.nan
             )
             entity_embeddings = np.concatenate(
                 (self.ent_emb_cpu[all_ent, :], large_number), axis=0
@@ -1729,12 +1729,12 @@ class EmbeddingModel(abc.ABC):
                 )
 
                 def loop_cond(
-                        i, scores_predict_s_corruptions_in, scores_predict_o_corruptions_in
+                    i, scores_predict_s_corruptions_in, scores_predict_o_corruptions_in
                 ):
                     return i < self.corr_batches_count
 
                 def compute_score_corruptions(
-                        i, scores_predict_s_corruptions_in, scores_predict_o_corruptions_in
+                    i, scores_predict_s_corruptions_in, scores_predict_o_corruptions_in
                 ):
                     corr_dependency = []
                     corr_batch, entity_embeddings_corrpt = corruption_iter.get_next()
@@ -1891,10 +1891,10 @@ class EmbeddingModel(abc.ABC):
         if self.is_filtered:
             # If a list of specified entities were used for corruption generation
             if isinstance(
-                    self.eval_config.get(
-                        "corruption_entities", constants.DEFAULT_CORRUPTION_ENTITIES
-                    ),
-                    np.ndarray,
+                self.eval_config.get(
+                    "corruption_entities", constants.DEFAULT_CORRUPTION_ENTITIES
+                ),
+                np.ndarray,
             ):
                 corruption_entities = self.eval_config.get(
                     "corruption_entities", constants.DEFAULT_CORRUPTION_ENTITIES
@@ -1972,10 +1972,10 @@ class EmbeddingModel(abc.ABC):
             )
         else:
             self.rank = (
-                    self.perform_comparision(self.scores_predict, self.score_positive)
-                    + 1
-                    - positives_among_sub_corruptions_ranked_higher
-                    - positives_among_obj_corruptions_ranked_higher
+                self.perform_comparision(self.scores_predict, self.score_positive)
+                + 1
+                - positives_among_sub_corruptions_ranked_higher
+                - positives_among_obj_corruptions_ranked_higher
             )
 
     # todo: change the comparision to comparison
@@ -2075,15 +2075,15 @@ class EmbeddingModel(abc.ABC):
         ranks = []
 
         for _ in tqdm(
-                range(self.eval_dataset_handle.get_size("test")), disable=(not self.verbose)
+            range(self.eval_dataset_handle.get_size("test")), disable=(not self.verbose)
         ):
             # rank = sess.run(self.rank)
             rank = self.rank
             if (
-                    self.eval_config.get(
-                        "corrupt_side", constants.DEFAULT_CORRUPT_SIDE_EVAL
-                    )
-                    == "s,o"
+                self.eval_config.get(
+                    "corrupt_side", constants.DEFAULT_CORRUPT_SIDE_EVAL
+                )
+                == "s,o"
             ):
                 ranks.append(list(rank))
             else:
@@ -2170,8 +2170,8 @@ class EmbeddingModel(abc.ABC):
             scores = []
 
             for _ in tqdm(
-                    range(self.eval_dataset_handle.get_size("test")),
-                    disable=(not self.verbose),
+                range(self.eval_dataset_handle.get_size("test")),
+                disable=(not self.verbose),
             ):
                 # score = sess.run(self.score_positive)
                 score = self.score_positive
@@ -2280,7 +2280,7 @@ class EmbeddingModel(abc.ABC):
         return scores_pos, scores_neg
 
     def _calibrate(
-            self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50
+        self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50
     ):
         """Calibrate predictions tod o: un-underscore this method later
 
@@ -2397,7 +2397,7 @@ class EmbeddingModel(abc.ABC):
             raise ValueError(msg)
 
         if positive_base_rate is not None and (
-                positive_base_rate <= 0 or positive_base_rate >= 1
+            positive_base_rate <= 0 or positive_base_rate >= 1
         ):
             msg = "positive_base_rate must be a value between 0 and 1."
             logger.error(msg)

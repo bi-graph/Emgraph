@@ -22,7 +22,7 @@ TOO_MANY_ENTITIES_TH = 50000
 
 
 def _train_test_split_no_unseen_fast(
-        X, test_size=100, seed=0, allow_duplication=False, filtered_test_predicates=None
+    X, test_size=100, seed=0, allow_duplication=False, filtered_test_predicates=None
 ):
     """Split into train and test sets.
 
@@ -126,9 +126,9 @@ def _train_test_split_no_unseen_fast(
 
         # test if the counts are > 0
         if (
-                dict_entities[test_triple[0]] > 0
-                and dict_rels[test_triple[1]] > 0
-                and dict_entities[test_triple[2]] > 0
+            dict_entities[test_triple[0]] > 0
+            and dict_rels[test_triple[1]] > 0
+            and dict_entities[test_triple[2]] > 0
         ):
 
             # Can safetly add the triple to test set
@@ -136,7 +136,7 @@ def _train_test_split_no_unseen_fast(
             if len(idx_test) == test_size:
                 # Since we found the requested test set of given size
                 # add all the remaining indices of candidates to training set
-                idx_train.extend(list(all_indices_shuffled[i + 1:]))
+                idx_train.extend(list(all_indices_shuffled[i + 1 :]))
 
                 # break out of the loop
                 break
@@ -182,7 +182,7 @@ def _train_test_split_no_unseen_fast(
 
 
 def _train_test_split_no_unseen_old(
-        X, test_size=100, seed=0, allow_duplication=False, filtered_test_predicates=None
+    X, test_size=100, seed=0, allow_duplication=False, filtered_test_predicates=None
 ):
     """Split into train and test sets.
 
@@ -321,12 +321,12 @@ def _train_test_split_no_unseen_old(
 
 
 def train_test_split_no_unseen(
-        X,
-        test_size=100,
-        seed=0,
-        allow_duplication=False,
-        filtered_test_predicates=None,
-        backward_compatible=False,
+    X,
+    test_size=100,
+    seed=0,
+    allow_duplication=False,
+    filtered_test_predicates=None,
+    backward_compatible=False,
 ):
     """Split into train and test sets.
 
@@ -528,7 +528,7 @@ def generate_corruptions_for_eval(X, entities_for_corruption, corrupt_side="s,o"
 
 
 def generate_corruptions_for_fit(
-        X, entities_list=None, eta=1, corrupt_side="s,o", entities_size=0, rnd=None
+    X, entities_list=None, eta=1, corrupt_side="s,o", entities_size=0, rnd=None
 ):
     """Generate corruptions for training.
 
@@ -722,15 +722,15 @@ def to_idx(X, ent_to_idx, rel_to_idx):
 
 
 def evaluate_performance(
-        X,
-        model,
-        filter_triples=None,
-        verbose=False,
-        filter_unseen=True,
-        entities_subset=None,
-        corrupt_side="s,o",
-        ranking_strategy="worst",
-        use_default_protocol=False,
+    X,
+    model,
+    filter_triples=None,
+    verbose=False,
+    filter_unseen=True,
+    entities_subset=None,
+    corrupt_side="s,o",
+    ranking_strategy="worst",
+    use_default_protocol=False,
 ):
     """Evaluate the performance of an embedding model.
 
@@ -1300,22 +1300,22 @@ def _scalars_into_lists(param_grid):
 
 
 def select_best_model_ranking(
-        model_class,
-        X_train,
-        X_valid,
-        X_test,
-        param_grid,
-        max_combinations=None,
-        param_grid_random_seed=0,
-        use_filter=True,
-        early_stopping=False,
-        early_stopping_params=None,
-        use_test_for_selection=False,
-        entities_subset=None,
-        corrupt_side="s,o",
-        use_default_protocol=False,
-        retrain_best_model=False,
-        verbose=False,
+    model_class,
+    X_train,
+    X_valid,
+    X_test,
+    param_grid,
+    max_combinations=None,
+    param_grid_random_seed=0,
+    use_filter=True,
+    early_stopping=False,
+    early_stopping_params=None,
+    use_test_for_selection=False,
+    entities_subset=None,
+    corrupt_side="s,o",
+    use_default_protocol=False,
+    retrain_best_model=False,
+    verbose=False,
 ):
     """Model selection routine for embedding models via either grid search or random search.
 
@@ -1564,7 +1564,7 @@ def select_best_model_ranking(
         return mrr, mr, hits_1, hits_3, hits_10
 
     for model_params in tqdm(
-            model_params_combinations, total=max_combinations, disable=(not verbose)
+        model_params_combinations, total=max_combinations, disable=(not verbose)
     ):
         current_result = {
             "model_name": model_params["model_name"],

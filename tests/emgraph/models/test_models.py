@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 
-from emgraph.datasets import load_wn18, load_wn18rr
+from emgraph.datasets import BaseDataset, DatasetType
 from emgraph.evaluation import evaluate_performance, hits_at_n_score
 from emgraph.evaluation.protocol import to_idx
 from emgraph.models import (
@@ -37,7 +37,7 @@ def test_conve_bce_combo():
 
 def test_large_graph_mode():
     set_entity_threshold(10)
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=100,
         seed=555,
@@ -64,7 +64,7 @@ def test_output_sizes():
     """Test to check whether embedding matrix sizes match the input data (num rel/ent and k)"""
 
     def perform_test():
-        X = load_wn18rr()
+        X = BaseDataset.load_dataset(DatasetType.WN18RR)
         k = 5
         unique_entities = np.unique(
             np.concatenate([X["train"][:, 0], X["train"][:, 2]], 0)
@@ -100,7 +100,7 @@ def test_output_sizes():
 
 def test_large_graph_mode_adam():
     set_entity_threshold(10)
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=100,
         seed=555,
@@ -121,7 +121,7 @@ def test_large_graph_mode_adam():
 
 
 def test_fit_predict_TransE_early_stopping_with_filter():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = TransE(
         batches_count=1,
         seed=555,
@@ -152,7 +152,7 @@ def test_fit_predict_TransE_early_stopping_with_filter():
 
 
 def test_fit_predict_TransE_early_stopping_without_filter():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = TransE(
         batches_count=1,
         seed=555,
@@ -182,7 +182,7 @@ def test_fit_predict_TransE_early_stopping_without_filter():
 
 def test_evaluate_RandomBaseline():
     model = RandomBaseline(seed=0)
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model.fit(X["train"])
     ranks = evaluate_performance(
         X["test"], model=model, corrupt_side="s+o", verbose=False
@@ -368,7 +368,7 @@ def test_retrain():
 
 
 def test_fit_predict_wn18_TransE():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = TransE(
         batches_count=1,
         seed=555,
@@ -410,7 +410,7 @@ def test_missing_entity_ComplEx():
 
 
 def test_fit_predict_wn18_ComplEx():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=1,
         seed=555,
@@ -648,7 +648,7 @@ def test_retrain():
 
 
 def test_fit_predict_wn18_TransE():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = TransE(
         batches_count=1,
         seed=555,
@@ -690,7 +690,7 @@ def test_missing_entity_ComplEx():
 
 
 def test_fit_predict_wn18_ComplEx():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=1,
         seed=555,
@@ -834,7 +834,7 @@ def test_conve_fit_predict_save_restore():
 
 
 def test_conve_evaluation_protocol():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ConvE(
         batches_count=10,
         seed=22,
@@ -893,7 +893,7 @@ def test_convkb_train_predict():
         verbose=True,
     )
 
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model.fit(X["train"][:100])
 
     X_test = np.array(

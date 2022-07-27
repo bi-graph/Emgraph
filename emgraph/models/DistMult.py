@@ -419,10 +419,10 @@ class DistMult(EmbeddingModel):
         >>> from sklearn.metrics import brier_score_loss, log_loss
         >>> from scipy.special import expit
         >>>
-        >>> from emgraph.datasets import load_wn11
+        >>> from emgraph.datasets import BaseDataset, DatasetType
         >>> from emgraph.models import DistMult
         >>>
-        >>> X = load_wn11()
+        >>> X = BaseDataset.load_dataset(DatasetType.WN11)
         >>> X_valid_pos = X['valid'][X['valid_labels']]
         >>> X_valid_neg = X['valid'][~X['valid_labels']]
         >>>
