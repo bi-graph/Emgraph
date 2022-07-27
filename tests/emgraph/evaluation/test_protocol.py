@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
-from emgraph.datasets import load_fb15k_237, load_wn18, load_wn18rr, load_yago3_10
+from emgraph.datasets import BaseDataset,DatasetType
 from emgraph.evaluation import (
     create_mappings,
     evaluate_performance,
@@ -33,7 +33,7 @@ from emgraph.models import ComplEx, TransE, reset_entity_threshold, set_entity_t
 
 # test for #186
 def test_evaluate_performance_too_many_entities_warning():
-    X = load_yago3_10()
+    X = BaseDataset.load_dataset(DatasetType.YAGO3_10)
     model = TransE(batches_count=200, seed=0, epochs=1, k=5, eta=1, verbose=True)
     model.fit(X["train"])
 
@@ -66,7 +66,7 @@ def test_evaluate_performance_too_many_entities_warning():
     )
 
     # with smaller dataset, no entity list declared (no exception expected)
-    X_wn18rr = load_wn18rr()
+    X_wn18rr = BaseDataset.load_dataset(DatasetType.WN18RR)
     model_wn18 = TransE(batches_count=200, seed=0, epochs=1, k=5, eta=1, verbose=True)
     model_wn18.fit(X_wn18rr["train"])
     evaluate_performance(
@@ -75,7 +75,7 @@ def test_evaluate_performance_too_many_entities_warning():
 
 
 def test_evaluate_performance_filter_without_xtest():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=10,
         seed=0,
@@ -102,7 +102,7 @@ def test_evaluate_performance_filter_without_xtest():
 
 
 def test_evaluate_performance_ranking_against_specified_entities():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=10,
         seed=0,
@@ -137,7 +137,7 @@ def test_evaluate_performance_ranking_against_shuffled_all_entities():
     """
     import random
 
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=10,
         seed=0,
@@ -172,7 +172,7 @@ def test_evaluate_performance_ranking_against_shuffled_all_entities():
 
 
 def test_evaluate_performance_default_protocol_without_filter():
-    wn18 = load_wn18()
+    wn18 = BaseDataset.load_dataset(DatasetType.WN18)
 
     model = TransE(
         batches_count=10,
@@ -236,7 +236,7 @@ def test_evaluate_performance_default_protocol_without_filter():
 
 
 def test_evaluate_performance_default_protocol_with_filter():
-    wn18 = load_wn18()
+    wn18 = BaseDataset.load_dataset(DatasetType.WN18)
 
     X_filter = np.concatenate((wn18["train"], wn18["valid"], wn18["test"]))
 
@@ -302,7 +302,7 @@ def test_evaluate_performance_default_protocol_with_filter():
 
 
 def test_evaluate_performance_so_side_corruptions_with_filter():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=10,
         seed=0,
@@ -329,7 +329,7 @@ def test_evaluate_performance_so_side_corruptions_with_filter():
 
 @pytest.mark.skip(reason="CircleCI free tier upper bound investigation")
 def test_evaluate_performance_so_side_corruptions_without_filter():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=10,
         seed=0,
@@ -357,7 +357,7 @@ def test_evaluate_performance_so_side_corruptions_without_filter():
 
 @pytest.mark.skip(reason="Speeding up jenkins")
 def test_evaluate_performance_nll_complex():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=10,
         seed=0,
@@ -385,7 +385,7 @@ def test_evaluate_performance_nll_complex():
 
 @pytest.mark.skip(reason="Speeding up jenkins")
 def test_evaluate_performance_TransE():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = TransE(
         batches_count=10,
         seed=0,
@@ -640,7 +640,7 @@ def test_train_test_split():
 
 
 def test_train_test_split_fast():
-    X = load_fb15k_237()
+    X = BaseDataset.load_dataset(DatasetType.FB15K_237)
     x_all = np.concatenate([X["train"], X["valid"], X["test"]], 0)
     unique_entities = len(set(x_all[:, 0]).union(x_all[:, 2]))
     unique_rels = len(set(x_all[:, 1]))
@@ -1044,7 +1044,7 @@ def test_scalars_into_lists():
 
 
 def test_select_best_model_ranking_grid():
-    X = load_wn18rr()
+    X = BaseDataset.load_dataset(DatasetType.WN18RR)
     model_class = TransE
     param_grid = {
         "batches_count": [50],
@@ -1095,7 +1095,7 @@ def test_select_best_model_ranking_grid():
 
 
 def test_select_best_model_ranking_random():
-    X = load_wn18rr()
+    X = BaseDataset.load_dataset(DatasetType.WN18RR)
     model_class = TransE
     param_grid = {
         "batches_count": [50],
@@ -1155,7 +1155,7 @@ def test_select_best_model_ranking_random():
 
 def test_evaluate_with_ent_subset_large_graph():
     set_entity_threshold(1)
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(
         batches_count=10,
         seed=0,
