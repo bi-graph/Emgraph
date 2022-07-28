@@ -39,6 +39,13 @@ class File(pydantic.BaseModel):
 
 
 class BaseDataset(pydantic.BaseModel):
+    """
+    The base class for dataset classes to implement from.
+    All methods for working with different kinds of dataset files are implemented here, dataset classes that derive from this base class only need to
+    implement `after_load` and `after_clean` methods if that step is needed by that dataset.
+
+    """
+
     _registry: typing.Dict[DatasetType, "BaseDataset"] = {}
     _mime = mimetypes.MimeTypes()
 
@@ -56,11 +63,42 @@ class BaseDataset(pydantic.BaseModel):
     split_test_into_top_bottom: typing.Optional[bool] = False
 
     @classmethod
-    def after_load(cls, dataset):
+    def after_load(
+        cls,
+        dataset: dict[str, np.ndarray],
+    ) -> dict[str, np.ndarray]:
+        """
+        This method is called after the dataset has been loaded.
+
+        :param dataset: The dataset before processing
+        :type dataset: dict[str, np.ndarray]
+        :return: The dataset after processing
+        :rtype: dict[str, np.ndarray]
+        """
         return dataset
 
     @classmethod
-    def after_clean(cls, dataset, filtered_dataset, valid_idx, test_idx):
+    def after_clean(
+        cls,
+        dataset: dict[str, np.ndarray],
+        filtered_dataset: dict[str, np.ndarray],
+        valid_idx: object,
+        test_idx: object,
+    ) -> dict[str, np.ndarray]:
+        """
+        This method is called when `clean_dataset` parameter is set to true.
+
+        :param dataset: The dataset before cleaning
+        :type dataset: dict[str, np.ndarray]
+        :param filtered_dataset:
+        :type filtered_dataset: dict[str, np.ndarray]
+        :param valid_idx: The valid indices of the validation dataset
+        :type valid_idx: np.array
+        :param test_idx: The valid indices of the test dataset.
+        :type test_idx: np.array
+        :rtype: dict[str, np.ndarray]
+        :return: The dataset after cleaning
+        """
         pass
 
     @classmethod
@@ -69,7 +107,15 @@ class BaseDataset(pydantic.BaseModel):
         BaseDataset._registry[_temp.type] = _temp
 
     @staticmethod
-    def _md5(file_path):
+    def _md5(file_path: str) -> str:
+        """
+        Calculates the md5 hash of a file with the given path.
+
+        :param file_path: The path of the file
+        :type file_path: str
+        :return: The calculated hash of the file
+        :rtype: str
+        """
         md5hash = hashlib.md5()
         chunk_size = 4096
         with open(file_path, "rb") as f:
@@ -80,14 +126,17 @@ class BaseDataset(pydantic.BaseModel):
         return md5hash.hexdigest()
 
     @classmethod
-    def _add_reciprocal_relations(cls, tri_df):
+    def _add_reciprocal_relations(
+        cls,
+        tri_df: pd.DataFrame,
+    ) -> pd.DataFrame:
         """
         Add reciprocal relations to the triples.
 
         :param tri_df: Dataframe of triples
-        :type tri_df: Dataframe
+        :type tri_df: pd.Dataframe
         :return: Dataframe of triples and their reciprocals
-        :rtype: Dataframe
+        :rtype: pd.Dataframe
         """
         df_reciprocal = tri_df.copy()
         # swap subjects and objects
@@ -102,8 +151,26 @@ class BaseDataset(pydantic.BaseModel):
 
     @classmethod
     def _unzip_dataset(
-        cls, dataset: "BaseDataset", source, destination, check_md5hash=False
-    ):
+        cls,
+        dataset: "BaseDataset",
+        source: str,
+        destination: str,
+        check_md5hash: bool = False,
+    ) -> None:
+        """
+        Unzips a dataset with given source path and extracts into the destination path.
+        The source file of the dataset is removed after extraction.
+
+        :param dataset: The dataset instance to use for extraction
+        :type dataset: BaseDataset
+        :param source: Path of the dataset to extract
+        :type source: str
+        :param destination: Path to extract the dataset into
+        :type destination: str
+        :param check_md5hash: Whether to check MD5 hash for the dataset files or not
+        :type check_md5hash: bool
+        :rtype: None
+        """
         # TODO - add error checking
         try:
             shutil.unpack_archive(source, destination)
@@ -131,7 +198,13 @@ class BaseDataset(pydantic.BaseModel):
             os.remove(source)
 
     @classmethod
-    def _fetch_remote_data(cls, remote, download_dir, data_home, check_md5hash=False):
+    def _fetch_remote_data(
+        cls,
+        remote: "BaseDataset",
+        download_dir: str,
+        data_home: str,
+        check_md5hash: bool = False,
+    ) -> None:
         # get from remote
         # self._mime.guess_type(url)
 
@@ -233,12 +306,12 @@ class BaseDataset(pydantic.BaseModel):
     @classmethod
     def load_from_csv(
         cls,
-        directory_path,
-        file_name,
-        sep="\t",
-        header=None,
-        add_reciprocal_rels=False,
-    ):
+        directory_path: str,
+        file_name: str,
+        sep: str = "\t",
+        header: typing.Optional[str] = None,
+        add_reciprocal_rels: bool = False,
+    ) -> np.ndarray:
         """
         Load data from a CSV file as:
         .. code-block:: text
@@ -261,7 +334,7 @@ class BaseDataset(pydantic.BaseModel):
         dataset this creates a corresponding triple with reciprocal relation <o, p_reciprocal, s>. (default: False)
         :type add_reciprocal_rels: bool
         :return: The actual triples of the file
-        :rtype: ndarray , shape [n, 3]
+        :rtype: np.ndarray , shape [n, 3]
         """
 
         logger.debug("Loading data from {}.".format(file_name))
@@ -375,7 +448,7 @@ class BaseDataset(pydantic.BaseModel):
         )
 
         _temp = {"train": train, "valid": valid, "test": test}
-        dataset.after_load(_temp)
+        _temp = dataset.after_load(_temp)
         if dataset.clean_unseen:
             _temp = dataset._clean_data(_temp)
 
