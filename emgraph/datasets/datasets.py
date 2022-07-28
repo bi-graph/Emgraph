@@ -291,7 +291,7 @@ class BaseDataset(pydantic.BaseModel):
     ):
         """
          Fetches the dataset files from a remote url and extracts it.
-        
+
         :param dataset: The dataset to fetch
         :type dataset: BaseDataset
         :param data_home: The path where all Emgraph datasets are stored
@@ -316,7 +316,11 @@ class BaseDataset(pydantic.BaseModel):
     # todo: add generators: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/generator.py
     # todo: use this structure for the core graph class: https://github.com/Sujit-O/pykg2vec/blob/master/pykg2vec/data/kgcontroller.py
     @classmethod
-    def _clean_data(cls, X, return_idx=False):
+    def _clean_data(
+        cls,
+        X,
+        return_idx: bool = False,
+    ):
         if X["train"].shape[1] == 3:
             columns = ["s", "p", "o"]
         else:
@@ -411,7 +415,7 @@ class BaseDataset(pydantic.BaseModel):
         add_reciprocal_rels: bool = False,
     ) -> np.ndarray:
         """
-        Loads from a RDF file format.
+        Loads from an RDF file format.
 
         :param folder_name:
         :type folder_name: str
@@ -480,12 +484,31 @@ class BaseDataset(pydantic.BaseModel):
     @staticmethod
     def load_dataset(
         dataset_type: DatasetType,
-        clean_unseen=None,
-        data_home=None,
-        check_md5hash=False,
-        add_reciprocal_rels=False,
-        split_threshold=0.1,
-    ) -> typing.Optional[dict[str, typing.Any]]:
+        clean_unseen: bool = None,
+        data_home: str = None,
+        check_md5hash: bool = False,
+        add_reciprocal_rels: bool = False,
+        split_threshold: float = 0.1,
+    ) -> typing.Optional[dict[str, np.ndarray]]:
+        """
+        Loads a dataset based on the given `dataset_type` parameter.
+
+        :param dataset_type: The type of the dataset
+        :type dataset_type: DatasetType
+        :param clean_unseen: Whether to clean unseen records in the dataset
+        :type clean_unseen: bool
+        :param data_home: Path where all Emgraph datasets are stored
+        :type data_home: str
+        :param check_md5hash: Whether to check MD5 hash for the dataset files or not
+        :type check_md5hash: bool
+        :param add_reciprocal_rels: Flag which specifies whether to add reciprocal relations. For every <s, p, o> in the
+            dataset this creates a corresponding triple with reciprocal relation <o, p_reciprocal, s>. (default: False)
+        :type add_reciprocal_rels: bool
+        :param split_threshold: The threshold for splitting the dataset
+        :type split_threshold: float
+        :return: The dataset of the given type
+        :rtype: dict[str, np.ndarray]
+        """
         dataset = BaseDataset._registry.get(dataset_type, None)
         if dataset is None:
             return None
@@ -522,7 +545,9 @@ class BaseDataset(pydantic.BaseModel):
 
         if dataset.generate_focusE:
             _temp = dataset.generate_focusE_dataset_splits(
-                _temp, dataset.split_test_into_top_bottom, split_threshold
+                _temp,
+                dataset.split_test_into_top_bottom,
+                split_threshold,
             )
 
         return _temp
