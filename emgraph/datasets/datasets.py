@@ -205,6 +205,18 @@ class BaseDataset(pydantic.BaseModel):
         data_home: str,
         check_md5hash: bool = False,
     ) -> None:
+        """
+        Fetches the dataset files from a remote url and extracts it.
+
+        :param remote: The dataset to get from the remote url
+        :type remote: BaseDataset
+        :param download_dir: The path to save downloaded dataset into
+        :type download_dir: str
+        :param data_home: The path where all Emgraph datasets are stored
+        :type data_home: str
+        :param check_md5hash: Whether to check MD5 hash for the dataset files or not
+        :type check_md5hash: bool
+        """
         # get from remote
         # self._mime.guess_type(url)
 
@@ -215,10 +227,26 @@ class BaseDataset(pydantic.BaseModel):
         cls._unzip_dataset(remote, file_path, data_home, check_md5hash)
 
     @classmethod
-    def _get_data_home(cls, data_home=None):
+    def _get_data_home(
+        cls,
+        data_home: typing.Optional[str] = None,
+    ) -> str:
+        """
+        Gets the path where all Emgraph datasets are stored and creates the path if it does not exist.
+
+        :param data_home: The path where all Emgraph datasets are stored
+        :type data_home: str
+        :return: The path where all Emgraph datasets are stored
+        :rtype: str
+        """
+
         if data_home is None:
             data_home = os.environ.get(
-                Emgraph_ENV_NAME, os.path.join(os.getcwd(), "emgraph_datasets")
+                Emgraph_ENV_NAME,
+                os.path.join(
+                    os.getcwd(),
+                    "emgraph_datasets",
+                ),
             )
 
         data_home = os.path.expanduser(data_home)
@@ -229,7 +257,11 @@ class BaseDataset(pydantic.BaseModel):
 
     @classmethod
     def load_from_ntriples(
-        cls, folder_name, file_name, data_home=None, add_reciprocal_rels=False
+        cls,
+        folder_name: str,
+        file_name: str,
+        data_home: typing.Optional[str] = None,
+        add_reciprocal_rels: bool = False,
     ):
         logger.debug("Loading rdf ntriples from {}.".format(file_name))
         data_home = cls._get_data_home(data_home)
@@ -251,7 +283,24 @@ class BaseDataset(pydantic.BaseModel):
         return df.values
 
     @classmethod
-    def fetch_dataset(cls, dataset: "BaseDataset", data_home=None, check_md5hash=False):
+    def fetch_dataset(
+        cls,
+        dataset: "BaseDataset",
+        data_home: typing.Optional[str] = None,
+        check_md5hash: bool = False,
+    ):
+        """
+         Fetches the dataset files from a remote url and extracts it.
+        
+        :param dataset: The dataset to fetch
+        :type dataset: BaseDataset
+        :param data_home: The path where all Emgraph datasets are stored
+        :type data_home: str
+        :param check_md5hash: Whether to check MD5 hash for the dataset files or not
+        :type check_md5hash: bool
+        :return: Path where the given dataset has been saved
+        :rtype: str
+        """
         data_home = cls._get_data_home(data_home)
         dataset_dir = os.path.join(data_home, dataset.name)
         if not os.path.exists(dataset_dir):
@@ -355,12 +404,28 @@ class BaseDataset(pydantic.BaseModel):
     @classmethod
     def load_from_rdf(
         cls,
-        folder_name,
-        file_name,
-        rdf_format="nt",
-        data_home=None,
-        add_reciprocal_rels=False,
-    ):
+        folder_name: str,
+        file_name: str,
+        rdf_format: str = "nt",
+        data_home: typing.Optional[str] = None,
+        add_reciprocal_rels: bool = False,
+    ) -> np.ndarray:
+        """
+        Loads from a RDF file format.
+
+        :param folder_name:
+        :type folder_name: str
+        :param file_name:
+        :type file_name: str
+        :param rdf_format:
+        :type rdf_format: str
+        :param data_home:
+        :type data_home: str
+        :param add_reciprocal_rels:
+        :type add_reciprocal_rels:
+        :return:
+        :rtype: np.ndarray
+        """
         logger.debug("Loading rdf data from {}.".format(file_name))
         data_home = BaseDataset._get_data_home(data_home)
         from rdflib import Graph
@@ -380,7 +445,10 @@ class BaseDataset(pydantic.BaseModel):
 
     @classmethod
     def generate_focusE_dataset_splits(
-        cls, dataset, split_test_into_top_bottom=True, split_threshold=0.1
+        cls,
+        dataset: dict[str, np.ndarray],
+        split_test_into_top_bottom: bool = True,
+        split_threshold: float = 0.1,
     ):
         dataset["train_numeric_values"] = dataset["train"][:, 3].astype(np.float32)
         dataset["valid_numeric_values"] = dataset["valid"][:, 3].astype(np.float32)
