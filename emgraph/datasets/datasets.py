@@ -19,6 +19,10 @@ Emgraph_ENV_NAME = "Emgraph_DATA_HOME"
 
 
 class DatasetType(enum.Enum):
+    """
+    This enum class is used with `BaseDataset` class to load a specific dataset.
+    """
+
     UNKNOWN = 0
     WN11 = 1
     WN18 = 2
@@ -34,6 +38,10 @@ class DatasetType(enum.Enum):
 
 
 class File(pydantic.BaseModel):
+    """
+    Describes a file to be used with `BaseDataset` classes.
+    """
+
     name: typing.Optional[str]
     checksum: typing.Optional[str]
 
