@@ -9,7 +9,8 @@ logger.setLevel(logging.DEBUG)
 
 
 def hits_at_n_score(ranks, n):
-    """Number of ranked vector ``ranks``'s elements in the top ``n`` positions.
+    """
+    Number of ranked vector ``ranks``'s elements in the top ``n`` positions.
 
     It can be used in conjunction with the learning to rank evaluation protocol of
     :meth:`emgraph.evaluation.evaluate_performance`.
@@ -23,9 +24,8 @@ def hits_at_n_score(ranks, n):
     where :math:`Q` is a set of triples and :math:`(s, p, o)` is a triple :math:`\in Q`.
 
 
-    Consider the following example. Each of the two positive triples identified by ``*`` are ranked
-    against four corruptions each. When scored by an embedding model, the first triple ranks 2nd, and the other triple
-    ranks first. HitsAt1 and HitsAt3 are:
+    Consider the following example. Each of the two positive triples shown by a "*" has four corruptions. An
+    embedding model ranks the first triple second, and the other triple first. HitsAt1 and HitsAt3 are as follows:
 
         s	 p	   o		score	rank
         Jack   born_in   Ireland	0.789	   1
@@ -68,7 +68,8 @@ def hits_at_n_score(ranks, n):
 
 
 def mrr_score(ranks):
-    r"""Mean Reciprocal Rank (MRR)
+    r"""
+    Mean Reciprocal Rank (MRR)
 
     The function computes the mean of the reciprocal of elements of a vector of rankings ``ranks``.
 
@@ -88,9 +89,8 @@ def mrr_score(ranks):
         it averages their reciprocals. This is done to obtain a metric which is more robust to outliers.
 
 
-    Consider the following example. Each of the two positive triples identified by ``*`` are ranked
-    against four corruptions each. When scored by an embedding model, the first triple ranks 2nd, and the other triple
-    ranks first. The resulting MRR is: ::
+    Consider the following scenario. Each of the two positive triples shown by a "*" has four corruptions. An
+    embedding model ranks the first triple second, and the other triple first. The final MRR is: ::
 
         s	 p	   o		score	rank
         Jack   born_in   Ireland	0.789	   1
@@ -167,7 +167,7 @@ def rank_score(y_true, y_pred, pos_lab=1):
 def mr_score(ranks):
     r"""Mean Rank (MR)
 
-    The function computes the mean of of a vector of rankings ``ranks``.
+    The function computes the mean of a vector of rankings ``ranks``.
 
     It can be used in conjunction with the learning to rank evaluation protocol of
     :meth:`emgraph.evaluation.evaluate_performance`.
@@ -183,9 +183,8 @@ def mr_score(ranks):
         This metric is not robust to outliers.
         It is usually presented along the more reliable MRR :meth:`emgraph.evaluation.mrr_score`.
 
-    Consider the following example. Each of the two positive triples identified by ``*`` are ranked
-    against four corruptions each. When scored by an embedding model, the first triple ranks 2nd, and the other triple
-    ranks first. The resulting MR is: ::
+    Consider the following scenario. Each of the two positive triples shown by a "*" has four corruptions. An
+    embedding model ranks the first triple second, and the other triple first. The resultant MR is as follows: ::
 
         s	 p	   o		score	rank
         Jack   born_in   Ireland	0.789	   1
