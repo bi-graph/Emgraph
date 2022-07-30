@@ -24,14 +24,14 @@ TOO_MANY_ENTITIES_TH = 50000
 def _train_test_split_no_unseen_fast(
     X, test_size=100, seed=0, allow_duplication=False, filtered_test_predicates=None
 ):
-    """Split into train and test sets.
+    """
+    Split into train and test sets.
 
-     This function carves out a test set that contains only entities
-     and relations which also occur in the training set.
+     This function creates a test set that only contains entities and relations that appear in the training set.
 
-     This is an improved version which is much faster - since this doesnt sample like earlier approach but rather
-     shuffles indices and gets the test set of required size by selecting from the shuffled indices only triples
-     which do not disconnect entities/relations.
+     This is an updated version that is significantly faster - since it does not sample like the previous way,
+     but rather shuffles indices and obtains the test set of appropriate size by picking only triples from the
+     shuffled indices that do not disconnect entities/relationships.
 
     :param X: The dataset to split.
     :type X: ndarray, size[n, 3]
@@ -184,13 +184,13 @@ def _train_test_split_no_unseen_fast(
 def _train_test_split_no_unseen_old(
     X, test_size=100, seed=0, allow_duplication=False, filtered_test_predicates=None
 ):
-    """Split into train and test sets.
+    """
+    Split into train and test sets.
 
-     This function carves out a test set that contains only entities
-     and relations which also occur in the training set.
+     This function creates a test set that only contains entities and relations that appear in the training set.
 
-     This is very slow as it runs an infinite loop and samples a triples and appends to test set and checks if it is
-     unique or not. This is very time consuming process and highly inefficient.
+     This is incredibly slow since it runs an indefinite loop and samples triples, appends them to the test set,
+     and tests if they are unique. This is a time-consuming and inefficient operation.
 
     :param X: The dataset to split.
     :type X: ndarray, size[n, 3]
@@ -328,10 +328,10 @@ def train_test_split_no_unseen(
     filtered_test_predicates=None,
     backward_compatible=False,
 ):
-    """Split into train and test sets.
+    """
+    Split into train and test sets.
 
-     This function carves out a test set that contains only entities
-     and relations which also occur in the training set.
+     This function creates a test set that only contains entities and relations that appear in the training set.
 
 
     :param X: The dataset to split.
@@ -408,7 +408,8 @@ def train_test_split_no_unseen(
 
 
 def _create_unique_mappings(unique_obj, unique_rel):
-    """Create unique mappings.
+    """
+    Create unique mappings.
 
     :param unique_obj: Unique object
     :type unique_obj: list
@@ -426,11 +427,11 @@ def _create_unique_mappings(unique_obj, unique_rel):
 
 
 def create_mappings(X):
-    """Create string-IDs mappings for entities and relations.
+    """
+    Create string-IDs mappings for entities and relations.
 
-    Entities and relations are assigned incremental, unique integer IDs.
-    Mappings are preserved in two distinct dictionaries,
-    and counters are separated for entities and relations mappings.
+    Entities and relationships are given sequential, unique integer IDs. Mappings are saved in two independent
+    dictionaries, and counters for entity and relation mappings are segregated.
 
     :param X: The triples to extract mappings
     :type X: ndarray, shape [n, 3]
@@ -530,23 +531,22 @@ def generate_corruptions_for_eval(X, entities_for_corruption, corrupt_side="s,o"
 def generate_corruptions_for_fit(
     X, entities_list=None, eta=1, corrupt_side="s,o", entities_size=0, rnd=None
 ):
-    """Generate corruptions for training.
+    """
+    Generate corruptions for training.
 
-    Creates corrupted triples for each statement in an array of statements,
-    as described by :cite:`trouillon2016complex`.
+    Creates corrupted triples for each statement in an array of statements, as described by
+    :cite:`trouillon2016complex`.
 
     .. note::
         Collisions are not checked, as this will be computationally expensive :cite:`trouillon2016complex`.
         That means that some corruptions *may* result in being positive statements (i.e. *unfiltered* settings).
 
     .. note::
-        When processing large knowledge graphs, it may be useful to generate corruptions only using entities from
-        a single batch.
-        This also brings the benefit of creating more meaningful negatives, as entities used to corrupt are
-        sourced locally.
-        The function can be configured to generate corruptions *only* using the entities from the current batch.
-        You can enable such behaviour be setting ``entities_size=0``. In such case, if ``entities_list=None``
-        all entities from the *current batch* will be used to generate corruptions.
+        When processing huge knowledge networks, it may be advantageous to produce corruptions exclusively from
+        a single batch of entities. This also has the advantage of producing more significant negatives because the
+        entities utilized to corrupt are obtained locally. The function can be set to create corruptions *only* from
+        entities in the current batch. Setting "entities size=0" enables such behavior. If "entities list=None" is used
+        in this scenario, all entities from the *current batch* will be utilized to produce corruptions.
 
     :param X: An array of positive triples that will be used to create corruptions.
     :type X: Tensor, shape [n, 3]
@@ -660,7 +660,8 @@ def generate_corruptions_for_fit(
 
 
 def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
-    """Convert statements (triples) into integer IDs.
+    """
+    Convert statements (triples) into integer IDs.
 
     :param X: The statements to be converted.
     :type X: ndarray
@@ -703,7 +704,8 @@ def _convert_to_idx(X, ent_to_idx, rel_to_idx, obj_to_idx):
 
 
 def to_idx(X, ent_to_idx, rel_to_idx):
-    """Convert statements (triples) into integer IDs.
+    """
+    Convert statements (triples) into integer IDs.
 
     :param X: The statements to be converted.
     :type X: ndarray
@@ -732,41 +734,41 @@ def evaluate_performance(
     ranking_strategy="worst",
     use_default_protocol=False,
 ):
-    """Evaluate the performance of an embedding model.
+    """
+    Evaluate the performance of an embedding model.
 
     The evaluation protocol follows the procedure defined in :cite:`bordes2013translating` and can be summarised as:
 
     #. Artificially generate negative triples by corrupting first the subject and then the object.
 
-    #. Remove the positive triples from the set returned by (1) -- positive triples \
-    are usually the concatenation of training, validation and test sets.
+    #. Remove the positive triples from the set returned by (1) -- positive triples are usually the concatenation of
+    training, validation and test sets.
 
     #. Rank each test triple against all remaining triples returned by (2).
 
 
-    With the ranks of both object and subject corruptions, one may compute metrics such as the MRR by
-    calculating them separately and then averaging them out.
-    Note that the metrics implemented in Emgraph's ``evaluate.metrics`` module will already work that way
-    when provided with the input returned by ``evaluate_performance``.
+    One may construct metrics such as the MRR using the rankings of both object and subject corruptions by
+    calculating them independently and then averaging them out. It's worth noting that the metrics implemented in
+    Emgraph's "evaluate.metrics" module already operate this way when fed the results of "evaluate_performance".
 
-    The artificially generated negatives are compliant with the local closed world assumption (LCWA),
-    as described in :cite:`nickel2016review`. In practice, that means only one side of the triple is corrupted at a time
-    (i.e. either the subject or the object).
+    The artificially generated negatives are compliant with the local closed world assumption (LCWA), as described in
+    :cite:`nickel2016review`. In practice, that means only one side of the triple is corrupted at a time (i.e. either
+    the subject or the object).
 
     .. note::
         The evaluation protocol assigns the worst rank
         to a positive test triple in case of a tie with negatives. This is the agreed upon behaviour in literature.
 
     .. hint::
-        When ``entities_subset=None``, the method will use all distinct entities in the knowledge graph ``X``
-        to generate negatives to rank against. This might slow down the eval. Some of the corruptions may not even
-        make sense for the task that one may be interested in.
+        When "entities subset=None," the procedure will create negatives by using all different entities in the
+        knowledge graph "X." This might delay down the evaluation. Some corruptions may not even make sense for the job
+        in question.
 
-        For eg, consider the case <Actor, acted_in, ?>, where we are mainly interested in such movies that an actor
-        has acted in. A sensible way to evaluate this would be to rank against all the movie entities and compute
-        the desired metrics. In such cases, where focus us on particular task, it is recommended to pass the desired
-        entities to use to generate corruptions to ``entities_subset``. Besides, trying to rank a positive against an
-        extremely large number of negatives may be overkilling.
+        Consider the example <Actor, acted_in, ?>, where we are mostly interested in movies in which an actor has
+        performed. A reasonable approach would be to rank against all movie entities and compute the desired metrics.
+        In such circumstances, when we want to focus on a certain job, it is advisable to supply the required
+        entities to "entities subset". Furthermore, attempting to score a positive against an exceptionally high
+        number of negatives may be excessive.
 
         As a reference, the popular FB15k-237 dataset has ~15k distinct entities. The evaluation protocol ranks each
         positives against 15k corruptions per side.
@@ -821,11 +823,12 @@ def evaluate_performance(
         - 'middle': assigns the middle rank when scores are equal
 
         Our recommendation is to use ``worst``.
-        Think of a model which assigns constant score to any triples. If you use the ``best`` strategy then
-        the ranks will always be 1 (which is incorrect because the model has not learnt anything). If you choose
-        this model and try to do knowledge discovery, you will not be able to deduce anything as all triples will
-        get the same scores. So to be on safer side while choosing the model, we would recommend either ``worst``
-        or ``middle`` strategy.
+
+        Consider a model that allocates a constant score to all triples. If you employ the "best" method,
+        the rankings will always be one (which is incorrect because the model has not learnt anything).
+        If you use this model for knowledge discovery, you will be unable to derive anything because all triples will
+        receive the same scores. So, to be on the safe side,
+        we would recommend either the "worst" or "medium" method when selecting the model.
     :type ranking_strategy: str
     :param use_default_protocol: Flag to indicate whether to use the standard protocol used in literature defined in
         :cite:`bordes2013translating` (default: False).
@@ -842,20 +845,19 @@ def evaluate_performance(
     Examples
     --------
     >>> import numpy as np
-    >>> from emgraph.datasets import load_wn18
+    >>> from emgraph.datasets import BaseDataset, DatasetType
     >>> from emgraph.models import ComplEx
     >>> from emgraph.evaluation import evaluate_performance, mrr_score, hits_at_n_score
     >>>
-    >>> X = load_wn18()
-    >>> model = ComplEx(batches_count=10, seed=0, epochs=10, k=150, eta=1,
-    >>>                 loss='nll', optimizer='adam')
+    >>> X = BaseDataset.load_dataset(DatasetType.WN11)
+    >>> model = ComplEx(batches_count=10, seed=0, epochs=10, k=150, eta=1, loss='nll', optimizer='adam')
     >>> model.fit(np.concatenate((X['train'], X['valid'])))
     >>>
     >>> filter_triples = np.concatenate((X['train'], X['valid'], X['test']))
     >>> ranks = evaluate_performance(X['test'][:5], model=model,
     >>>                              filter_triples=filter_triples,
     >>>                              corrupt_side='s+o',
-    >>>                              use_default_protocol=False)
+    >>>                              use_default_protocol=False,)
     >>> ranks
     array([  1, 582, 543,   6,  31])
     >>> mrr_score(ranks)
@@ -868,7 +870,7 @@ def evaluate_performance(
 
     dataset_handle = None
 
-    # try-except block is mainly to handle clean up in case of exception or manual stop in jupyter notebook
+    # In a jupyter notebook, the try-except block is mostly used to clean up after an exception or a manual stop.
     try:
         if use_default_protocol:
             logger.warning(
@@ -978,12 +980,13 @@ def evaluate_performance(
 
 
 def check_filter_size(model, corruption_entities):
-    """Raise a warning when trying to evaluate with too many entities.
+    """
+    Raise a warning when trying to evaluate with too many entities.
 
-        Doing so will likely result in shooting in your feet, as the protocol will be excessively hard,
-        hence the warning message.
+    As the process will be extremely difficult, this will almost certainly result in gunfire in your feet,
+    hence the warning notice.
 
-        Addresses #186.
+    Addresses #186.
 
     :param model: A knowledge graph embedding model
     :type model: EmbeddingModel
@@ -1009,7 +1012,8 @@ def check_filter_size(model, corruption_entities):
 
 
 def filter_unseen_entities(X, model, verbose=False):
-    """Filter unseen entities in the test set.
+    """
+    Filter unseen entities in the test set.
 
     :param X: An array of test triples.
     :type X: ndarray, shape [n, 3]
@@ -1038,7 +1042,8 @@ def filter_unseen_entities(X, model, verbose=False):
 
 
 def _remove_unused_params(params):
-    """Removed unused parameters considering the registries.
+    """
+    Remove unused parameters considering the registries.
 
     For example, if the regularization is None, there is no need for the regularization parameter lambda.
 
@@ -1091,7 +1096,8 @@ def _remove_unused_params(params):
 
 
 def _flatten_nested_keys(dictionary):
-    """Flatten the nested values of a dictionary into tuple keys
+    """
+    Flatten the nested values of a dictionary into tuple keys
     E.g. {"a": {"b": [1], "c": [2]}} becomes {("a", "b"): [1], ("a", "c"): [2]}
 
     :param dictionary: Dictionary to be flattened into tuples
@@ -1117,7 +1123,8 @@ def _flatten_nested_keys(dictionary):
 
 
 def _unflatten_nested_keys(dictionary):
-    """Unflatten the nested values of a dictionary based on the keys that are tuples
+    """
+    Unflatten the nested values of a dictionary based on the keys that are tuples
     E.g. {("a", "b"): [1], ("a", "c"): [2]} becomes {"a": {"b": [1], "c": [2]}}
 
     :param dictionary: Dictionary to be un-flattened
@@ -1143,10 +1150,12 @@ def _unflatten_nested_keys(dictionary):
 
 
 def _get_param_hash(param):
-    """Get the hash of a param dictionary.
-    It first unflattens nested dicts, removes unused nested parameters, nests them again and then create a frozenset
-    based on the resulting items (tuples).
-    Note that the flattening and unflattening dict functions are idempotent.
+    """
+    Get the hash of a param dictionary.
+
+    It flattens nested dicts first, then eliminates unnecessary nested parameters, nests them again, and then creates
+    a frozenset from the resultant elements (tuples). It is worth noting that the dict functions for flattening and
+    unflattening are idempotent.
 
     :param param: Parameter configuration.
         Example::
@@ -1166,8 +1175,8 @@ def _get_param_hash(param):
 
 class ParamHistory(object):
     """
-    Used to evaluates whether a particular parameter configuration has already been previously seen or not.
-    To achieve that, we hash each parameter configuration, removing unused parameters first.
+    This class is used to determine whether a certain parameter configuration has already been observed. To do
+    this, we hash each parameter setting, first deleting unneeded arguments.
     """
 
     def __init__(self):
@@ -1175,7 +1184,8 @@ class ParamHistory(object):
         self.param_hash_history = set()
 
     def add(self, param):
-        """Add hash of parameter configuration to history.
+        """
+        Add hash of parameter configuration to history.
 
         :param param: Parameter configuration.
         Example::
@@ -1188,7 +1198,8 @@ class ParamHistory(object):
         self.param_hash_history.add(_get_param_hash(param))
 
     def __contains__(self, other):
-        """Verify whether hash of parameter configuration is present in history.
+        """
+        Verify whether hash of parameter configuration is present in history.
 
         :param other: Parameter configuration.
         Example::
@@ -1202,7 +1213,8 @@ class ParamHistory(object):
 
 
 def _next_hyperparam(param_grid):
-    """Iterator that gets the next parameter combination from a dictionary containing lists of parameters.
+    """
+    Iterator that gets the next parameter combination from a dictionary containing lists of parameters.
     The parameter combinations are deterministic and go over all possible combinations present in the parameter grid.
 
     :param param_grid: Parameter configurations.
@@ -1232,7 +1244,8 @@ def _next_hyperparam(param_grid):
 
 
 def _sample_parameters(param_grid):
-    """Given a param_grid with callables and lists, execute callables and sample lists to return of random combination
+    """
+    Given a param_grid with callables and lists, execute callables and sample lists to return of random combination
     of parameters.
 
     :param param_grid: Parameter configurations.
@@ -1257,7 +1270,8 @@ def _sample_parameters(param_grid):
 
 
 def _next_hyperparam_random(param_grid):
-    """Iterator that gets the next parameter combination from a dictionary containing lists of parameters or callables.
+    """
+    Iterator that gets the next parameter combination from a dictionary containing lists of parameters or callables.
     The parameter combinations are randomly chosen each iteration.
 
     :param param_grid: Parameter configurations.
@@ -1282,7 +1296,8 @@ def _next_hyperparam_random(param_grid):
 
 
 def _scalars_into_lists(param_grid):
-    """For a param_grid with scalars (instead of lists or callables), transform scalars into lists of size one.
+    """
+    For a param_grid with scalars (instead of lists or callables), transform scalars into lists of size one.
 
     :param param_grid: Parameter configurations.
         Example::
@@ -1317,18 +1332,18 @@ def select_best_model_ranking(
     retrain_best_model=False,
     verbose=False,
 ):
-    """Model selection routine for embedding models via either grid search or random search.
+    """
+    Model selection routine for embedding models via either grid search or random search.
 
-    For grid search, pass a fixed ``param_grid`` and leave ``max_combinations`` as `None`
-    so that all combinations will be explored.
+    For grid search, pass a fixed ``param_grid`` and leave ``max_combinations`` as `None` so that all combinations will be explored.
 
     For random search, delimit ``max_combinations`` to your computational budget
     and optionally set some parameters to be callables instead of a list (see the documentation for ``param_grid``).
 
     .. note::
-        Random search is more efficient than grid search as the number of parameters grows :cite:`bergstra2012random`.
-        It is also a strong baseline against more advanced methods such as
-        Bayesian optimization :cite:`li2018hyperband`.
+        Random search is more efficient than grid search as the number of parameters grows
+        :cite:`bergstra2012random`. It is also a strong baseline against more advanced methods such as Bayesian
+        optimization :cite:`li2018hyperband`.
 
     The function also retrains the best performing model on the concatenation of training and validation sets.
 
@@ -1374,10 +1389,10 @@ def select_best_model_ranking(
 
         Note the metric is computed on ``x_valid``. This is usually a validation set that you held out.
 
-        Also, because ``criteria`` is a ranking metric, it requires generating negatives.
-        Entities used to generate corruptions can be specified, as long as the side(s) of a triple to corrupt.
-        The method supports filtered metrics, by passing an array of positives to ``x_filter``. This will be used to
-        filter the negatives generated on the fly (i.e. the corruptions).
+        Furthermore, because "criteria" is a ranking metric, it necessitates the generation of negatives.
+        Entities that cause corruptions can be defined, as long as the side(s) of a triple to corrupt are supplied.
+        By supplying an array of positives to "x filter," the technique offers filtered metrics.
+        This will be used to filter the on-the-fly negatives (i.e. the corruptions).
 
         .. note::
 
@@ -1455,12 +1470,12 @@ def select_best_model_ranking(
 
     Examples
     --------
-    >>> from emgraph.datasets import load_wn18
+    >>> from emgraph.datasets import BaseDataset, DatasetType
     >>> from emgraph.models import ComplEx
     >>> from emgraph.evaluation import select_best_model_ranking
     >>> import numpy as np
     >>>
-    >>> X = load_wn18()
+    >>> X = BaseDataset.load_dataset(DatasetType.WN18)
     >>>
     >>> model_class = ComplEx
     >>> param_grid = {
