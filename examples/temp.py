@@ -1,13 +1,13 @@
-import os
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# import os
+#
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from sklearn.metrics import brier_score_loss
 from scipy.special import expit
 
-from emgraph.datasets import load_wn11
+from emgraph.datasets import BaseDataset, DatasetType
 from emgraph.models import TransE
 
-X = load_wn11()
+X = BaseDataset.load_dataset(DatasetType.WN11)
 X_valid_pos = X["valid"][X["valid_labels"]]
 X_valid_neg = X["valid"][~X["valid_labels"]]
 # tf.config.experimental_run_functions_eagerly(False)

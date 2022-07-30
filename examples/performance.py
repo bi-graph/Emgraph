@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-from emgraph.datasets import load_wn18
+from emgraph.datasets import BaseDataset, DatasetType
 from emgraph.evaluation import evaluate_performance
 from emgraph.models import ComplEx, ConvKB, DistMult, HolE, TransE
 
@@ -10,7 +10,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 classes = (ComplEx, HolE, TransE, ConvKB, DistMult)
 for cls in classes:
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     print(f"model name: {cls.__name__}")
 
     model = cls(
