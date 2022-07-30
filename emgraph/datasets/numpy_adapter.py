@@ -5,17 +5,19 @@ from ..datasets import EmgraphBaseDatasetAdaptor
 
 class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
     def __init__(self):
-        """Initialize the NumpyDatasetAdapter variables"""
+        """
+        Initialize the NumpyDatasetAdapter variables"""
 
         super(NumpyDatasetAdapter, self).__init__()
         # NumpyDatasetAdapter uses SQLAdapter to filter (if filters are set)
         self.filter_adapter = None
 
     def generate_mappings(self, use_all=False):
-        """Generate mappings from either train set or use all dataset to generate mappings.
+        """
+        Generate mappings from either train set or use all dataset to generate mappings.
 
-        :param use_all: Whether to use all the data or not. If True it uses all the data else the train
-        set (default: False)
+        :param use_all: Whether to use all the data or not. If True it uses all the data else the train set
+            (default: False)
         :type use_all: bool
         :return: Rel-to-idx: Relation to idx mapping - ent-to-idx mapping: entity to idx mapping
         :rtype: dict, dict
@@ -37,7 +39,8 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         return self.rel_to_idx, self.ent_to_idx
 
     def use_mappings(self, rel_to_idx, ent_to_idx):
-        """Use an existing mapping with the datasource.
+        """
+        Use an existing mapping with the datasource.
 
         :param rel_to_idx: Relation to idx mapping
         :type rel_to_idx: dict
@@ -50,7 +53,8 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         super().use_mappings(rel_to_idx, ent_to_idx)
 
     def get_size(self, dataset_type="train"):
-        """Return the size of the specified dataset
+        """
+        Return the size of the specified dataset
 
         :param dataset_type: Dataset type
         :type dataset_type: str
@@ -61,7 +65,8 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         return self.dataset[dataset_type].shape[0]
 
     def data_exists(self, dataset_type="train"):
-        """Checks if a dataset_type exists in the adapter.
+        """
+        Checks if a dataset_type exists in the adapter.
 
         :param dataset_type: Dataset type
         :type dataset_type: str
@@ -72,7 +77,8 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         return dataset_type in self.dataset.keys()
 
     def get_next_batch(self, batches_count=-1, dataset_type="train", use_filter=False):
-        """Generate the next batch of data.
+        """
+        Generate the next batch of data.
 
         :param batches_count: Number of batches per epoch (defaults to -1 means batch size of 1)
         :type batches_count: int
@@ -125,7 +131,8 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
             yield output
 
     def map_data(self, remap=False):
-        """Map the data to the mappings of ent_to_idx and rel_to_idx
+        """
+        Map the data to the mappings of ent_to_idx and rel_to_idx
 
         :param remap: Remap flag to update the mappings from the dictionary
         :type remap: bool
@@ -148,7 +155,8 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
                 self.mapped_status[key] = True
 
     def _validate_data(self, data):
-        """Validate the data.
+        """
+        Validate the data.
 
         :param data: Data to be validated
         :type data: np.ndarray
@@ -175,8 +183,10 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         mapped_status=False,
         focusE_numeric_edge_values=None,
     ):
-        """set the dataset based on the type.
-            Note: If you pass the same dataset type it will be appended
+        """
+        set the dataset based on the type.
+
+        Note: If you pass the same dataset type it will be appended
 
         :param dataset: Dataset of triples
         :type dataset: dict or nd-array
@@ -217,8 +227,10 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
             self.map_data()
 
     def set_filter(self, filter_triples, mapped_status=False):
-        """Set filters for generating the evaluation batch.
-            Note: This adapter uses SQL backend for filtering
+        """
+        Set filters for generating the evaluation batch.
+
+        Note: This adapter uses SQL backend for filtering
 
         :param filter_triples: Filtering triples
         :type filter_triples: nd-array
@@ -235,7 +247,9 @@ class NumpyDatasetAdapter(EmgraphBaseDatasetAdaptor):
         self.filter_adapter.set_data(filter_triples, "filter", mapped_status)
 
     def cleanup(self):
-        """Cleans up the internal state."""
+        """
+        Cleans up the internal state.
+        """
         if self.filter_adapter is not None:
             self.filter_adapter.cleanup()
             self.filter_adapter = None
