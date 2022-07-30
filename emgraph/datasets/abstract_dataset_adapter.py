@@ -2,7 +2,8 @@ import abc
 
 
 class EmgraphBaseDatasetAdaptor(abc.ABC):
-    """An abstract class that provides the infrastructure for defining new data adaptors and pipelines to feed Emgraph.
+    """
+    An abstract class that provides the infrastructure for defining new data adaptors and pipelines to feed Emgraph.
 
     It delivers the standard interface for adding additional data sources. The following methods are the main
     components for this class:
@@ -38,7 +39,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         self.focusE_numeric_edge_values = {}
 
     def use_mappings(self, rel_to_idx, ent_to_idx):
-        """Activate provided mapping for the datasource.
+        """
+        Activate provided mapping for the datasource.
 
         :param rel_to_idx: Relation to idx mapping
         :type rel_to_idx: dict
@@ -55,7 +57,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
             self.mapped_status[key] = False
 
     def generate_mappings(self, use_all=False):
-        """Generate the mappings from the training set. If "use_all==True" the function will use the whole dataset.
+        """
+        Generate the mappings from the training set. If "use_all==True" the function will use the whole dataset.
 
         :param use_all: Whether to use the whole dataset for "mappings" generation (default=False)
         :type use_all: bool
@@ -69,7 +72,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         raise NotImplementedError("Abstract Method not implemented!")
 
     def get_size(self, dataset_type="train"):
-        """Return the size of the dataset
+        """
+        Return the size of the dataset
 
         :param dataset_type: Dataset type (default='train')
         :type dataset_type: str
@@ -81,7 +85,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         raise NotImplementedError("Abstract Method not implemented!")
 
     def data_exists(self, dataset_type="train"):
-        """Check if the provided dataset type (train, test, valid, etc.) exists.
+        """
+        Check if the provided dataset type (train, test, valid, etc.) exists.
 
         :param dataset_type: Type of the dataset (default='train')
         :type dataset_type: str
@@ -93,7 +98,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         raise NotImplementedError("Abstract Method not implemented!")
 
     def set_data(self, dataset, dataset_type=None, mapped_status=False):
-        """Set the dataset based on the specified dataset_type.
+        """
+        Set the dataset based on the specified dataset_type.
 
         :param dataset: Dataset of triples
         :type dataset: str
@@ -107,7 +113,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         raise NotImplementedError("Abstract Method not implemented!")
 
     def map_data(self, remap=False):
-        """Map the data to the ent_to_idx and rel_to_idx mappings.
+        """
+        Map the data to the ent_to_idx and rel_to_idx mappings.
 
         :param remap: Remap the data (used after the dictionaries get updated) (default=False)
         :type remap: bool
@@ -117,7 +124,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         raise NotImplementedError("Abstract Method not implemented!")
 
     def set_filter(self, filter_triples):
-        """Set filters while generating evaluation batches.
+        """
+        Set filters while generating evaluation batches.
 
         :param filter_triples: Filter triples
         :type filter_triples: nd-array
@@ -127,7 +135,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         raise NotImplementedError("Abstract Method not implemented!")
 
     def get_next_batch(self, batches_count=-1, dataset_type="train", use_filter=False):
-        """Generate the next batch of data.
+        """
+        Generate the next batch of data.
 
         :param batches_count:  Number of batches per epoch (defaults to -1 means batch size of 1) (default=-1)
         :type batches_count: int
@@ -146,7 +155,8 @@ class EmgraphBaseDatasetAdaptor(abc.ABC):
         raise NotImplementedError("Abstract Method not implemented!")
 
     def cleanup(self):
-        """Clean up the internal state.
+        """
+        Clean up the internal state.
 
         :raises: NotImplementedError if the method is not overridden
         """
