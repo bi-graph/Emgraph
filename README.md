@@ -2,7 +2,9 @@
 <div>
 
 [//]: # (<a href="https://badge.fury.io/py/emgraph"><img src="https://badge.fury.io/py/emgraph.svg" alt="PyPI version" height="18"></a>)
+
 [//]: # (<a href="https://www.codacy.com/gh/bi-graph/emgraph/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=bi-graph/emgraph&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/e320ed8c06a3466aa9711a138085b9d2" alt="PyPI version" height="18"></a>)
+
 [//]: # (<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/emgraph">)
 
 [comment]: <> (<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dw/emgraph">)
@@ -73,8 +75,7 @@
   <h2>Installation</h2>
   <p>Install the latest version of <b>Emgraph</b>:</p>
 
-[//]: # (  <pre>$ pip install emgraph</pre>)
-  <pre>(will be built soon)</pre>
+  <pre>$ pip install emgraph</pre>
 </div>
 
 <div>
@@ -92,12 +93,12 @@
 ```python
 from sklearn.metrics import brier_score_loss, log_loss
 from scipy.special import expit
-from emgraph.datasets import load_wn11
+from emgraph.datasets import BaseDataset, DatasetType
 from emgraph.models import TransE
 
 
 def train_transe():
-    X = load_wn11()
+    X = BaseDataset.load_dataset(DatasetType.WN11)
     model = TransE(batches_count=64, seed=0, epochs=20, k=100, eta=20,
                    optimizer='adam', optimizer_params={'lr': 0.0001},
                    loss='pairwise', verbose=True, large_graphs=False)
@@ -120,13 +121,13 @@ if __name__ == '__main__':
 
 ```python
 import numpy as np
-from emgraph.datasets import load_wn18
+from emgraph.datasets import BaseDataset, DatasetType
 from emgraph.models import ComplEx
 from emgraph.evaluation import evaluate_performance
 
 
 def complex_performance():
-    X = load_wn18()
+    X = BaseDataset.load_dataset(DatasetType.WN18)
     model = ComplEx(batches_count=10, seed=0, epochs=20, k=150, eta=1,
                     loss='nll', optimizer='adam')
     model.fit(np.concatenate((X['train'], X['valid'])))
@@ -172,9 +173,11 @@ if __name__ == '__main__':
 [//]: # (<p>Metrics that are calculated during evaluation:</p>)
 
 [//]: # ()
+
 [//]: # (> * For further usages and calculating different metrics)
 
 [//]: # ()
+
 [//]: # (<h3>Dataset format</h3>)
 
 [//]: # (<p>Your dataset should be in the following format &#40;Exclude the 'Row' column&#41;:</p>)
@@ -186,14 +189,14 @@ if __name__ == '__main__':
 ```python
 from sklearn.metrics import brier_score_loss, log_loss
 from scipy.special import expit
-from emgraph.datasets import load_wn11
+from emgraph.datasets import BaseDataset, DatasetType
 from emgraph.models import DistMult
 
 
 def train_dist_mult():
-    X = load_wn11()
+    X = BaseDataset.load_dataset(DatasetType.WN11)
     model = DistMult(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
-                 loss_params={'margin': 5})
+                     loss_params={'margin': 5})
 
     model.fit(X['train'])
 
@@ -275,8 +278,6 @@ if __name__ == '__main__':
 - [x] Add more preprocessors
 - [ ] Add dataset, graph, and dataframe manipulations
 - [x] Unify and reconstruct the architecture and eliminate redundancy
-
-
 
 <h2>If you found it helpful, please give us a <span>:star:</span></h2>
 
