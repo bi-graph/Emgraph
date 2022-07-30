@@ -9,10 +9,11 @@ logger.setLevel(logging.DEBUG)
 
 
 class OneToNDatasetAdapter(NumpyDatasetAdapter):
-    r"""1-to-N Dataset Adapter.
+    r"""
+    1-to-N Dataset Adapter.
 
-    Given a triples dataset X comprised of n triples in the form (s, p, o), this dataset adapter will
-    generate one-hot outputs for each (s, p) tuple to all entities o that are found in X.
+    This dataset adapter will accept a triples dataset X consisting of n triples of the type (s, p, o). produce
+    one-time outputs for each (s, p) tuple to all entities o in X.
 
     E.g: X = [[a, p, b],
               [a, p, d],
@@ -51,7 +52,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
     """
 
     def __init__(self, low_memory=False):
-        """Initialize the OneToNDatasetAdapter variables.
+        """
+        Initialize the OneToNDatasetAdapter variables.
 
         :param low_memory: Flag to use low-memory mode. If True: The output vectors will be generated in the batch-yield
         function, which lowers the memory usage but increases the training time.
@@ -68,8 +70,10 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
         self.low_memory = low_memory
 
     def set_filter(self, filter_triples, mapped_status=False):
-        """Set filters for generating the evaluation batch.
-            Note: This adapter uses SQL backend for filtering
+        """
+        Set filters for generating the evaluation batch.
+
+        Note: This adapter uses SQL backend for filtering
 
         :param filter_triples: Filtering triples
         :type filter_triples: nd-array
@@ -85,7 +89,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
     def generate_outputs(
         self, dataset_type="train", use_filter=False, unique_pairs=True
     ):
-        """Generate one-hot outputs for the specified dataset.
+        """
+        Generate one-hot outputs for the specified dataset.
 
         :param dataset_type: Dataset type
         :type dataset_type: str
@@ -158,7 +163,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
             self.paired_status[dataset_type] = unique_pairs
 
     def generate_output_mapping(self, dataset_type="train"):
-        """Create dictionary keyed on (subject, predicate) to list of objects
+        """
+        Create dictionary keyed on (subject, predicate) to list of objects
 
         :param dataset_type: Dataset type
         :type dataset_type: str
@@ -178,10 +184,11 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
         return output_mapping
 
     def set_output_mapping(self, output_dict, clear_outputs=True):
-        """Set the mapping used to generate one-hot outputs vectors.
+        """
+        Set the mapping used to generate one-hot outputs vectors.
 
-        Setting a new output mapping will clear_outputs any previously generated outputs, as otherwise
-        can lead to a situation where old outputs are returned from batch function.
+        Setting a new output mapping will clear outputs any previously created outputs, as doing so might result in
+        old outputs being returned by the batch function.
 
         :param output_dict: Object indices of (subject, predicate)s
         :type output_dict: dict
@@ -199,7 +206,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
             self.clear_outputs()
 
     def clear_outputs(self, dataset_type=None):
-        """Clear the internal memory containing generated one-hot outputs.
+        """
+        Clear the internal memory containing generated one-hot outputs.
 
         :param dataset_type: Dataset type to clear its outputs. (Default: None (clear all))
         :type dataset_type:
@@ -217,7 +225,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
             del self.paired_status[dataset_type]
 
     def verify_outputs(self, dataset_type, use_filter, unique_pairs):
-        """Verify the correspondence of the generated outputs and specified filters and unique pairs.
+        """
+        Verify the correspondence of the generated outputs and specified filters and unique pairs.
 
         :param dataset_type: Dataset type
         :type dataset_type: str
@@ -265,7 +274,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
         use_filter=False,
         unique_pairs=True,
     ):
-        """Generate the next batch of data.
+        """
+        Generate the next batch of data.
 
         :param batches_count: Number of batches per epoch (defaults to -1 means batch size of 1)
         :type batches_count: int
@@ -352,10 +362,11 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
     def get_next_batch_subject_corruptions(
         self, batch_size=-1, dataset_type="train", use_filter=True
     ):
-        """Batch generator for subject corruptions.
+        """
+        Batch generator for subject corruptions.
 
-        To avoid multiple redundant forward-passes through the network, subject corruptions are performed once for
-        each relation, and results accumulated for valid test triples.
+        Subject corruptions are conducted once for relation and results are gathered for valid test triples to avoid
+        numerous redundant forward-passes via the network.
 
         If there are no test triples for a relation, then that relation is ignored.
 
@@ -414,7 +425,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
                 yield test_triples, out, out_filter
 
     def _validate_data(self, data):
-        """Validates the data.
+        """
+        Validates the data.
 
         :param data: Data to be validated
         :type data: np.ndarray
@@ -435,7 +447,8 @@ class OneToNDatasetAdapter(NumpyDatasetAdapter):
             raise ValueError(msg)
 
     def set_data(self, dataset, dataset_type=None, mapped_status=False):
-        """Set the dataset based on the type.
+        """
+        Set the dataset based on the type.
         Note: If you pass the same dataset type (which exists) it will be overwritten
 
         :param dataset: Dataset of triples
