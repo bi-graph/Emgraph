@@ -40,14 +40,14 @@ class ConvKB(EmbeddingModel):
     Examples:
 
     >>> from emgraph.models import ConvKB
-    >>> from emgraph.datasets import load_wn18
+    >>> from emgraph.datasets import BaseDataset, DatasetType
     >>> model = ConvKB(batches_count=2, seed=22, epochs=1, k=10, eta=1,
     >>>               embedding_model_params={'num_filters': 32, 'filter_sizes': [1],
     >>>                                       'dropout': 0.1},
     >>>               optimizer='adam', optimizer_params={'lr': 0.001},
     >>>               loss='pairwise', loss_params={}, verbose=True)
     >>>
-    >>> X = load_wn18()
+    >>> X = BaseDataset.load_dataset(DatasetType.WN18)
     >>>
     >>> model.fit(X['train'])
     >>>
@@ -186,10 +186,11 @@ class ConvKB(EmbeddingModel):
     def _initialize_parameters(self):
         """Initialize parameters of the model.
 
-        This function creates and initializes entity and relation embeddings (with size k).
-        If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
-        and all relation embeddings.
-        Overload this function if the parameters needs to be initialized differently.
+        This function is responsible for the creation and initialization of entity and relation embeddings (with size
+        k).If the graph is vast, it only loads the entity embeddings that are required (max:batch size*2) and all
+        related embeddings.
+
+        If the parameters must be initialized differently, overload this function.
         """
 
         # with tf.variable_scope('meta'):
@@ -318,7 +319,7 @@ class ConvKB(EmbeddingModel):
     def _save_trained_params(self):
         """After model fitting, save all the trained parameters in trained_model_params in some order.
         The order would be useful for loading the model.
-        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings).
+        If the model has any extra parameters, this method must be overridden (apart from entity-relation embeddings).
         """
 
         params_dict = {}
@@ -343,11 +344,14 @@ class ConvKB(EmbeddingModel):
 
     def _load_model_from_trained_params(self):
         """Load the model from trained params.
-        While restoring make sure that the order of loaded parameters match the saved order.
-        It's the duty of the embedding model to load the variables correctly.
-        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings)
-        This function also set's the evaluation mode to do lazy loading of variables based on the number of
-        distinct entities present in the graph.
+
+        Make sure that the order of the loaded parameters matches the saved order when restoring. The embedding model
+        is responsible for accurately loading the variables.
+
+        If the model has any extra parameters, this method must be overridden (apart from entity-relation embeddings).
+
+        This function additionally configures the evaluation mode to do lazy variable loading based on the number of
+        different entities in the graph.
         """
 
         # Generate the batch size based on entity length and batch_count
@@ -482,13 +486,10 @@ class ConvKB(EmbeddingModel):
             Note the metric is computed on ``x_valid``. This is usually a
             validation set that you held out.
 
-            Also, because ``criteria`` is a ranking metric, it requires
-            generating negatives.
-            Entities used to generate corruptions can be specified, as long
-            as the side(s) of a triple to corrupt.
-            The method supports filtered metrics, by passing an array of
-            positives to ``x_filter``. This will be used to
-            filter the negatives generated on the fly (i.e. the corruptions).
+            Also, because ``criteria`` is a ranking metric, it requires generating negatives.
+            Entities used to generate corruptions can be specified, as long as the side(s) of a triple to corrupt.
+            The method supports filtered metrics, by passing an array of positives to ``x_filter``.
+            This will be used to filter the negatives generated on the fly (i.e. the corruptions).
 
             .. note::
 
