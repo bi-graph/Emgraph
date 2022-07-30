@@ -13,19 +13,19 @@ tf.device("/physical_device:GPU:0")  # todo: fix me
 class ComplEx(EmbeddingModel):
     r"""Complex embeddings (ComplEx)
 
-    The ComplEx model`[trouillon2016complex]` is an extension of
-    the :class:`emgraph.models.ComplEx` bilinear diagonal model
-    . ComplEx scoring function is based on the trilinear Hermitian dot product in :math:`\mathcal{C}`:
+    The ComplEx model`[trouillon2016complex]` is an extension of the :class:`emgraph.models.ComplEx` bilinear diagonal model.
+
+    ComplEx scoring function is based on the trilinear Hermitian dot product in :math:`\mathcal{C}`:
 
     .. math::
 
         f_{ComplEx}=Re(\langle \mathbf{r}_p, \mathbf{e}_s, \overline{\mathbf{e}_o}  \rangle)
 
-    ComplEx can be improved if used alongside the nuclear 3-norm
-    (the **ComplEx-N3** model :cite:`lacroix2018canonical`), which can be easily added to the
-    loss function via the ``regularizer`` hyperparameter with ``p=3`` and
+    ComplEx can be improved if used alongside the nuclear 3-norm (the **ComplEx-N3** model :cite:`lacroix2018canonical`),
+    which can be easily added to the loss function via the ``regularizer`` hyperparameter with ``p=3`` and
     a chosen regularisation weight (represented by ``lambda``), as shown in the example below.
-    See also :meth:`emgraph.models.LPRegularizer`.
+
+    See also :class:`emgraph.regularizers.LPRegularizer`.
 
     .. note::
 
@@ -225,9 +225,8 @@ class ComplEx(EmbeddingModel):
     def _initialize_parameters(self):
         """Initialize the complex embeddings.
 
-        This function creates and initializes entity and relation embeddings (with size k).
-        If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
-        and all relation embeddings.
+        In this method, entity and relation embeddings (with size k) is created and initialized. If the graph is large,
+        then only the required entity embeddings (max:batch_size*2) and all relation embeddings is loaded.
         """
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
@@ -307,8 +306,7 @@ class ComplEx(EmbeddingModel):
     ):
         """Train a ComplEx model.
 
-        The model is trained on a training set X using the training protocol
-        described in :cite:`trouillon2016complex`.
+        The model is trained on a training set X using the training protocol described in :cite:`trouillon2016complex`.
 
         :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
         :type X: ndarray (shape [n, 3]) or object of EmgraphBaseDatasetAdaptor
@@ -329,16 +327,15 @@ class ComplEx(EmbeddingModel):
 
         .. note::
 
-            Keep in mind the early stopping criteria may introduce a certain overhead
-            (caused by the metric computation).
+            Keep in mind the early stopping criteria may introduce a certain overhead (caused by the metric computation).
             The goal is to strike a good trade-off between such overhead and saving training epochs.
 
             A common approach is to use MRR unfiltered: ::
 
                 early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}
 
-            Note the size of validation set also contributes to such overhead.
-            In most cases a smaller validation set would be enough.
+            Notably, this overhead is also influenced by the size of the validation set. A smaller validation set
+            would typically be sufficient.
 
         :type early_stopping: bool
         :param early_stopping_params: Dictionary of hyperparameters for the early stopping heuristics.
@@ -363,20 +360,17 @@ class ComplEx(EmbeddingModel):
             Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
         :type early_stopping_params: dict
         :param focusE_numeric_edge_values: Numeric values associated with links.
-            Semantically, the numeric value can signify importance, uncertainity, significance, confidence, etc.
-            If the numeric value is unknown pass a NaN weight. The model will uniformly randomly assign a numeric value.
-            One can also think about assigning numeric values by looking at the distribution of it per predicate.
+            Semantically, the numerical number might represent significance, confidence, relevance, and other concepts.
+            Pass a NaN weight if the numerical amount is unknowable. The model will assign a numerical value uniformly at random.
+            Assigning numerical values can also be considered by considering how they are distributed among predicates.
 
             .. _focuse_complex:
 
         If processing a knowledge graph with numeric values associated with links, this is the vector of such
-        numbers. Passing this argument will activate the :ref:`FocusE layer <edge-literals>`
-        :cite:`pai2021learning`.
-        Semantically, numeric values can signify importance, uncertainity, significance, confidence, etc.
-        Values can be any number, and will be automatically normalised to the [0, 1] range, on a
-        predicate-specific basis.
-        If the numeric value is unknown pass a ``np.NaN`` value.
-        The model will uniformly randomly assign a numeric value.
+        numbers. Passing this argument will activate the :ref:`FocusE layer <edge-literals>` :cite:`pai2021learning`.
+        Semantically, the numerical number might represent significance, confidence, relevance, and other concepts.
+        Values can be any number, and will be automatically normalised to the [0, 1] range, on a predicate-specific basis.
+        The model will evenly and randomly assign a numeric value if the numeric value is unknown and is passed a value of "np.NaN".
 
         .. note::
 
@@ -405,10 +399,12 @@ class ComplEx(EmbeddingModel):
                                           np.nan, 3.17, 2.76, 0.41])
 
                 model.fit(X, focusE_numeric_edge_values=X_edge_values)
+
         :type focusE_numeric_edge_values: nd array (n, 1)
-        :param tensorboard_logs_path: Path to store tensorboard logs, e.g. average training loss tracking per epoch (default: ``None`` indicating
-        no logs will be collected). When provided it will create a folder under provided path and save tensorboard
-        files there. To then view the loss in the terminal run: ``tensorboard --logdir <tensorboard_logs_path>``.
+        :param tensorboard_logs_path: Path to store tensorboard logs, e.g. average training loss tracking per epoch
+        (default: ``None`` indicating no logs will be collected).
+        When provided it will create a folder under provided path and save tensorboard files there.
+        To then view the loss in the terminal run: ``tensorboard --logdir <tensorboard_logs_path>``.
         :type tensorboard_logs_path: str or None
         Path to store tensorboard logs, e.g. average training loss tracking per epoch (default: ``None`` indicating
         no logs will be collected). When provided it will create a folder under provided path and save tensorboard
@@ -447,37 +443,35 @@ class ComplEx(EmbeddingModel):
     ):
         """Calibrate predictions
 
-        The method implements the heuristics described in :cite:`calibration`,
-        using Platt scaling :cite:`platt1999probabilistic`.
+        The method implements the heuristics described in :cite:`calibration`, using Platt scaling :cite:`platt1999probabilistic`.
 
-        The calibrated predictions can be obtained with :meth:`predict_proba`
-        after calibration is done.
+        The calibrated predictions can be obtained with :meth:`predict_proba` after calibration is done.
 
-        Ideally, calibration should be performed on a validation set that was not used to train the embeddings.
+        Calibration should ideally be done on a validation set that was not used to train the embeddings.
 
         There are two modes of operation, depending on the availability of negative triples:
 
-        #. Both positive and negative triples are provided via ``X_pos`` and ``X_neg`` respectively. \
-        The optimization is done using a second-order method (limited-memory BFGS), \
-        therefore no hyperparameter needs to be specified.
+        #. Both positive and negative triples are provided via ``X_pos`` and ``X_neg`` respectively. The optimization
+        is done using a second-order method (limited-memory BFGS), therefore no hyperparameter needs to be specified.
 
-        #. Only positive triples are provided, and the negative triples are generated by corruptions \
-        just like it is done in training or evaluation. The optimization is done using a first-order method (ADAM), \
-        therefore ``batches_count`` and ``epochs`` must be specified.
+        #. Only positive triples are provided, and the negative triples are generated by corruptions just like it is
+        done in training or evaluation. The optimization is done using a first-order method (ADAM), therefore
+        ``batches_count`` and ``epochs`` must be specified.
 
 
-        Calibration is highly dependent on the base rate of positive triples.
-        Therefore, for mode (2) of operation, the user is required to provide the ``positive_base_rate`` argument.
-        For mode (1), that can be inferred automatically by the relative sizes of the positive and negative sets,
-        but the user can override that by providing a value to ``positive_base_rate``.
+        Calibration is highly dependent on the base rate of positive triples. Therefore, for mode (2) of operation,
+        the user is required to provide the ``positive_base_rate`` argument. For mode (1), that can be inferred
+        automatically by the relative sizes of the positive and negative sets, but the user can override that by
+        providing a value to ``positive_base_rate``.
 
-        Defining the positive base rate is the biggest challenge when calibrating without negatives. That depends on
-        the user choice of which triples will be evaluated during test time.
-        Let's take WN11 as an example: it has around 50% positives triples on both the validation set and test set,
-        so naturally the positive base rate is 50%. However, should the user resample it to have 75% positives
-        and 25% negatives, its previous calibration will be degraded. The user must recalibrate the model now with a
-        75% positive base rate. Therefore, this parameter depends on how the user handles the dataset and
-        cannot be determined automatically or a priori.
+        When calibrating without negatives, the most difficult problem is defining the positive base rate. This is
+        determined by the user's selection of which triples will be analyzed during testing.
+
+        Take WN11 as an example: it has approximately 50% positive triples on both the validation and test sets,
+        so the positive base rate is 50%. However, if the user resamples it to have 75% positives and 25% negatives,
+        the prior calibration will be impaired. The user must now recalibrate the model with a 75% positive base
+        rate. As a result, this parameter is defined by how the user interacts with the dataset and cannot be
+        determined mechanically or a priori.
 
         .. Note ::
             Incompatible with large graph mode (i.e. if ``self.dealing_with_large_graphs=True``).
@@ -515,10 +509,10 @@ class ComplEx(EmbeddingModel):
         >>> from sklearn.metrics import brier_score_loss, log_loss
         >>> from scipy.special import expit
         >>>
-        >>> from emgraph.datasets import load_wn11
+        >>> from emgraph.datasets import BaseDataset, DatasetType
         >>> from emgraph.models import ComplEx
         >>>
-        >>> X = load_wn11()
+        >>> X = BaseDataset.load_dataset(DatasetType.WN11)
         >>> X_valid_pos = X['valid'][X['valid_labels']]
         >>> X_valid_neg = X['valid'][~X['valid_labels']]
         >>>
