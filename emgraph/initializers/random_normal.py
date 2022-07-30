@@ -80,12 +80,12 @@ class RandomNormal(Initializer):
         """
         Draw random samples from a normal (Gaussian) distribution.
 
-        The probability density function of the normal distribution, first derived by De Moivre and 200 years later by
-        both Gauss and Laplace independently [2], is often called the bell curve because of its characteristic shape
-        (see the example below).
+        The probability density function of the normal distribution, initially computed by De Moivre and
+        independently by Gauss and Laplace 200 years later [2], is commonly referred to as the bell curve because to
+        its distinctive form (see the example below).
 
-        The normal distributions occurs often in nature. For example, it describes the commonly occurring distribution
-        of samples influenced by a large number of tiny, random disturbances, each with its own unique distribution [2].
+        Normal distributions appear often in nature. It explains, for example, the often occurring distribution of
+        samples altered by a large number of small, random disturbances, each having its own unique distribution [2].
 
         :param in_shape: Number of the layer's inputs.
         :type in_shape: int
