@@ -13,7 +13,8 @@ logger.setLevel(logging.DEBUG)
 
 
 class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
-    """SQLLite adapter"""
+    """
+    SQLLite adapter"""
 
     def __init__(self, existing_db_name=None, ent_to_idx=None, rel_to_idx=None):
         """
@@ -45,11 +46,15 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
             self.ent_to_idx = ent_to_idx
 
     def get_db_name(self):
-        """Returns the db name"""
+        """
+        Returns the db name
+        """
         return self.dbname
 
     def _create_schema(self):
-        """Create the database schema"""
+        """
+        Create the database schema
+        """
         if self.using_existing_db:
             return
         if self.dbname is not None:
@@ -131,7 +136,9 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         return self.rel_to_idx, self.ent_to_idx
 
     def _insert_entities_in_db(self):
-        """Insert entities in the database"""
+        """
+        Insert entities in the database
+        """
         # TODO: can change it to just use the values of the dictionary
         pg_entity_values = np.arange(len(self.ent_to_idx)).reshape(-1, 1).tolist()
         conn = sqlite3.connect("{}".format(self.dbname))
@@ -145,7 +152,9 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         conn.close()
 
     def use_mappings(self, rel_to_idx, ent_to_idx):
-        """Use an existing mapping with the datasource."""
+        """
+        Use an existing mapping with the datasource.
+        """
         # cannot change mappings for an existing database.
         if self.using_existing_db:
             raise Exception("Cannot change the mappings for an existing DB")
@@ -159,7 +168,8 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         self._insert_entities_in_db()
 
     def get_size(self, dataset_type="train"):
-        """Return the size of the specified dataset.
+        """
+        Return the size of the specified dataset.
 
         :param dataset_type: Dataset type
         :type dataset_type: str
@@ -176,7 +186,8 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         return out[0][0]
 
     def get_next_batch(self, batches_count=-1, dataset_type="train", use_filter=False):
-        """Generate the next batch of data.
+        """
+        Generate the next batch of data.
 
         :param batches_count: Number of batches per epoch (defaults to -1 means batch size of 1)
         :type batches_count: int
@@ -221,7 +232,8 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
                 yield out
 
     def _insert_triples(self, triples, key=""):
-        """inserts triples in the database for the specified category
+        """
+        inserts triples in the database for the specified category
 
         :param triples: Triples of entity-relation-entity
         :type triples: set
@@ -250,7 +262,8 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         conn.close()
 
     def map_data(self, remap=False):
-        """Map the data to the mappings of ent_to_idx and rel_to_idx
+        """
+        Map the data to the mappings of ent_to_idx and rel_to_idx
 
         :param remap: Remap flag to update the mappings from the dictionary
         :type remap: bool
@@ -344,7 +357,8 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         conn.close()
 
     def _validate_data(self, data):
-        """Validate the data.
+        """
+        Validate the data.
 
         :param data: Data to be validated
         :type data: np.ndarray
@@ -367,8 +381,10 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
     def set_data(
         self, dataset, dataset_type=None, mapped_status=False, persistence_status=False
     ):
-        """set the dataset based on the type.
-            Note: If you pass the same dataset type it will be appended
+        """
+        set the dataset based on the type.
+
+        Note: If you pass the same dataset type it will be appended
 
             #Used for extremely large datasets:
             from emgraph.datasets import SQLiteAdapter
@@ -431,7 +447,8 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
             self.map_data()
 
     def get_participating_entities(self, x_triple):
-        """Return the entities included in the relation ?-p-o and s-p-?
+        """
+        Return the entities included in the relation ?-p-o and s-p-?
 
         :param x_triple: Queried triple (s-p-o)
         :type x_triple: nd-array (3,)
@@ -491,10 +508,12 @@ class SQLiteAdapter(EmgraphBaseDatasetAdaptor):
         return ent_participating_as_objects, ent_participating_as_subjects
 
     def cleanup(self):
-        """Clean up the database"""
+        """
+        Clean up the database
+        """
 
         if self.using_existing_db:
-            # if using an existing db then dont remove
+            # if using an existing db then do not remove
             self.dbname = None
             self.using_existing_db = False
             return
