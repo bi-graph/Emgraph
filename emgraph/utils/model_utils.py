@@ -298,7 +298,8 @@ def create_tensorboard_visualizations(
 
 
 def write_metadata_tsv(loc, data):
-    """Write Tensorboard metadata.tsv file.
+    """
+    Write Tensorboard metadata.tsv file.
 
     :param loc: Directory where the file is written.
     :type loc: str
@@ -323,7 +324,8 @@ def write_metadata_tsv(loc, data):
 
 
 def dataframe_to_triples(X, schema):
-    """Convert DataFrame into triple format.
+    """
+    Convert DataFrame into triple format.
 
     :param X: Data being converted to triple
     :type X: pd.DataFrame
