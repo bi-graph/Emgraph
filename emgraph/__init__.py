@@ -21,7 +21,7 @@ from . import (
 
 
 def get_version() -> str:
-    __version__ = "1.0rc2"
+    __version__ = "1.0.0-rc1"
     return __version__
 
 
