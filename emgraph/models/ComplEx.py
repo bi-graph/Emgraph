@@ -13,7 +13,8 @@ tf.device("/physical_device:GPU:0")  # todo: fix me
 class ComplEx(EmbeddingModel):
     r"""Complex embeddings (ComplEx)
 
-    The ComplEx model`[trouillon2016complex]` is an extension of the :class:`emgraph.models.ComplEx` bilinear diagonal model.
+    The ComplEx model`[trouillon2016complex]` is an extension of the :class:`emgraph.models.ComplEx` bilinear
+    diagonal model.
 
     ComplEx scoring function is based on the trilinear Hermitian dot product in :math:`\mathcal{C}`:
 
