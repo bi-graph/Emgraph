@@ -23,7 +23,8 @@ DEFAULT_WEIGHT = np.float32(1)
 
 
 def separated(values, *, limit, stringify, sep):
-    """Print ``limit`` values with the specified seperator.
+    """
+    Print ``limit`` values with the specified seperator.
 
     :param values: List of values to print
     :type values: list
@@ -33,7 +34,7 @@ def separated(values, *, limit, stringify, sep):
     :type stringify: callable
     :param sep: Seperator to be used
     :type sep: str
-    :return: Seperated values
+    :return: Separated values
     :rtype: str
     """
 
@@ -49,7 +50,8 @@ def separated(values, *, limit, stringify, sep):
 
 
 def comma_sep(values, limit=20, stringify=repr):
-    """Print ``limit`` values with the specified seperator.
+    """
+    Print ``limit`` values with the specified seperator.
 
     :param values: List of values to print
     :type values: list
@@ -57,7 +59,7 @@ def comma_sep(values, limit=20, stringify=repr):
     :type limit: int, optional
     :param stringify: Values to string converter function
     :type stringify: callable
-    :return: Seperated values
+    :return: Separated values
     :rtype: str
     """
 
@@ -65,7 +67,8 @@ def comma_sep(values, limit=20, stringify=repr):
 
 
 def zero_sized_array(shape, dtype):
-    """Generate an empty array.
+    """
+    Generate an empty array.
 
     :param shape: A tuple that contains at least one 0
     :type shape: tuple
@@ -140,8 +143,7 @@ def _features_from_node_data(nodes, node_type_default, data, dtype):
             if isinstance(this_data, pd.DataFrame):
                 df = this_data.astype(dtype, copy=False)
             elif isinstance(this_data, (Iterable, list)):
-                # this functionality is a bit peculiar (Pandas is generally nicer), and is
-                # undocumented. Consider deprecating and removing it.
+                # todo: this functionality is a bit peculiar (Pandas is generally nicer), and is undocumented. Consider deprecating and removing it.
                 ids, values = zip(*this_data)
                 df = pd.DataFrame(values, index=ids, dtype=dtype)
             else:
