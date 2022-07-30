@@ -4,7 +4,6 @@ from functools import partial
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.python.ops.variable_scope
 from sklearn.utils import check_random_state
 from tqdm import tqdm
 
@@ -450,14 +449,14 @@ class ConvE(EmbeddingModel):
 
     def _load_model_from_trained_params(self):
         """Load the model from trained params.
-        While restoring make sure that the order of loaded parameters match the saved order.
-        It's the duty of the embedding model to load the variables correctly.
-        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings)
-        This function also set's the evaluation mode to do lazy loading of variables based on the number of
-        distinct entities present in the graph.
+
+        Make sure that the order of the loaded parameters matches the saved order when restoring. The embedding model
+        is responsible for accurately loading the variables. If the model has any extra parameters, this method must
+        be overridden (apart from entity-relation embeddings) This function additionally configures the evaluation
+        mode to do lazy variable loading based on the number of different entities in the graph.
         """
 
-        # Generate the batch size based on entity length and batch_count
+        # Determine the batch size using entity length and batch count.
         self.batch_size = int(np.ceil(len(self.ent_to_idx) / self.batches_count))
 
         with tf.compat.v1.variable_scope("meta"):
@@ -647,8 +646,7 @@ class ConvE(EmbeddingModel):
     def fit(self, X, early_stopping=False, early_stopping_params={}):
         """Train a ConvE (with optional early stopping).
 
-        The model is trained on a training set X using the training protocol
-        described in :cite:`DettmersMS018`.
+        The model is trained on a training set X using the training protocol described in :cite:`DettmersMS018`.
 
         :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
         :type X: ndarray (shape [n, 3]) or object of EmgraphDatasetAdapter
@@ -680,7 +678,7 @@ class ConvE(EmbeddingModel):
         """
 
         self.train_dataset_handle = None
-        # try-except block is mainly to handle clean up in case of exception or manual stop in jupyter notebook
+        # In a jupyter notebook, the try-except block is mostly used to clean up after an exception or a manual stop.
         try:
             if isinstance(X, np.ndarray):
                 self.train_dataset_handle = OneToNDatasetAdapter(
@@ -879,7 +877,7 @@ class ConvE(EmbeddingModel):
     def _initialize_eval_graph(self, mode="test"):
         """Initialize the evaluation graph with the set protocol.
 
-        :param mode: Indicates which data generator to use.
+        :param mode: This parameter specifies the data generator to be used.
         :type mode: str
         :return:
         :rtype:
@@ -931,8 +929,8 @@ class ConvE(EmbeddingModel):
         # Rank of triple, with other positives filtered out.
         self.rank = tf.subtract(self.total_rank, self.filter_rank) + 1
 
-        # NOTE: if having trouble with the above rank calculation, consider when test triple
-        # has the highest score (total_rank=1, filter_rank=1)
+        # NOTE: if having trouble with the above rank calculation, consider when test triple has the highest score (
+        # total_rank=1, filter_rank=1)
 
     def _initialize_early_stopping(self):
         """Initializes and creates evaluation graph for early stopping."""
@@ -1032,8 +1030,8 @@ class ConvE(EmbeddingModel):
 
         .. note::
 
-            To obtain probability estimates, calibrate the model with :func:`~ConvE.calibrate`,
-            then call :func:`~ConvE.predict_proba`.
+            To obtain probability estimates, calibrate the model with :func:`~ConvE.calibrate`, then call
+            :func:`~ConvE.predict_proba`.
 
         :param X: The triples to score.
         :type X: ndarray, shape [n, 3]
@@ -1155,7 +1153,7 @@ class ConvE(EmbeddingModel):
     def _initialize_eval_graph_subject(self, mode="test"):
         """Initialize the graph for evaluating subject corruptions.
 
-        :param mode: Indicates which data generator to use.
+        :param mode: This parameter specifies the data generator to be used.
         :type mode: str
         :return:
         :rtype:
@@ -1193,8 +1191,8 @@ class ConvE(EmbeddingModel):
     def _get_subject_ranks(self, dataset_handle, corruption_batch_size=None):
         """Internal function for obtaining subject ranks.
 
-        This function performs subject corruptions. Output layer scores are accumulated in order to rank
-        subject corruptions. This can cause high memory consumption, so a default subject corruption batch size
+        This function is responsible for subject corruptions. To rank topic corruptions, output layer scores are
+        accumulated. Because this can result in excessive memory usage, so a default subject corruption batch size
         is set in constants.py.
 
         :param dataset_handle: This contains handles of the generators that would be used to get test triples and filters
