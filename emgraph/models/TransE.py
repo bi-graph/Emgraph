@@ -9,7 +9,8 @@ tf.device("/physical_device:GPU:0")  # todo: fix me
 
 @register_model("TransE", ["norm", "normalize_ent_emb", "negative_corruption_entities"])
 class TransE(EmbeddingModel):
-    r"""Translating Embeddings (TransE)
+    r"""
+    Translating Embeddings (TransE)
 
     The model as described in :cite:`bordes2013translating`.
 
@@ -117,8 +118,7 @@ class TransE(EmbeddingModel):
 
     >>> import numpy as np
     >>> from emgraph.models import TransE
-    >>> model = TransE(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise',
-    >>>                loss_params={'margin':5})
+    >>> model = TransE(batches_count=1, seed=555, epochs=20, k=10, loss='pairwise', loss_params={'margin':5})
     >>> X = np.array([['a', 'y', 'b'],
     >>>               ['b', 'y', 'a'],
     >>>               ['a', 'y', 'c'],
@@ -163,7 +163,8 @@ class TransE(EmbeddingModel):
         verbose=constants.DEFAULT_VERBOSE,
         large_graphs=False,
     ):
-        """Initialize an EmbeddingModel.
+        """
+        Initialize an EmbeddingModel.
 
         Also creates a new Tensorflow session for training.
         """
@@ -187,7 +188,8 @@ class TransE(EmbeddingModel):
         )
 
     def _fn(self, e_s, e_p, e_o):
-        r"""The TransE scoring function.
+        r"""
+        The TransE scoring function.
 
         .. math::
 
@@ -221,10 +223,10 @@ class TransE(EmbeddingModel):
         focusE_numeric_edge_values=None,
         tensorboard_logs_path=None,
     ):
-        """Train a Translating Embeddings model.
+        """
+        Train a Translating Embeddings model.
 
-        The model is trained on a training set X using the training protocol
-        described in :cite:`trouillon2016complex`.
+        The model is trained on a training set X using the training protocol described in :cite:`trouillon2016complex`.
 
         :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
         :type X: ndarray (shape [n, 3]) or object of EmgraphBaseDatasetAdaptor
@@ -238,23 +240,23 @@ class TransE(EmbeddingModel):
 
             Note the metric is computed on ``x_valid``. This is usually a validation set that you held out.
 
-            Also, because ``criteria`` is a ranking metric, it requires generating negatives.
-            Entities used to generate corruptions can be specified, as long as the side(s) of a triple to corrupt.
-            The method supports filtered metrics, by passing an array of positives to ``x_filter``. This will be used to
-            filter the negatives generated on the fly (i.e. the corruptions).
+            Furthermore, because "criteria" is a ranking metric, it necessitates the generation of negatives.
+            Entities that cause corruptions can be defined, as long as the side(s) of a triple to corrupt are
+            supplied. By supplying an array of positives to "x filter," the technique offers filtered metrics. This
+            will be put to use to filter the on-the-fly created negatives (i.e. the corruptions).
 
             .. note::
 
-                Keep in mind the early stopping criteria may introduce a certain overhead
-                (caused by the metric computation).
-                The goal is to strike a good trade-off between such overhead and saving training epochs.
+                Remember that the early halting criterion may impose some overhead (caused by the metric
+                computation). The objective is to find a fair balance between such overhead and preserving training
+                epochs.
 
                 A common approach is to use MRR unfiltered: ::
 
                     early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}
 
-                Note the size of validation set also contributes to such overhead.
-                In most cases a smaller validation set would be enough.
+                It should be noted that the size of the validation set also adds to such cost. A smaller validation
+                set would enough in most circumstances.
 
         :type early_stopping: bool
         :param early_stopping_params: Dictionary of hyperparameters for the early stopping heuristics.
@@ -273,25 +275,25 @@ class TransE(EmbeddingModel):
                 Example: ``early_stopping_params={x_valid=X['valid'], 'criteria': 'mrr'}``
         :type early_stopping_params: dict
         :param focusE_numeric_edge_values: Numeric values associated with links.
-            Semantically, the numeric value can signify importance, uncertainity, significance, confidence, etc.
-            If the numeric value is unknown pass a NaN weight. The model will uniformly randomly assign a numeric value.
-            One can also think about assigning numeric values by looking at the distribution of it per predicate.
+
+            Semantically, a numerical number might represent relevance, uncertainty, significance, confidence,
+            and so forth. If the numeric value is unknown, a NaN weight is applied. The model will assign a number
+            value at random. One may also consider assigning numerical values by examining the distribution of them
+            per condition.
 
             .. _focuse_transe:
 
             If processing a knowledge graph with numeric values associated with links, this is the vector of such
-            numbers. Passing this argument will activate the :ref:`FocusE layer <edge-literals>`
-            :cite:`pai2021learning`.
-            Semantically, numeric values can signify importance, uncertainity, significance, confidence, etc.
-            Values can be any number, and will be automatically normalised to the [0, 1] range, on a
-            predicate-specific basis.
-            If the numeric value is unknown pass a ``np.NaN`` value.
-            The model will uniformly randomly assign a numeric value.
+            numbers. Passing this argument will activate the :ref:`FocusE layer <edge-literals>` :cite:`pai2021learning`.
+
+            Numeric values can represent importance, uncertainty, significance, confidence, and so forth. Values can
+            be any number and will be automatically normalised to the [0, 1] range based on the criteria. If the
+            numeric value is uncertain, use "np.NaN". The model will assign a number value at random.
 
             .. note::
 
-                The following toy example shows how to enable the FocusE layer
-                to process edges with numeric literals: ::
+                The following toy example shows how to enable the FocusE layer to process edges with numeric literals:
+                ::
 
                     import numpy as np
                     from emgraph.models import TransE
@@ -335,12 +337,13 @@ class TransE(EmbeddingModel):
         )
 
     def predict(self, X, from_idx=False):
-        """Predict the scores of triples using a trained embedding model.
+        """
+        Predict the scores of triples using a trained embedding model.
+
         The function returns raw scores generated by the model.
 
-        .. note::
-            To obtain probability estimates, calibrate the model with :func:`~EmbeddingModel.calibrate`,
-            then call :func:`~TrnasE.predict_proba`.
+        .. note:: To obtain probability estimates, calibrate the model with :func:`~EmbeddingModel.calibrate`,
+        then call :func:`~TrnasE.predict_proba`.
 
         :param X: The triples to score.
         :type X: ndarray, shape [n, 3]
