@@ -99,8 +99,7 @@ def custom_softplus(x):
 class EmbeddingModel(abc.ABC):
     """Abstract class for embedding models
 
-    Emgraph neural knowledge graph embeddings models extend this class and
-    its core methods.
+    Emgraph neural knowledge graph embeddings models extend this class and its core methods.
 
     :param k: Embedding space dimensionality.
     :type k: int
@@ -319,9 +318,9 @@ class EmbeddingModel(abc.ABC):
         # todo: rename this to _calculate_score
         """The scoring function of the model.
 
-        Assigns a score to a list of triples, with a model-specific strategy.
-        Triples are passed as lists of subject, predicate, object embeddings.
-        This function must be overridden by every model to return corresponding score.
+        A model-specific strategy is used to assign a score to a list of triples. Triples are passed in the form of
+        lists of subject, predicate, and object embeddings. Every model must override this function in order to
+        return the corresponding score.
 
         :param e_s: The embeddings of a list of subjects.
         :type e_s: tf.Tensor, shape [n]
@@ -384,9 +383,10 @@ class EmbeddingModel(abc.ABC):
             self.dealing_with_large_graphs = False
 
     def _save_trained_params(self):
-        """After fitting the model, save all parameters in trained_model_params in some order.
-        The order is used while loading the model.
-        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings).
+        """
+        After training the model, save all parameters in some order in trained model params. When loading the model,
+        the order is used. If the model has any extra parameters, this method must be overridden (apart from
+        entity-relation embeddings).
         """
         params_to_save = []
         if not self.dealing_with_large_graphs:
@@ -401,12 +401,13 @@ class EmbeddingModel(abc.ABC):
         self.trained_model_params = params_to_save
 
     def _load_model_from_trained_params(self):
-        """Load the model from trained params.
-        While restoring make sure that the order of loaded parameters match the saved order.
-        It's the duty of the embedding model to load the variables correctly.
-        This method must be overridden if the model has any other parameters (apart from entity-relation embeddings).
-        This function also set's the evaluation mode to do lazy loading of variables based on the number of
-        distinct entities present in the graph.
+        """
+                Load the model using the trained parameters.
+
+        Make sure that the order of the loaded parameters matches the saved order when restoring. The embedding model
+        is responsible for accurately loading the variables. If the model has any extra parameters, this method must
+        be overridden (apart from entity-relation embeddings). This function additionally configures the evaluation
+        mode to do lazy variable loading dependent on the amount of variables. The graph contains separate items.
         """
 
         # Generate the batch size based on entity length and batch_count
@@ -429,13 +430,13 @@ class EmbeddingModel(abc.ABC):
             # (We use tf.variable for future - to load and continue training)
             self.ent_emb = tf.Variable(self.trained_model_params[0], dtype=tf.float32)
         else:
-            # Embeddings of all the corruptions entities will not fit on GPU.
-            # During training we loaded batch_size*2 embeddings on GPU as only 2* batch_size unique
-            # entities can be present in one batch.
-            # During corruption generation in eval mode, one side(s/o) is fixed and only the other side varies.
-            # Hence we use a batch size of 2 * training_batch_size for corruption generation i.e. those many
-            # corruption embeddings would be loaded per batch on the GPU. In other words, those corruptions
-            # would be processed as a batch.
+            # All of the corrupted entities' embeddings will not fit on the GPU. We loaded batch size*2 embeddings on
+            # GPU during training since only 2* batch size unique entities can be present in one batch.
+            #
+            # During corruption generation in eval mode, one side (s/o) remains constant while the other side
+            # fluctuates. As a result, we employ a batch size of 2 * training batch size for corruption generation,
+            # which means that those many corruption embeddings are loaded on the GPU each batch. In other words,
+            # such corruptions would be dealt with as a group.
 
             self.corr_batch_size = self.batch_size * 2
 
@@ -547,10 +548,11 @@ class EmbeddingModel(abc.ABC):
     def _initialize_parameters(self):
         """Initialize parameters of the model.
 
-        This function creates and initializes entity and relation embeddings (with size k).
-        If the graph is large, then it loads only the required entity embeddings (max:batch_size*2)
-        and all relation embeddings.
-        Override this function if the parameters needs to be initialized differently.
+        This function is responsible for the creation and initialization of entity and relation embeddings (with size
+        k). If the graph is huge, it only loads the entity embeddings that are required (max:batch size*2). as well
+        as all relation embeddings.
+
+        If the parameters must be initialized differently, override this function.
         """
         timestamp = int(time.time() * 1e6)
         if not self.dealing_with_large_graphs:
@@ -612,7 +614,7 @@ class EmbeddingModel(abc.ABC):
 
     def _get_model_loss(self, dataset_iterator):
         """Get the current loss including loss wrt to regularization.
-        This function must be overridden if the model uses combination of different losses(eg: VAE).
+        If the model employs a combination of distinct losses, this function must be overridden (eg: VAE).
 
         :param dataset_iterator: Dataset iterator.
         :type dataset_iterator: tf.data.Iterator
@@ -923,7 +925,7 @@ class EmbeddingModel(abc.ABC):
         self._initialize_eval_graph("valid")
 
     def _perform_early_stopping_test(self, epoch):
-        """Performs regular validation checks and stop early if the criteria is achieved.
+        """Performs regular validation checks and stops early if the criterion is met.
 
         :param epoch: current training epoch.
         :type epoch: int
@@ -1042,15 +1044,18 @@ class EmbeddingModel(abc.ABC):
 
     def _training_data_generator(self):
         """Generates the training data.
-        If we are dealing with large graphs, then along with the training triples (of the batch),
-        this method returns the idx of the entities present in the batch (along with filler entities
-        sampled randomly from the rest(not in batch) to load batch_size*2 entities on the GPU) and their embeddings.
+
+        If we are working with huge graphs, this function returns the idx of the entities present in the batch (along
+        with filler entities picked randomly from the rest (not in batch) to load batch size*2 entities on the GPU)
+        and their embeddings, in addition to the training triples (of the batch).
         """
 
         all_ent = np.int32(np.arange(len(self.ent_to_idx)))
         unique_entities = all_ent.reshape(-1, 1)
+
         # generate empty embeddings for smaller graphs - as all the entity embeddings will be loaded on GPU
         entity_embeddings = np.empty(shape=(0, self.internal_k), dtype=np.float32)
+
         # create iterator to iterate over the train batches
         batch_iterator = iter(
             self.train_dataset_handle.get_next_batch(self.batches_count, "train")
@@ -1116,8 +1121,7 @@ class EmbeddingModel(abc.ABC):
     ):
         """Train an EmbeddingModel (with optional early stopping).
 
-        The model is trained on a training set X using the training protocol
-        described in :cite:`trouillon2016complex`.
+        The model is trained on a training set X using the training protocol described in :cite:`trouillon2016complex`.
 
         :param X: Numpy array of training triples OR handle of Dataset adapter which would help retrieve data.
         :type X: ndarray (shape [n, 3]) or object of EmgraphBaseDatasetAdaptor
@@ -1159,7 +1163,7 @@ class EmbeddingModel(abc.ABC):
 
         self.train_dataset_handle = None
         self.tensorboard_logs_path = tensorboard_logs_path
-        # try-except block is mainly to handle clean up in case of exception or manual stop in jupyter notebook
+        # In a jupyter notebook, the try-except block is mostly used to clean up after an exception or a manual stop.
         try:
             if isinstance(X, np.ndarray):
                 if focusE_numeric_edge_values is not None:
@@ -1516,8 +1520,8 @@ class EmbeddingModel(abc.ABC):
         """Generates the test/validation data. If filter_triples are passed, then it returns the False Negatives
            that could be present in the generated corruptions.
 
-           If we are dealing with large graphs, then along with the above, this method returns the idx of the
-           entities present in the batch and their embeddings.
+           If we are working with big graphs, this function also returns the idx of the node. Entities in the batch
+           as well as their embeddings.
 
         :param mode: Dataset type
         :type mode: str
@@ -1560,8 +1564,10 @@ class EmbeddingModel(abc.ABC):
             yield out, indices_obj, indices_sub, entity_embeddings, unique_ent
 
     def _generate_corruptions_for_large_graphs(self):
-        """Corruption generator for large graph mode only.
-        It generates corruptions in batches and also yields the corresponding entity embeddings.
+        """
+        Corruption generator for large graph mode only.
+
+        It generates corruptions in batches as well as the related entity embeddings.
         """
 
         corruption_entities = self.eval_config.get(
@@ -1604,9 +1610,9 @@ class EmbeddingModel(abc.ABC):
         :rtype:
         """
 
-        # Use a data generator which returns a test triple along with the subjects and objects indices for filtering
-        # The last two data are used if the graph is large. They are the embeddings of the entities that must be
-        # loaded on the GPU before scoring and the indices of those embeddings.
+        # If the graph is large, use a data generator that returns a test triple as well as the subjects and objects
+        # indices for filtering. They are the embeddings of the entities that must be loaded on the GPU before scoring
+        # and the indices of those embeddings.
         dataset = tf.data.Dataset.from_generator(
             partial(self._test_generator, mode=mode),
             output_types=(tf.int32, tf.int32, tf.int32, tf.float32, tf.int32),
@@ -1673,10 +1679,10 @@ class EmbeddingModel(abc.ABC):
             )
             test_dependency.append(insert_lookup_op)
             if isinstance(corruption_entities, np.ndarray):
-                # This is used for mapping the scores of corryption entities to the array which stores the scores
-                # Since the number of entities are low when entities_subset is used, the size of the array
-                # which stores the scores would be len(entities_subset).
-                # Hence while storing, the corruption entity id needs to be mapped to array index
+                # This is used to map the corruption entities' scores to the array that stores the scores. Because
+                # the number of entities is low when entities subset is utilized, the size of the array that stores
+                # the scores is len(entities subset). As a result, when storing, the corrupted object id must be
+                # mapped to an array index.
                 rankings_mappings = tf.compat.v1.raw_ops.MutableDenseHashTable(
                     key_dtype=tf.int32,
                     value_dtype=tf.int32,
@@ -2095,9 +2101,8 @@ class EmbeddingModel(abc.ABC):
         """Predict the scores of triples using a trained embedding model.
         The function returns raw scores generated by the model.
 
-        .. note::
-            To obtain probability estimates, calibrate the model with :func:`~EmbeddingModel.calibrate`,
-            then call :func:`~EmbeddingModel.predict_proba`.
+        .. note:: To obtain probability estimates, calibrate the model with :func:`~EmbeddingModel.calibrate`,
+        then call :func:`~EmbeddingModel.predict_proba`.
 
         :param X: The triples to score.
         :type X: ndarray, shape [n, 3]
@@ -2204,8 +2209,9 @@ class EmbeddingModel(abc.ABC):
         return True
 
     def _calibrate_with_corruptions(self, X_pos, batches_count):
-        """Calibrates model with corruptions. The corruptions are hard-coded to be subject and object ('s,o')
-        with all available entities.
+        """
+        Calibrates model with corruptions. The corruptions are hard-coded to be subject and object ('s,o') with all
+        available entities.
 
         :param X_pos: Numpy array of positive triples.
         :type X_pos: ndarray (shape [n, 3])
@@ -2282,39 +2288,37 @@ class EmbeddingModel(abc.ABC):
     def _calibrate(
         self, X_pos, X_neg=None, positive_base_rate=None, batches_count=100, epochs=50
     ):
-        """Calibrate predictions tod o: un-underscore this method later
+        """
+        Calibrate predictions tod o: un-underscore this method later
 
-        The method implements the heuristics described in :cite:`calibration`,
-        using Platt scaling :cite:`platt1999probabilistic`.
+        The method implements the heuristics described in :cite:`calibration`, using Platt scaling
+        :cite:`platt1999probabilistic`.
 
-        The calibrated predictions can be obtained with :meth:`predict_proba`
-        after calibration is done.
+        The calibrated predictions can be obtained with :meth:`predict_proba` after calibration is done.
 
-        Ideally, calibration should be performed on a validation set that was not used to train the embeddings.
+        Calibration should ideally be done on a validation set that was not used to train the embeddings.
 
         There are two modes of operation, depending on the availability of negative triples:
 
-        #. Both positive and negative triples are provided via ``X_pos`` and ``X_neg`` respectively. \
-        The optimization is done using a second-order method (limited-memory BFGS), \
-        therefore no hyperparameter needs to be specified.
+        #. Both positive and negative triples are provided via ``X_pos`` and ``X_neg`` respectively. The optimization
+        is done using a second-order method (limited-memory BFGS), therefore no hyperparameter needs to be specified.
 
-        #. Only positive triples are provided, and the negative triples are generated by corruptions \
-        just like it is done in training or evaluation. The optimization is done using a first-order method (ADAM), \
-        therefore ``batches_count`` and ``epochs`` must be specified.
+        #. Only positive triples are provided, and the negative triples are generated by corruptions just like it is
+        done in training or evaluation. The optimization is done using a first-order method (ADAM), therefore
+        ``batches_count`` and ``epochs`` must be specified.
 
 
-        Calibration is highly dependent on the base rate of positive triples.
-        Therefore, for mode (2) of operation, the user is required to provide the ``positive_base_rate`` argument.
-        For mode (1), that can be inferred automatically by the relative sizes of the positive and negative sets,
-        but the user can override that by providing a value to ``positive_base_rate``.
+        The base rate of positive triples has a large influence on calibration. As a result, for mode (2) of
+        operation, the user must supply the "positive base rate" option. For mode (1), the relative sizes of the
+        positive and negative sets can deduce this automatically, but the user can override this by specifying a
+        value to "positive base rate."
 
-        Defining the positive base rate is the biggest challenge when calibrating without negatives. That depends on
-        the user choice of which triples will be evaluated during test time.
-        Let's take WN11 as an example: it has around 50% positives triples on both the validation set and test set,
-        so naturally the positive base rate is 50%. However, should the user resample it to have 75% positives
-        and 25% negatives, its previous calibration will be degraded. The user must recalibrate the model now with a
-        75% positive base rate. Therefore, this parameter depends on how the user handles the dataset and
-        cannot be determined automatically or a priori.
+        When calibrating without negatives, the most difficult problem is defining the positive base rate. This is
+        determined by the user's selection of which triples will be analyzed during testing. Take WN11 as an example:
+        it has approximately 50% positive triples on both the validation and test sets, so the positive base rate is
+        50%. However, if the user resamples it to have 75% positives and 25% negatives, the prior calibration will be
+        impaired. The user must now recalibrate the model with a 75% positive base rate. As a result, this parameter
+        is defined by how the user interacts with the dataset and cannot be determined mechanically or a priori.
 
         .. Note ::
             Incompatible with large graph mode (i.e. if ``self.dealing_with_large_graphs=True``).
@@ -2328,10 +2332,10 @@ class EmbeddingModel(abc.ABC):
         :type X_neg: ndarray (shape [n, 3])
         :param positive_base_rate: Base rate of positive statements.
 
-            For example, if we assume there is a fifty-fifty chance of any query to be true, the base rate would be 50%.
+            For example, if we assume that any inquiry has a fifty-fifty chance of being true, the base rate is 50%.
 
-            If ``X_neg`` is provided and this is `None`, the relative sizes of ``X_pos`` and ``X_neg`` will be used to
-            determine the base rate. For example, if we have 50 positive triples and 200 negative triples,
+            If ``X_neg`` is provided and this is `None`, the relative sizes of ``X_pos`` and ``X_neg`` will be used
+            to determine the base rate. For example, if we have 50 positive triples and 200 negative triples,
             the positive base rate will be assumed to be 50/(50+200) = 1/5 = 0.2.
 
             This must be a value between 0 and 1.
