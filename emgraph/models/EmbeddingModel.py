@@ -532,7 +532,6 @@ class EmbeddingModel(abc.ABC):
         emb = tf.nn.embedding_lookup(self.ent_emb, remapping)
         return emb
 
-    # tf2x_dev branch
     def make_variable(
         self,
         name=None,
@@ -1395,9 +1394,11 @@ class EmbeddingModel(abc.ABC):
                     # print("feed_dict: ", self.batch_number, batch - 1)
                     # self.optimizer.update_feed_dict(feed_dict, batch, epoch)
                     # print("self.optimizer.update_feed_dict: ", self.optimizer.update_feed_dict)
+                    # fixme: only large graphs are processed as batches
                     if self.dealing_with_large_graphs:
                         # loss_batch, unique_entities, _ = self.sess_train.run([loss, self.unique_entities, train],
                         #                                                      feed_dict=feed_dict)
+                        # FIXME: the batch loss
                         loss_batch = loss
                         unique_entities = self.unique_entities
                         train = self.optimizer.minimize(
