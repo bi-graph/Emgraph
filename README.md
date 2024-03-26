@@ -27,11 +27,9 @@
 </div>
 
 <div>
-<h2>Documentation</h2>
-<p>Soon</p>
-
-[//]: # (<p> <a href="https://emgraph.readthedocs.io/en/latest/index.html">https://emgraph.readthedocs.io/en/latest/</a></p>)
-
+<!-- <h2>Documentation</h2> -->
+<!-- <p>Soon</p> -->
+<!-- [//]: # (<p> <a href="https://emgraph.readthedocs.io/en/latest/index.html">https://emgraph.readthedocs.io/en/latest/</a></p>) -->
 </div>
 
 <h2>Quick start</h2>
@@ -215,14 +213,21 @@ if __name__ == '__main__':
 - [x] Documentation
 - [x] Test driven development
 </div>
-<h2>If you find it helpful, please give us a <span>:star:</span></h2>
+<h3>If you find this project helpful, please consider giving it a <span>:star:</span>.</h3>
 
 <div>
 <h2>License</h2>
 <p>Released under the BSD license</p>
 </div>
 
-<div class="footer"><pre>Copyright &copy; 2019-2022 <b>Emgraph</b> Developers
+<div>
+<h2>Credit</h2>
+<p>This repository is a transformation of the <a href="https://github.com/Accenture/AmpliGraph">AmpliGraph</a> library for TensorFlow 2, with a modular architecture implementation. It also draws inspiration from <a href="https://github.com/pykeen/pykeen">PyKEEN</a> and <a href="https://github.com/danielegrattarola/spektral/">Spectral</a>. Credit is extended to these exceptional projects.</p>
+</div>
+
+
+<h2>Contact</h2>
+<div class="footer"><pre>Copyright &copy; 2019-2024 <b>Emgraph</b> Developers
 <a href="https://soran-ghaderi.github.io/">Soran Ghaderi</a> (soran.gdr.cs@gmail.com)   follow me <a href="https://github.com/soran-ghaderi"><img alt="Github" src="https://img.shields.io/badge/GitHub-100000?&logo=github&logoColor=white"></a> <a href="https://twitter.com/soranghadri"><img alt="Twitter" src="https://img.shields.io/badge/Twitter-1DA1F2?&logo=twitter&logoColor=white"></a> <a href="https://www.linkedin.com/in/soran-ghaderi/"><img alt="Linkedin" src="https://img.shields.io/badge/LinkedIn-0077B5?&logo=linkedin&logoColor=white"></a>
 <a href="https://uk.linkedin.com/in/taleb-zarhesh">Taleb Zarhesh</a> (taleb.zarhesh@gmail.com)  follow me <a href="https://github.com/sigma1326"><img alt="Github" src="https://img.shields.io/badge/GitHub-100000?&logo=github&logoColor=white"></a> <a href="https://twitter.com/taleb__z"><img alt="Twitter" src="https://img.shields.io/badge/Twitter-1DA1F2?&logo=twitter&logoColor=white"></a> <a href="https://www.linkedin.com/in/taleb-zarhesh/"><img alt="Linkedin" src="https://img.shields.io/badge/LinkedIn-0077B5?&logo=linkedin&logoColor=white"></a>
 </pre>
